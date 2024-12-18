@@ -1,7 +1,7 @@
-import type { Mountable } from "../app/system";
-import logger from "../utils";
 import type { Cache } from "../app/cache";
 import type { AppOverview } from "../app/model";
+import type { Mountable } from "../app/system";
+import logger from "../utils";
 
 export { SteamPatches };
 
@@ -27,7 +27,7 @@ class SteamPatches implements Mountable {
 					const appOverview = appStore.GetAppOverviewByAppID(
 						Number.parseInt(appId),
 					);
-					if (appOverview?.app_type == 1073741824) {
+					if (appOverview?.app_type === 1073741824) {
 						this.patchOverviewWithValues(
 							appOverview,
 							time,
@@ -36,7 +36,8 @@ class SteamPatches implements Mountable {
 						changedApps.push(appOverview);
 					}
 				}
-				appInfoStore.OnAppOverviewChange(changedApps);
+				// NOTE: Fix from: https://github.com/ma3a/SDH-PlayTime/pull/71
+				// appInfoStore.OnAppOverviewChange(changedApps);
 				appStore.m_mapApps.set(
 					changedApps.map((app) => app.appid),
 					changedApps,
