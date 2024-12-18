@@ -65,7 +65,10 @@ class SteamEventMiddleware implements Mountable {
 						return;
 					}
 
-					if (Router.m_runningAppIDs.includes(game?.id)) {
+					if (
+						Router.m_runningAppIDs.includes(game?.id) &&
+						appStore.GetAppOverviewByGameID(game?.id).app_type !== 1073741824
+					) {
 						return;
 					}
 
