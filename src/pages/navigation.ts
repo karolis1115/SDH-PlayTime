@@ -1,15 +1,15 @@
-import { Navigation } from 'decky-frontend-lib'
+import { Navigation } from "@decky/ui";
 
-export let SETTINGS_ROUTE = '/playtime/settings'
-export let DETAILED_REPORT_ROUTE = '/playtime/detailed-report'
-export let MANUALLY_ADJUST_TIME = '/playtime/manually-adjust-time'
+export const SETTINGS_ROUTE = "/playtime/settings";
+export const DETAILED_REPORT_ROUTE = "/playtime/detailed-report";
+export const MANUALLY_ADJUST_TIME = "/playtime/manually-adjust-time";
 
 export function navigateToPage(url: string) {
-    Navigation.CloseSideMenus()
-    Navigation.Navigate(url)
+	Navigation.CloseSideMenus();
+	Navigation.Navigate(url);
 }
 
 export function navigateBack() {
-    Navigation.CloseSideMenus()
-    Navigation.NavigateBack()
+	Navigation.CloseSideMenus();
+	Navigation.NavigateBack();
 }
