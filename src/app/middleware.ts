@@ -1,4 +1,5 @@
 import { Router, sleep } from "@decky/ui";
+import { isNil } from "../utils/isNil";
 import type { Game } from "./model";
 import type { Clock, EventBus, Mountable } from "./system";
 
@@ -46,25 +47,33 @@ class SteamEventMiddleware implements Mountable {
 			SteamClient.GameSessions.RegisterForAppLifetimeNotifications(
 				async (data: LifetimeNotification) => {
 					let game = await this.awaitGameInfo();
-					if (game == null || game == undefined) {
+
+					if (isNil(game)) {
 						game = {
 							id: data.unAppID.toString(),
 							name: "",
 						};
 					}
+
 					if (data.bRunning) {
 						this.eventBus.emit({
 							type: "GameStarted",
 							createdAt: this.clock.getTimeMs(),
 							game: game,
 						});
-					} else {
-						this.eventBus.emit({
-							type: "GameStopped",
-							createdAt: this.clock.getTimeMs(),
-							game: game,
-						});
+
+						return;
 					}
+
+					if (Router.m_runningAppIDs.includes(game?.id)) {
+						return;
+					}
+
+					this.eventBus.emit({
+						type: "GameStopped",
+						createdAt: this.clock.getTimeMs(),
+						game: game,
+					});
 				},
 			),
 		);

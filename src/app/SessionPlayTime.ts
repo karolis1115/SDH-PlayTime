@@ -1,7 +1,7 @@
 import logger from "../utils";
 
-import type { EventBus } from "./system";
 import type { Game } from "./model";
+import type { EventBus } from "./system";
 
 export { SessionPlayTime };
 
@@ -43,8 +43,9 @@ class SessionPlayTime {
 					break;
 
 				case "Unmount":
-					if (this.activeInterval != null)
+					if (this.activeInterval != null) {
 						this.commitInterval(event.createdAt, this.activeInterval.game);
+					}
 					break;
 			}
 		});
