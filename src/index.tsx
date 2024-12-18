@@ -127,8 +127,11 @@ function createMountables(
 		}
 	});
 	const mounts: Mountable[] = [];
+
 	mounts.push(new BreaksReminder(eventBus, settings));
+
 	mounts.push(new SteamEventMiddleware(eventBus, clock));
+
 	mounts.push({
 		mount() {
 			routerHook.addRoute(DETAILED_REPORT_ROUTE, () => (
@@ -146,6 +149,7 @@ function createMountables(
 			routerHook.removeRoute(DETAILED_REPORT_ROUTE);
 		},
 	});
+
 	mounts.push({
 		mount() {
 			routerHook.addRoute(SETTINGS_ROUTE, () => (
@@ -163,6 +167,7 @@ function createMountables(
 			routerHook.removeRoute(SETTINGS_ROUTE);
 		},
 	});
+
 	mounts.push({
 		mount() {
 			routerHook.addRoute(MANUALLY_ADJUST_TIME, () => (
@@ -180,7 +185,9 @@ function createMountables(
 			routerHook.removeRoute(MANUALLY_ADJUST_TIME);
 		},
 	});
+
 	mounts.push(patchAppPage(cachedPlayTimes));
 	mounts.push(new SteamPatches(cachedPlayTimes, cachedLastTwoWeeksPlayTimes));
+
 	return mounts;
 }
