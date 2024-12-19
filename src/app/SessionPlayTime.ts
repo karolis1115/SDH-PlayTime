@@ -1,3 +1,4 @@
+import { isNil } from "@src/utils/isNil";
 import logger from "../utils";
 
 import type { Game } from "./model";
@@ -23,11 +24,11 @@ class SessionPlayTime {
 					break;
 
 				case "GameStarted":
-					this.startInterval(event.createdAt, event.game!);
+					this.startInterval(event.createdAt, event.game);
 					break;
 
 				case "GameStopped":
-					this.commitInterval(event.createdAt, event.game!);
+					this.commitInterval(event.createdAt, event.game);
 					break;
 
 				case "Suspended":
@@ -63,15 +64,23 @@ class SessionPlayTime {
 	}
 
 	private startInterval(startedAt: number, game: Game) {
-		if (this.activeInterval != null && this.activeInterval.game.id == game.id) {
-			logger.error(`Getting same game start interval, ignoring it`);
+		if (
+			!isNil(this.activeInterval) &&
+			this.activeInterval.game.id === game.id
+		) {
+			logger.error("Getting same game start interval, ignoring it");
+
 			return;
 		}
-		if (this.activeInterval != null && this.activeInterval.game.id != game.id) {
+
+		if (
+			!isNil(this.activeInterval) &&
+			this.activeInterval.game.id !== game.id
+		) {
 			logger.error(
-				`Interval already started but for the different game ` +
-					`['${this.activeInterval.game.id}', '${this.activeInterval.game.name}'] -> [['${game.id}', '${game.name}']];`,
+				`Interval already started but for the different game ['${this.activeInterval.game.id}', '${this.activeInterval.game.name}'] -> [['${game.id}', '${game.name}']];`,
 			);
+
 			this.activeInterval = null;
 		}
 
@@ -86,10 +95,9 @@ class SessionPlayTime {
 			logger.error("There is no active interval, ignoring commit");
 			return;
 		}
-		if (this.activeInterval.game.id != game.id) {
+		if (this.activeInterval.game.id !== game.id) {
 			logger.error(
-				`Could not commit interval with different games:` +
-					` ['${this.activeInterval.game.id}', '${this.activeInterval.game.name}'] -> [['${game.id}', '${game.name}']] `,
+				`Could not commit interval with different games: ['${this.activeInterval.game.id}', '${this.activeInterval.game.name}'] -> [['${game.id}', '${game.name}']] `,
 			);
 			return;
 		}

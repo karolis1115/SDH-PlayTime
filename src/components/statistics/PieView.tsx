@@ -1,6 +1,6 @@
 import type { FC } from "react";
-import type { DailyStatistics } from "../../app/model";
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer } from "recharts";
+import type { DailyStatistics } from "../../app/model";
 import { FocusableExt } from "../FocusableExt";
 
 interface TimeByGame {
@@ -92,8 +92,11 @@ export const PieView: FC<{ statistics: DailyStatistics[] }> = (props) => {
 							label={renderCustomizedLabel}
 							legendType="circle"
 						>
-							{data.map((_, index) => (
-								<Cell key={`cell-${index}`} fill={colors[index]} />
+							{data.map((gameInformation, index) => (
+								<Cell
+									key={`cell-${gameInformation.name}`}
+									fill={colors[index]}
+								/>
 							))}
 						</Pie>
 						<Legend cx="30%" verticalAlign="bottom" />
@@ -108,17 +111,13 @@ function sumTimeAndGroupByGame(statistics: DailyStatistics[]): TimeByGame[] {
 	const timeByGameId = new Map<string, number>();
 	const titleByGameId = new Map<string, string>();
 
-	statistics
-		.flatMap((it) => it.games)
-		.forEach((el) => {
-			timeByGameId.set(
-				el.game.id,
-				(timeByGameId.get(el.game.id) || 0) + el.time,
-			);
-			titleByGameId.set(el.game.id, el.game.name);
-		});
+	for (const el of statistics.flatMap((it) => it.games)) {
+		timeByGameId.set(el.game.id, (timeByGameId.get(el.game.id) || 0) + el.time);
+		titleByGameId.set(el.game.id, el.game.name);
+	}
 
 	const timeByGames: TimeByGame[] = [];
+
 	timeByGameId.forEach((v, k) => {
 		timeByGames.push({
 			gameId: k,
@@ -126,6 +125,8 @@ function sumTimeAndGroupByGame(statistics: DailyStatistics[]): TimeByGame[] {
 			time: v,
 		} as TimeByGame);
 	});
+
 	timeByGames.sort((a, b) => b.time - a.time);
+
 	return timeByGames;
 }

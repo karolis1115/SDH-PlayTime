@@ -1,3 +1,4 @@
+import { isNil } from "@src/utils/isNil";
 import logger from "../utils";
 
 declare global {
@@ -23,8 +24,8 @@ export const DEFAULTS: PlayTimeSettings = {
 
 export class Settings {
 	constructor() {
-		SteamClient.Storage.GetJSON(PLAY_TIME_SETTINGS_KEY).catch((e: any) => {
-			if ((e.message = "Not found")) {
+		SteamClient.Storage.GetJSON(PLAY_TIME_SETTINGS_KEY).catch((e: Error) => {
+			if (e.message === "Not found") {
 				logger.error("Unable to get settings, saving defaults", e);
 				SteamClient.Storage.SetObject(PLAY_TIME_SETTINGS_KEY, DEFAULTS);
 			} else {
@@ -35,9 +36,11 @@ export class Settings {
 
 	async get(): Promise<PlayTimeSettings> {
 		const settings = await SteamClient.Storage.GetJSON(PLAY_TIME_SETTINGS_KEY);
-		if (settings == undefined) {
+
+		if (isNil(settings)) {
 			return DEFAULTS;
 		}
+
 		return JSON.parse(settings) as PlayTimeSettings;
 	}
 

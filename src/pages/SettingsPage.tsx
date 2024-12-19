@@ -1,18 +1,18 @@
 import {
+	ButtonItem,
 	Dropdown,
 	Field,
-	PanelSectionRow,
 	PanelSection,
+	PanelSectionRow,
 	SidebarNavigation,
-	ButtonItem,
 } from "@decky/ui";
-import { useEffect, useState, type VFC } from "react";
+import { type VFC, useEffect, useState } from "react";
 import { ChartStyle, DEFAULTS, type PlayTimeSettings } from "../app/settings";
-import { MANUALLY_ADJUST_TIME, navigateToPage } from "./navigation";
-import { useLocator } from "../locator";
 import { Tab } from "../components/Tab";
+import { useLocator } from "../locator";
+import { MANUALLY_ADJUST_TIME, navigateToPage } from "./navigation";
 
-export const GeneralSettings: VFC<{}> = () => {
+export const GeneralSettings: VFC = () => {
 	const { settings } = useLocator();
 	const [current, setCurrent] = useState<PlayTimeSettings>(DEFAULTS);
 	const [loaded, setLoaded] = useState<boolean>(false);
@@ -87,7 +87,7 @@ export const GeneralSettings: VFC<{}> = () => {
 	);
 };
 
-export const TimeManipulation: VFC<{}> = () => {
+export const TimeManipulation: VFC = () => {
 	return (
 		<div>
 			<PanelSection title="Change overall play time">
@@ -101,7 +101,7 @@ export const TimeManipulation: VFC<{}> = () => {
 	);
 };
 
-export const SettingsPage: VFC<{}> = () => {
+export const SettingsPage: VFC = () => {
 	return (
 		<SidebarNavigation
 			pages={[

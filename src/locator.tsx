@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import type { Locator, LocatorDependencies } from "./app/system";
 import { DEFAULTS, type PlayTimeSettings } from "./app/settings";
+import type { Locator, LocatorDependencies } from "./app/system";
 
 const LocatorContext = createContext<Locator | null>(null);
 
@@ -17,18 +17,22 @@ export const LocatorProvider: React.FC<
 
 	useEffect(() => {
 		setIsLoaded(false);
+
 		deps.settings.get().then((it) => {
 			setCurrentSettings(it);
 			setIsLoaded(true);
 		});
 	}, []);
+
 	const locator: Locator = {
 		...deps,
 		currentSettings: currentSettings,
 	};
+
 	if (!isLoaded) {
-		return <div></div>;
+		return <div />;
 	}
+
 	return (
 		<LocatorContext.Provider value={locator}>
 			{children}

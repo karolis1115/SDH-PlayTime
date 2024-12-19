@@ -1,9 +1,9 @@
 import logger from "../utils";
 import type { SessionPlayTime } from "./SessionPlayTime";
 import type { Events } from "./events";
-import type { TimeManipulation } from "./time-manipulation";
 import type { Reports } from "./reports";
 import type { PlayTimeSettings, Settings } from "./settings";
+import type { TimeManipulation } from "./time-manipulation";
 
 export {
 	type Clock,
@@ -45,7 +45,10 @@ class MountManager {
 	}
 
 	mount() {
-		this.mounts.forEach((mount) => mount.mount());
+		for (const mount of this.mounts) {
+			mount.mount();
+		}
+
 		this.eventBus.emit({
 			type: "Mount",
 			createdAt: this.clock.getTimeMs(),
@@ -54,7 +57,10 @@ class MountManager {
 	}
 
 	unMount() {
-		this.mounts.forEach((mount) => mount.unMount());
+		for (const mount of this.mounts) {
+			mount.unMount();
+		}
+
 		this.eventBus.emit({
 			type: "Unmount",
 			createdAt: this.clock.getTimeMs(),
@@ -68,9 +74,10 @@ class EventBus {
 
 	public emit(event: Events) {
 		logger.info("New event", event);
-		this.subscribers.forEach((it) => {
+
+		for (const it of this.subscribers) {
 			it(event);
-		});
+		}
 	}
 
 	public addSubscriber(subscriber: (event: Events) => void) {

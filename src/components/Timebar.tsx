@@ -4,7 +4,8 @@ import { VerticalContainer } from "./VerticalContainer";
 
 export const Timebar: React.FC<{ time: number; allTime: number }> = (props) => {
 	const barWidth =
-		props.allTime != 0 ? `${(props.time / props.allTime) * 100}%` : "0%";
+		props.allTime !== 0 ? `${(props.time / props.allTime) * 100}%` : "0%";
+
 	return (
 		<VerticalContainer>
 			<div style={TimeBarCSS.time_bar__outline}>

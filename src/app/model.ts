@@ -32,24 +32,25 @@ function convertDailyStatisticsToGameWithTime(
 	data: DailyStatistics[],
 ): GameWithTime[] {
 	const result: GameWithTime[] = [];
-	data.forEach((day) => {
-		day.games.forEach((game) => {
+
+	for (const day of data) {
+		for (const game of day.games) {
 			const found = result.find((g) => g.game.id === game.game.id);
 			if (found) {
 				found.time += game.time;
 			} else {
 				result.push(game);
 			}
-		});
-	});
+		}
+	}
 	return result;
 }
 
 interface AppOverview {
-	__proto__: any;
+	__proto__: unknown;
 	appid: number;
-	InitFromProto: any;
-	OriginalInitFromProto: any;
+	InitFromProto: unknown;
+	OriginalInitFromProto: unknown;
 	display_name: string;
 	app_type: number;
 	mru_index: number;
@@ -173,7 +174,7 @@ interface AppDetails {
 	bEnableAllowDesktopConfiguration: boolean;
 	bFreeRemovableLicense: boolean;
 	bHasAllLegacyCDKeys: boolean;
-	bHasAnyLocalContent: boolean;
+	bHasunknownLocalContent: boolean;
 	bHasLockedPrivateBetas: boolean;
 	bIsExcludedFromSharing: boolean;
 	bIsSubscribedTo: boolean;
@@ -228,46 +229,46 @@ interface AppDetails {
 	strShortcutStartDir: string;
 	strSteamDeckBlogURL: string;
 	unAppID: number;
-	vecBetas: any[];
-	vecDLC: any[];
-	vecDeckCompatTestResults: any[];
+	vecBetas: unknown[];
+	vecDLC: unknown[];
+	vecDeckCompatTestResults: unknown[];
 	vecLanguages: AppLanguages[];
-	vecLegacyCDKeys: any[];
-	vecMusicAlbums: any[];
+	vecLegacyCDKeys: unknown[];
+	vecMusicAlbums: unknown[];
 	vecPlatforms: string[];
-	vecScreenShots: any[];
+	vecScreenShots: unknown[];
 }
 
 interface AppStore {
-	UpdateAppOverview: any;
+	UpdateAppOverview: unknown;
 	GetAppOverviewByAppID: (id: number) => AppOverview;
 	GetAppOverviewByGameID: (id: string) => AppOverview;
-	CompareSortAs: any;
+	CompareSortAs: unknown;
 	allApps: AppOverview[];
-	storeTagCounts: any;
-	GetTopStoreTags: any;
-	OnLocalizationChanged: any;
-	GetStoreTagLocalization: any;
-	GetLocalizationForStoreTag: any;
-	AsyncGetLocalizationForStoreTag: any;
-	sharedLibraryAccountIds: any;
-	siteLicenseApps: any;
-	GetIconURLForApp: any;
-	GetLandscapeImageURLForApp: any;
-	GetCachedLandscapeImageURLForApp: any;
-	GetVerticalCapsuleURLForApp: any;
-	GetPregeneratedVerticalCapsuleForApp: any;
-	GetCachedVerticalCapsuleURL: any;
-	GetCustomImageURLs: any;
-	GetCustomVerticalCapsuleURLs: any;
-	GetCustomLandcapeImageURLs: any;
-	GetCustomHeroImageURLs: any;
-	GetCustomLogoImageURLs: any;
-	GetStorePageURLForApp: any;
-	m_mapApps: any;
+	storeTagCounts: unknown;
+	GetTopStoreTags: unknown;
+	OnLocalizationChanged: unknown;
+	GetStoreTagLocalization: unknown;
+	GetLocalizationForStoreTag: unknown;
+	AsyncGetLocalizationForStoreTag: unknown;
+	sharedLibraryAccountIds: unknown;
+	siteLicenseApps: unknown;
+	GetIconURLForApp: unknown;
+	GetLandscapeImageURLForApp: unknown;
+	GetCachedLandscapeImageURLForApp: unknown;
+	GetVerticalCapsuleURLForApp: unknown;
+	GetPregeneratedVerticalCapsuleForApp: unknown;
+	GetCachedVerticalCapsuleURL: unknown;
+	GetCustomImageURLs: unknown;
+	GetCustomVerticalCapsuleURLs: unknown;
+	GetCustomLandcapeImageURLs: unknown;
+	GetCustomHeroImageURLs: unknown;
+	GetCustomLogoImageURLs: unknown;
+	GetStorePageURLForApp: unknown;
+	m_mapApps: unknown;
 }
 
 interface AppInfoStore {
-	OnAppOverviewChange: any;
-	OriginalOnAppOverviewChange: any;
+	OnAppOverviewChange: unknown;
+	OriginalOnAppOverviewChange: unknown;
 }

@@ -12,24 +12,30 @@ function humanReadableTime(seconds: number, short = true): string {
 	const hours = Math.floor(minutes / 60);
 
 	const plurals = (value: number, nonPlural: string) => {
-		if (value == 1) {
+		if (value === 1) {
 			return nonPlural;
-		} else return nonPlural + "s";
+		}
+
+		return `${nonPlural}s`;
 	};
 
 	let result = "";
+
 	if (short) {
 		if (hours > 0) {
 			result += `${hours}h `;
 		}
 		result += `${minutes % 60}m`;
+
 		return result;
-	} else {
-		if (hours > 0) {
-			result += `${hours} ${plurals(hours, "hour")} `;
-		}
-		result += `${minutes % 60} ${plurals(minutes % 60, "minute")}`;
 	}
+
+	if (hours > 0) {
+		result += `${hours} ${plurals(hours, "hour")} `;
+	}
+
+	result += `${minutes % 60} ${plurals(minutes % 60, "minute")}`;
+
 	return result;
 }
 

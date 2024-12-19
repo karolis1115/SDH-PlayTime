@@ -17,11 +17,13 @@ class SteamEventMiddleware implements Mountable {
 	private activeHooks: Array<SteamHook> = [];
 
 	public mount() {
-		if (this.fetchGameInfo() != null) {
+		const gameInfo = this.fetchGameInfo();
+
+		if (!isNil(gameInfo)) {
 			this.eventBus.emit({
 				type: "GameWasRunningBefore",
 				createdAt: this.clock.getTimeMs(),
-				game: this.fetchGameInfo()!,
+				game: gameInfo,
 			});
 		}
 
@@ -86,7 +88,7 @@ class SteamEventMiddleware implements Mountable {
 				this.eventBus.emit({
 					type: "Suspended",
 					createdAt: this.clock.getTimeMs(),
-					game: await this.fetchGameInfo(),
+					game: this.fetchGameInfo(),
 				});
 			}),
 		);
@@ -96,7 +98,7 @@ class SteamEventMiddleware implements Mountable {
 				this.eventBus.emit({
 					type: "ResumeFromSuspend",
 					createdAt: this.clock.getTimeMs(),
-					game: await this.fetchGameInfo(),
+					game: this.fetchGameInfo(),
 				});
 			}),
 		);
@@ -104,9 +106,10 @@ class SteamEventMiddleware implements Mountable {
 
 	private async awaitGameInfo(): Promise<Game> {
 		await waitForPredicate(4, 200, async () => {
-			return this.fetchGameInfo() != null;
+			return !isNil(this.fetchGameInfo());
 		});
-		return this.fetchGameInfo()!;
+
+		return this.fetchGameInfo() as Game;
 	}
 
 	private fetchGameInfo(): Game | null {
@@ -115,13 +118,15 @@ class SteamEventMiddleware implements Mountable {
 				id: Router.MainRunningApp.appid,
 				name: Router.MainRunningApp.display_name,
 			} as Game;
-		} else {
-			return null;
 		}
+
+		return null;
 	}
 
 	public async unMount() {
-		this.activeHooks.forEach((it) => it.unregister());
+		for (const it of this.activeHooks) {
+			it.unregister();
+		}
 	}
 }
 

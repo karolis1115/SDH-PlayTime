@@ -7,6 +7,7 @@ import {
 	TextField,
 } from "@decky/ui";
 import { type VFC, useEffect, useState } from "react";
+import type { DeepNonNullable } from "ts-essentials";
 import { humanReadableTime } from "../app/formatters";
 import type { GameWithTime } from "../app/model";
 import { excludeApps } from "../app/time-manipulation";
@@ -82,7 +83,7 @@ export const ManuallyAdjustTimePage: VFC = () => {
 			row.appId !== undefined &&
 			row.desiredHours !== undefined &&
 			row.desiredHours > 0 &&
-			gameWithTimeByAppId.get(row.appId!) !== undefined
+			gameWithTimeByAppId.get(row.appId) !== undefined
 		);
 	};
 
@@ -90,9 +91,11 @@ export const ManuallyAdjustTimePage: VFC = () => {
 		const gamesToMigrate = tableRows
 			.filter((it) => isRowValid(it))
 			.map((it) => {
+				const { appId, desiredHours } = it as DeepNonNullable<TableRowsProps>;
+
 				return {
-					game: gameWithTimeByAppId.get(it.appId!)?.game,
-					time: it.desiredHours! * 3600,
+					game: gameWithTimeByAppId.get(appId)?.game,
+					time: desiredHours * 3600,
 				} as GameWithTime;
 			});
 		await timeMigration.applyManualOverallTimeCorrection(gamesToMigrate[0]);

@@ -31,7 +31,8 @@ export function patchAppPage(timeCache: Cache<Map<string, number>>): Mountable {
 				if (overview.app_type === 1073741824) {
 					if (details && timeCache.isReady()) {
 						runInAction(() => {
-							const time = timeCache.get()!.get(app_id.toString()) || 0;
+							const time = timeCache.get()?.get(app_id.toString()) || 0;
+
 							details.nPlaytimeForever = +(time / 60.0).toFixed(1);
 						});
 					}
@@ -42,6 +43,7 @@ export function patchAppPage(timeCache: Cache<Map<string, number>>): Mountable {
 
 				return ret1;
 			});
+
 			return props;
 		},
 	);

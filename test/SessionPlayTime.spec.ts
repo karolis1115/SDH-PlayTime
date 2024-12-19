@@ -48,7 +48,7 @@ describe("SessionPlayTime should send commit interval", () => {
 		// @ts-ignore
 		const sessionPlayTime = new SessionPlayTime(eventBus);
 
-		let committedInterval;
+		let committedInterval: unknown;
 
 		eventBus.addSubscriber((event) => {
 			switch (event.type) {

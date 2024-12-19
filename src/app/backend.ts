@@ -72,12 +72,14 @@ export class Backend {
 	}
 
 	async fetchPerGameOverallStatistics(): Promise<GameWithTime[]> {
-		return await call<never, GameWithTime[]>("per_game_overall_statistics")
+		return await call<[], GameWithTime[]>("per_game_overall_statistics")
 			.then((response) => {
 				return response;
 			})
 			.catch((error) => {
 				logger.error(error);
+
+				return [];
 			});
 	}
 

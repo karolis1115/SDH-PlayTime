@@ -1,18 +1,18 @@
+import { PanelSection } from "@decky/ui";
 import { type VFC, useEffect, useState } from "react";
+import { formatWeekInterval } from "../app/formatters";
 import {
 	type DailyStatistics,
 	convertDailyStatisticsToGameWithTime,
 } from "../app/model";
-import { useLocator } from "../locator";
 import { type Paginated, empty } from "../app/reports";
-import { Pager } from "../components/Pager";
-import { WeekView } from "../components/statistics/WeekView";
 import { ChartStyle } from "../app/settings";
-import { PieView } from "../components/statistics/PieView";
+import { Pager } from "../components/Pager";
 import { AverageAndOverall } from "../components/statistics/AverageAndOverall";
-import { formatWeekInterval } from "../app/formatters";
 import { GamesTimeBarView } from "../components/statistics/GamesTimeBarView";
-import { PanelSection } from "@decky/ui";
+import { PieView } from "../components/statistics/PieView";
+import { WeekView } from "../components/statistics/WeekView";
+import { useLocator } from "../locator";
 
 export const ReportWeekly: VFC = () => {
 	const { reports, currentSettings: settings } = useLocator();
@@ -74,7 +74,7 @@ export const ReportWeekly: VFC = () => {
 							<GamesTimeBarView
 								data={convertDailyStatisticsToGameWithTime(data)}
 							/>
-							{settings.gameChartStyle == ChartStyle.PIE_AND_BARS && (
+							{settings.gameChartStyle === ChartStyle.PIE_AND_BARS && (
 								<PieView statistics={data} />
 							)}
 						</PanelSection>

@@ -1,14 +1,14 @@
 import { ButtonItem, PanelSection, PanelSectionRow } from "@decky/ui";
+import type { VFC } from "react";
+import { CurrentPlayTime } from "../containers/CurrentPlayTime";
+import { ReportWeekly } from "../containers/ReportWeekly";
 import {
 	DETAILED_REPORT_ROUTE,
 	SETTINGS_ROUTE,
 	navigateToPage,
 } from "./navigation";
-import type { VFC } from "react";
-import { ReportWeekly } from "../containers/ReportWeekly";
-import { CurrentPlayTime } from "../containers/CurrentPlayTime";
 
-export const DeckyPanelPage: VFC<{}> = () => {
+export const DeckyPanelPage: VFC = () => {
 	return (
 		<div>
 			<CurrentPlayTime />

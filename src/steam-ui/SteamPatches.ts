@@ -54,47 +54,53 @@ class SteamPatches implements Mountable {
 	// here we patch AppInfoStore OnAppOverviewChange method so we can prepare changed app overviews for the next part of the patch (AppOverview.InitFromProto)
 	private ReplaceAppInfoStoreOnAppOverviewChange() {
 		this.RestoreOnAppOverviewChange();
+
 		if (appInfoStore && !appInfoStore.OriginalOnAppOverviewChange) {
-			logger.debug(`ReplaceAppInfoStoreOnAppOverviewChange`);
+			logger.debug("ReplaceAppInfoStoreOnAppOverviewChange");
 			appInfoStore.OriginalOnAppOverviewChange =
 				appInfoStore.OnAppOverviewChange;
 			const instance = this;
-			appInfoStore.OnAppOverviewChange = function (apps: Array<any>) {
+			appInfoStore.OnAppOverviewChange = function (apps: Array<unknown>) {
 				const appIds = apps
-					.filter((_: any) => typeof _.appid() === "number")
-					.map((_: any) => _.appid() as number);
+					.filter((_: unknown) => typeof _.appid() === "number")
+					.map((_: unknown) => _.appid() as number);
 				instance.appInfoStoreOnAppOverviewChange(appIds);
-				logger.debug(`AppInfoStore.OnAppOverviewChange: calling original`);
+				logger.debug("AppInfoStore.OnAppOverviewChange: calling original");
 				this.OriginalOnAppOverviewChange(apps);
 			};
 		}
 	}
 
 	private RestoreOnAppOverviewChange() {
-		if (appInfoStore && appInfoStore.OriginalOnAppOverviewChange) {
-			//logger.trace(`RestoreOnAppOverviewChange`);
-			appInfoStore.OnAppOverviewChange =
-				appInfoStore.OriginalOnAppOverviewChange;
-			appInfoStore.OriginalOnAppOverviewChange = null;
+		if (!appInfoStore?.OriginalOnAppOverviewChange) {
+			return;
 		}
+
+		//logger.trace(`RestoreOnAppOverviewChange`);
+		appInfoStore.OnAppOverviewChange = appInfoStore.OriginalOnAppOverviewChange;
+		appInfoStore.OriginalOnAppOverviewChange = null;
 	}
 
 	// here we patch AppStore m_mapApps Map set method so we can overwrite playtime before setting AppOverview
 	private ReplaceAppStoreMapAppsSet() {
 		this.RestoreAppStoreMapAppsSet();
+
 		if (appStore.m_mapApps && !appStore.m_mapApps.originalSet) {
 			//logger.trace(`ReplaceAppStoreMapAppsSet`);
 			appStore.m_mapApps.originalSet = appStore.m_mapApps.set;
+
 			const appStoreInstance = appStore;
-			appStore.m_mapApps.set = (appId: number, appOverview: any): any => {
+
+			appStore.m_mapApps.set = (appId: number, appOverview: unknown): void => {
 				this.appStoreMapAppsSet(appId, appOverview);
+
 				appStoreInstance.m_mapApps.originalSet(appId, appOverview);
 			};
 		}
 	}
 
 	private RestoreAppStoreMapAppsSet() {
-		if (appStore.m_mapApps && appStore.m_mapApps.originalSet) {
+		if (appStore.m_mapApps?.originalSet) {
 			//logger.trace(`RestoreAppStoreMapAppsSet`);
 			appStore.m_mapApps.set = appStore.m_mapApps.originalSet;
 			appStore.m_mapApps.originalSet = null;
@@ -106,24 +112,29 @@ class SteamPatches implements Mountable {
 		logger.debug(
 			`AppInfoStore.OnAppOverviewChange (${appIds ? "[]" : "null"})`,
 		);
-		if (appIds) {
-			appIds.forEach((appId) => {
-				const appOverview = appStore.GetAppOverviewByAppID(appId);
-				if (appOverview?.app_type == 1073741824) {
-					const instance = this;
-					appOverview.OriginalInitFromProto = appOverview.InitFromProto;
-					appOverview.InitFromProto = (proto: any) => {
-						appOverview.OriginalInitFromProto(proto);
-						instance.patchAppOverviewFromCache(appOverview);
-						appOverview.InitFromProto = appOverview.OriginalInitFromProto;
-					};
-				}
-			});
+		if (!appIds) {
+			return;
+		}
+
+		for (const appId of appIds) {
+			const appOverview = appStore.GetAppOverviewByAppID(appId);
+
+			if (appOverview?.app_type === 1073741824) {
+				appOverview.OriginalInitFromProto = appOverview.InitFromProto;
+
+				appOverview.InitFromProto = (proto: unknown) => {
+					appOverview.OriginalInitFromProto(proto);
+
+					this.patchAppOverviewFromCache(appOverview);
+
+					appOverview.InitFromProto = appOverview.OriginalInitFromProto;
+				};
+			}
 		}
 	}
 
 	// here we set playtime to appOverview before the appOverview is added to AppStore_m_mapApps map
-	private appStoreMapAppsSet(appId: number, appOverview: any) {
+	private appStoreMapAppsSet(appId: number, appOverview: unknown) {
 		//logger.trace(`AppStore.m_mapApps.set (${appId})`);
 		if (appId && appOverview) {
 			this.patchAppOverviewFromCache(appOverview);
@@ -132,14 +143,14 @@ class SteamPatches implements Mountable {
 
 	private patchAppOverviewFromCache(appOverview: AppOverview): AppOverview {
 		if (
-			appOverview?.app_type == 1073741824 &&
+			appOverview?.app_type === 1073741824 &&
 			this.cachedOverallTime.isReady() &&
 			this.cachedLastTwoWeeksTimes.isReady()
 		) {
 			const overallTime =
-				this.cachedOverallTime.get()!.get(`${appOverview.appid}`) || 0;
+				this.cachedOverallTime.get()?.get(`${appOverview.appid}`) || 0;
 			const lastTwoWeeksTime =
-				this.cachedLastTwoWeeksTimes.get()!.get(`${appOverview.appid}`) || 0;
+				this.cachedLastTwoWeeksTimes.get()?.get(`${appOverview.appid}`) || 0;
 			this.patchOverviewWithValues(appOverview, overallTime, lastTwoWeeksTime);
 		}
 		return appOverview;
@@ -150,7 +161,7 @@ class SteamPatches implements Mountable {
 		overallTime: number,
 		lastTwoWeeksTime: number,
 	): AppOverview {
-		if (appOverview?.app_type == 1073741824) {
+		if (appOverview?.app_type === 1073741824) {
 			appOverview.minutes_playtime_forever = (overallTime / 60.0).toFixed(1);
 			appOverview.minutes_playtime_last_two_weeks = Number.parseFloat(
 				(lastTwoWeeksTime / 60.0).toFixed(1),

@@ -146,40 +146,48 @@ export class IntervalPagerImpl {
 		if (type === IntervalType.Weekly) {
 			const start = startOfWeek(date);
 			const end = endOfWeek(start);
-			return new IntervalPagerImpl(type, { start, end });
-		} else {
-			const start = startOfMonth(date);
-			const end = endOfMonth(start);
+
 			return new IntervalPagerImpl(type, { start, end });
 		}
+
+		const start = startOfMonth(date);
+		const end = endOfMonth(start);
+
+		return new IntervalPagerImpl(type, { start, end });
 	}
 
 	public next(): IntervalPager {
 		const nextDate = new Date(this.interval.end);
 		nextDate.setDate(this.interval.end.getDate() + 1);
+
 		if (this.type === IntervalType.Weekly) {
 			const start = startOfWeek(nextDate);
 			const end = endOfWeek(start);
-			return new IntervalPagerImpl(this.type, { start, end });
-		} else {
-			const start = startOfMonth(nextDate);
-			const end = endOfMonth(start);
+
 			return new IntervalPagerImpl(this.type, { start, end });
 		}
+
+		const start = startOfMonth(nextDate);
+		const end = endOfMonth(start);
+
+		return new IntervalPagerImpl(this.type, { start, end });
 	}
 
 	public prev(): IntervalPager {
 		const prevDate = new Date(this.interval.start);
 		prevDate.setDate(this.interval.start.getDate() - 1);
+
 		if (this.type === IntervalType.Weekly) {
 			const start = startOfWeek(prevDate);
 			const end = endOfWeek(start);
-			return new IntervalPagerImpl(this.type, { start, end });
-		} else {
-			const start = startOfMonth(prevDate);
-			const end = endOfMonth(start);
+
 			return new IntervalPagerImpl(this.type, { start, end });
 		}
+
+		const start = startOfMonth(prevDate);
+		const end = endOfMonth(start);
+
+		return new IntervalPagerImpl(this.type, { start, end });
 	}
 
 	public current(): Interval {

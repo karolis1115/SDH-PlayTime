@@ -1,26 +1,26 @@
 import moment from "moment";
 
-export const log = (...args: any[]) => {
+export const log = (...args: unknown[]) => {
 	console.log(
-		`%c PlayTime %c`,
+		"%c PlayTime %c",
 		"background: #16a085; color: black;",
 		"background: #1abc9c; color: black;",
 		...args,
 	);
 };
 
-export const debug = (...args: any[]) => {
+export const debug = (...args: unknown[]) => {
 	console.debug(
-		`%c PlayTime %c`,
+		"%c PlayTime %c",
 		"background: #16a085; color: black;",
 		"background: #1abc9c; color: black;",
 		...args,
 	);
 };
 
-export const error = (...args: any[]) => {
+export const error = (...args: unknown[]) => {
 	console.error(
-		`%c PlayTime %c`,
+		"%c PlayTime %c",
 		"background: #16a085; color: black;",
 		"background: #FF0000;",
 		...args,
@@ -28,15 +28,15 @@ export const error = (...args: any[]) => {
 };
 
 const logger = {
-	info: (...args: any[]) => {
+	info: (...args: unknown[]) => {
 		log(...args);
 	},
 
-	debug: (...args: any[]) => {
+	debug: (...args: unknown[]) => {
 		debug(...args);
 	},
 
-	error: (...args: any[]) => {
+	error: (...args: unknown[]) => {
 		error(...args);
 	},
 };

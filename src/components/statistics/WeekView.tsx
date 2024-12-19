@@ -1,9 +1,9 @@
+import moment from "moment";
 import type { FC } from "react";
 import type { DailyStatistics } from "../../app/model";
+import { FocusableExt } from "../FocusableExt";
 import { HorizontalContainer } from "../HorizontalContainer";
 import { Timebar } from "../Timebar";
-import { FocusableExt } from "../FocusableExt";
-import moment from "moment";
 
 interface DayTime {
 	dayOfWeek: string;
@@ -25,8 +25,8 @@ export const WeekView: FC<{ statistics: DailyStatistics[] }> = (props) => {
 		<FocusableExt>
 			<div className="playtime-chart">
 				<div className="playtime-chart">
-					{dayTimes.map((dayTime) => (
-						<HorizontalContainer>
+					{dayTimes.map((dayTime, index) => (
+						<HorizontalContainer key={`${dayTime.dayOfWeek}${index}`}>
 							<div style={{ width: "10%" }}>{dayTime.dayOfWeek.charAt(0)}</div>
 							<div style={{ width: "90%" }}>
 								<Timebar time={dayTime.time} allTime={overall} />
