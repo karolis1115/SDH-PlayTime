@@ -1,9 +1,13 @@
-import { HorizontalContainerCSS } from '../styles'
+import { HorizontalContainerCSS } from "../styles";
 
-export const HorizontalContainer: React.FC<{}> = (props) => {
-    return (
-        <div style={HorizontalContainerCSS.horizontal__container}>
-            {props.children}
-        </div>
-    )
+interface HorizontalContainerProperties {
+	children: JSX.Element | Array<JSX.Element>;
 }
+
+export const HorizontalContainer: React.FC<HorizontalContainerProperties> = ({
+	children,
+}) => {
+	return (
+		<div style={HorizontalContainerCSS.horizontal__container}>{children}</div>
+	);
+};

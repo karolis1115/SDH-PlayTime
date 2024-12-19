@@ -1,133 +1,112 @@
-import { ServerAPI } from 'decky-frontend-lib'
-import logger from '../utils'
-import { toIsoDateOnly } from './formatters'
-import { DailyStatistics, Game, GameWithTime } from './model'
-import { EventBus } from './system'
+import { call } from "@decky/api";
+import logger from "../utils";
+import { toIsoDateOnly } from "./formatters";
+import type { DailyStatistics, Game, GameWithTime } from "./model";
+import type { EventBus } from "./system";
 
 export interface OverallPlayTimes {
-    [gameId: string]: number
+	[gameId: string]: number;
 }
 
 export interface StatisticForIntervalResponse {
-    data: DailyStatistics[]
-    hasPrev: boolean
-    hasNext: boolean
+	data: DailyStatistics[];
+	hasPrev: boolean;
+	hasNext: boolean;
 }
 
 export class Backend {
-    private serverApi: ServerAPI
-    private eventBus: EventBus
+	private eventBus: EventBus;
 
-    constructor(eventBus: EventBus, serverApi: ServerAPI) {
-        this.eventBus = eventBus
-        this.serverApi = serverApi
-        let instance = this
-        eventBus.addSubscriber(async (event) => {
-            switch (event.type) {
-                case 'CommitInterval':
-                    await instance.addTime(event.startedAt, event.endedAt, event.game)
-                    break
+	constructor(eventBus: EventBus) {
+		this.eventBus = eventBus;
 
-                case 'TimeManuallyAdjusted':
-                    break
-            }
-        })
-    }
+		eventBus.addSubscriber(async (event) => {
+			switch (event.type) {
+				case "CommitInterval":
+					await this.addTime(event.startedAt, event.endedAt, event.game);
+					break;
 
-    private async addTime(startedAt: number, endedAt: number, game: Game) {
-        await this.serverApi
-            .callPluginMethod<
-                {
-                    started_at: number
-                    ended_at: number
-                    game_id: string
-                    game_name: string
-                },
-                void
-            >('add_time', {
-                started_at: startedAt / 1000,
-                ended_at: endedAt / 1000,
-                game_id: game.id,
-                game_name: game.name,
-            })
-            .then((r) => {
-                if (!r.success) {
-                    this.errorOnBackend(
-                        "Can't save interval, because of backend error (add_time)"
-                    )
-                }
-            })
-            .catch((_) => {
-                this.errorOnBackend(
-                    "Can't save interval, because of backend error (add_time)"
-                )
-            })
-    }
+				case "TimeManuallyAdjusted":
+					break;
+			}
+		});
+	}
 
-    async fetchDailyStatisticForInterval(
-        start: Date,
-        end: Date
-    ): Promise<StatisticForIntervalResponse> {
-        const response = await this.serverApi.callPluginMethod<
-            { start_date: string; end_date: string },
-            StatisticForIntervalResponse
-        >('daily_statistics_for_period', {
-            start_date: toIsoDateOnly(start),
-            end_date: toIsoDateOnly(end),
-        })
-        if (!response.success) {
-            this.errorOnBackend(
-                "Can't fetch statistics for interval, because of backend error (daily_statistics_for_period)"
-            )
-            return {
-                hasNext: false,
-                hasPrev: false,
-                data: [],
-            } as StatisticForIntervalResponse
-        }
+	private async addTime(startedAt: number, endedAt: number, game: Game) {
+		await call<
+			[
+				started_at: number,
+				ended_at: number,
+				game_id: string,
+				game_name: string,
+			],
+			void
+		>("add_time", startedAt / 1000, endedAt / 1000, game.id, game.name).catch(
+			() => {
+				this.errorOnBackend(
+					"Can't save interval, because of backend error (add_time)",
+				);
+			},
+		);
+	}
 
-        return response.result as StatisticForIntervalResponse
-    }
+	async fetchDailyStatisticForInterval(
+		start: Date,
+		end: Date,
+	): Promise<StatisticForIntervalResponse> {
+		return await call<
+			[start_date: string, end_date: string],
+			StatisticForIntervalResponse
+		>("daily_statistics_for_period", toIsoDateOnly(start), toIsoDateOnly(end))
+			.then((response) => {
+				return response;
+			})
+			.catch((error) => {
+				logger.error(error);
+				return {
+					hasNext: false,
+					hasPrev: false,
+					data: [],
+				} as StatisticForIntervalResponse;
+			});
+	}
 
-    async fetchPerGameOverallStatistics(): Promise<GameWithTime[]> {
-        const response = await this.serverApi.callPluginMethod<{}, GameWithTime[]>(
-            'per_game_overall_statistics',
-            {}
-        )
-        if (!response.success) {
-            this.errorOnBackend(
-                "Can't fetch per game overall statistics, because of backend error (per_game_overall_statistics)"
-            )
-            return []
-        }
+	async fetchPerGameOverallStatistics(): Promise<GameWithTime[]> {
+		return await call<[], GameWithTime[]>("per_game_overall_statistics")
+			.then((response) => {
+				return response;
+			})
+			.catch((error) => {
+				logger.error(error);
 
-        return response.result as GameWithTime[]
-    }
+				return [];
+			});
+	}
 
-    async applyManualOverallTimeCorrection(games: GameWithTime[]): Promise<boolean> {
-        const response = await this.serverApi.callPluginMethod<
-            {
-                list_of_game_stats: GameWithTime[]
-            },
-            void
-        >('apply_manual_time_correction', {
-            list_of_game_stats: games,
-        })
-        if (!response.success) {
-            this.errorOnBackend(
-                "Can't apply manual overall time correction, because of backend error (apply_manual_time_correction)"
-            )
-            return false
-        }
-        this.eventBus.emit({ type: 'TimeManuallyAdjusted' })
-        return true
-    }
+	async applyManualOverallTimeCorrection(
+		games: GameWithTime[],
+	): Promise<boolean> {
+		return await call<[list_of_game_stats: GameWithTime[]], void>(
+			"apply_manual_time_correction",
+			games,
+		)
+			.then(() => {
+				this.eventBus.emit({ type: "TimeManuallyAdjusted" });
 
-    private errorOnBackend(message: string) {
-        logger.error(`There is an error: ${message}`)
-        this.eventBus.emit({
-            type: 'NotifyAboutError',
-            message: message,
-        })
-    }
+				return true;
+			})
+			.catch((error) => {
+				logger.error(error);
+				return false;
+			});
+	}
+
+	private errorOnBackend(message: string) {
+		logger.error(`There is an error: ${message}`);
+
+		this.eventBus.emit({
+			type: "NotifyAboutError",
+			message: message,
+		});
+	}
 }

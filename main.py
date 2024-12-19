@@ -1,4 +1,5 @@
 # autopep8: off
+import decky  # type: ignore
 import dataclasses
 import logging
 import os

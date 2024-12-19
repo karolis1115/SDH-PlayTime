@@ -1,10 +1,16 @@
-import { Focusable } from 'decky-frontend-lib'
-import { focus_panel_no_padding } from '../styles'
+import { Focusable } from "@decky/ui";
+import { focus_panel_no_padding } from "../styles";
 
-export const FocusableExt: React.FC<{}> = (props) => {
-    return (
-        <Focusable style={focus_panel_no_padding} onActivate={() => {}}>
-            {props.children}
-        </Focusable>
-    )
+interface FocusableExtProperties {
+	children: JSX.Element;
 }
+
+export const FocusableExt: React.FC<FocusableExtProperties> = ({
+	children,
+}) => {
+	return (
+		<Focusable style={focus_panel_no_padding} onActivate={() => {}}>
+			{children}
+		</Focusable>
+	);
+};

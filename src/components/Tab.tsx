@@ -1,14 +1,18 @@
-import { Focusable, PanelSection, PanelSectionRow } from 'decky-frontend-lib'
-import { focus_panel_no_padding } from '../styles'
+import { Focusable, PanelSection, PanelSectionRow } from "@decky/ui";
+import { focus_panel_no_padding } from "../styles";
 
-export const Tab: React.FC = ({ children }) => {
-    return (
-        <PanelSection>
-            <PanelSectionRow>
-                <Focusable style={{ minHeight: '100%', ...focus_panel_no_padding }}>
-                    {children}
-                </Focusable>
-            </PanelSectionRow>
-        </PanelSection>
-    )
+interface TabProperties {
+	children: JSX.Element;
 }
+
+export const Tab: React.FC<TabProperties> = ({ children }) => {
+	return (
+		<PanelSection>
+			<PanelSectionRow>
+				<Focusable style={{ minHeight: "100%", ...focus_panel_no_padding }}>
+					{children}
+				</Focusable>
+			</PanelSectionRow>
+		</PanelSection>
+	);
+};
