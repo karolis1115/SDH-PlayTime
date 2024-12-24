@@ -2,10 +2,17 @@ from datetime import date, datetime, timedelta
 
 
 DATE_FORMAT = "%Y-%m-%d"
+DATE_WITH_HOURS_FORMAT = "%Y-%m-%dT%H:%M:%S"
 
 
 def parse_date(date_str: str) -> date:
     return datetime.strptime(date_str, DATE_FORMAT).date()
+
+
+def parse_date_with_hours(date_str: str) -> date:
+    date_without_microseconds = date_str.split(".", 1)[0]
+
+    return datetime.strptime(date_without_microseconds, DATE_WITH_HOURS_FORMAT)
 
 
 def format_date(dt: datetime) -> str:
