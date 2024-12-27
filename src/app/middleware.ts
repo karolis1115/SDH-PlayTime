@@ -1,6 +1,8 @@
-import { Router, sleep } from "@decky/ui";
+import { Router } from "@decky/ui";
+import { diffArray } from "@src/utils/diff";
+import { reaction } from "mobx";
 import { isNil } from "../utils/isNil";
-import type { Game } from "./model";
+import type { AppOverview, Game } from "./model";
 import type { Clock, EventBus, Mountable } from "./system";
 
 export { SteamEventMiddleware, type SteamHook };
@@ -45,46 +47,64 @@ class SteamEventMiddleware implements Mountable {
 			}),
 		);
 
-		this.activeHooks.push(
-			SteamClient.GameSessions.RegisterForAppLifetimeNotifications(
-				async (data: LifetimeNotification) => {
-					let game = await this.awaitGameInfo();
+		this.activeHooks.push({
+			unregister: reaction(
+				() => SteamUIStore.RunningApps,
+				(
+					currentRunningApps: Array<AppOverview>,
+					oldRunnedApps: Array<AppOverview>,
+				) => {
+					const runnedApps = diffArray(
+						currentRunningApps,
+						oldRunnedApps,
+						"appid",
+					);
 
-					if (isNil(game)) {
-						game = {
-							id: data.unAppID.toString(),
-							name: "",
-						};
-					}
+					const closedApps = diffArray(
+						oldRunnedApps,
+						currentRunningApps,
+						"appid",
+					);
 
-					if (data.bRunning) {
+					for (const runnedApp of runnedApps) {
+						const { appid, display_name } = runnedApp;
+
+						if (isNil(appid) || isNil(display_name)) {
+							continue;
+						}
+
 						this.eventBus.emit({
 							type: "GameStarted",
 							createdAt: this.clock.getTimeMs(),
-							game: game,
+							game: {
+								id: `${appid}`,
+								name: display_name,
+							},
 						});
-
-						return;
 					}
 
-					if (
-						Router.m_runningAppIDs.includes(game?.id) &&
-						appStore.GetAppOverviewByGameID(game?.id).app_type !== 1073741824
-					) {
-						return;
-					}
+					for (const closedApp of closedApps) {
+						const { appid, display_name } = closedApp;
 
-					this.eventBus.emit({
-						type: "GameStopped",
-						createdAt: this.clock.getTimeMs(),
-						game: game,
-					});
+						if (isNil(appid) || isNil(display_name)) {
+							continue;
+						}
+
+						this.eventBus.emit({
+							type: "GameStopped",
+							createdAt: this.clock.getTimeMs(),
+							game: {
+								id: `${appid}`,
+								name: display_name,
+							},
+						});
+					}
 				},
 			),
-		);
+		});
 
 		this.activeHooks.push(
-			SteamClient.System.RegisterForOnSuspendRequest(async () => {
+			SteamClient.System.RegisterForOnSuspendRequest(() => {
 				this.eventBus.emit({
 					type: "Suspended",
 					createdAt: this.clock.getTimeMs(),
@@ -94,7 +114,7 @@ class SteamEventMiddleware implements Mountable {
 		);
 
 		this.activeHooks.push(
-			SteamClient.System.RegisterForOnResumeFromSuspend(async () => {
+			SteamClient.System.RegisterForOnResumeFromSuspend(() => {
 				this.eventBus.emit({
 					type: "ResumeFromSuspend",
 					createdAt: this.clock.getTimeMs(),
@@ -102,14 +122,6 @@ class SteamEventMiddleware implements Mountable {
 				});
 			}),
 		);
-	}
-
-	private async awaitGameInfo(): Promise<Game> {
-		await waitForPredicate(4, 200, async () => {
-			return !isNil(this.fetchGameInfo());
-		});
-
-		return this.fetchGameInfo() as Game;
 	}
 
 	private fetchGameInfo(): Game | null {
@@ -128,38 +140,6 @@ class SteamEventMiddleware implements Mountable {
 			it.unregister();
 		}
 	}
-}
-
-async function waitForPredicate(
-	retries: number,
-	delay: number,
-	predicate: () => boolean | Promise<boolean>,
-): Promise<boolean> {
-	const waitImpl = async (): Promise<boolean> => {
-		try {
-			let tries = retries + 1;
-			while (tries-- !== 0) {
-				if (await predicate()) {
-					return true;
-				}
-				if (tries > 0) {
-					await sleep(delay);
-				}
-			}
-		} catch (error) {
-			console.error(error);
-		}
-
-		return false;
-	};
-
-	return await waitImpl();
-}
-
-interface LifetimeNotification {
-	unAppID: number;
-	nInstanceID: string;
-	bRunning: boolean;
 }
 
 interface SteamHook {
