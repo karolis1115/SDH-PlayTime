@@ -4,4 +4,5 @@ declare global {
 	// @ts-ignore
 	let appStore: AppStore;
 	let appInfoStore: AppInfoStore;
+	let SteamUIStore: SteamUIStore;
 }
