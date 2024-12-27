@@ -26,5 +26,5 @@ class AbstractDatabaseTest(unittest.TestCase):
         self.database = None
         super().tearDown()
 
-    if __name__ == '__main__':
+    if __name__ == "__main__":
         unittest.main()

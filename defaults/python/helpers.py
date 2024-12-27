@@ -23,5 +23,6 @@ def end_of_day(day_to_end: datetime) -> datetime:
     return datetime.fromtimestamp(
         datetime.combine(
             day_to_end + timedelta(days=1), datetime.min.time()
-        ).timestamp() - 1
+        ).timestamp()
+        - 1
     )
