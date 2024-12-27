@@ -1,3 +1,4 @@
+import { isNil } from "@src/utils/isNil";
 import type { Cache } from "../app/cache";
 import type { AppOverview } from "../app/model";
 import type { Mountable } from "../app/system";
@@ -20,6 +21,7 @@ class SteamPatches implements Mountable {
 	public mount() {
 		this.ReplaceAppInfoStoreOnAppOverviewChange();
 		this.ReplaceAppStoreMapAppsSet();
+
 		this.cachedOverallTime.subscribe((overallTimes) => {
 			this.cachedLastTwoWeeksTimes.subscribe((lastTwoWeeksTimes) => {
 				const changedApps = [];
@@ -36,8 +38,10 @@ class SteamPatches implements Mountable {
 						changedApps.push(appOverview);
 					}
 				}
+
 				// NOTE: Fix from: https://github.com/ma3a/SDH-PlayTime/pull/71
 				// appInfoStore.OnAppOverviewChange(changedApps);
+
 				appStore.m_mapApps.set(
 					changedApps.map((app) => app.appid),
 					changedApps,
@@ -60,12 +64,21 @@ class SteamPatches implements Mountable {
 			appInfoStore.OriginalOnAppOverviewChange =
 				appInfoStore.OnAppOverviewChange;
 			const instance = this;
-			appInfoStore.OnAppOverviewChange = function (apps: Array<unknown>) {
+			appInfoStore.OnAppOverviewChange = function (apps) {
 				const appIds = apps
-					.filter((_: unknown) => typeof _.appid() === "number")
-					.map((_: unknown) => _.appid() as number);
+					.filter((_) => typeof _.appid() === "number")
+					.map((_) => _.appid() as number);
 				instance.appInfoStoreOnAppOverviewChange(appIds);
 				logger.debug("AppInfoStore.OnAppOverviewChange: calling original");
+
+				if (isNil(this.OriginalOnAppOverviewChange)) {
+					logger.debug(
+						'Impossible to call "OriginalOnAppOverviewChange" because function is null or undefined',
+					);
+
+					return;
+				}
+
 				this.OriginalOnAppOverviewChange(apps);
 			};
 		}
@@ -91,9 +104,24 @@ class SteamPatches implements Mountable {
 
 			const appStoreInstance = appStore;
 
-			appStore.m_mapApps.set = (appId: number, appOverview: unknown): void => {
+			// @ts-expect-error TODO(ynhhoJ): Should be added type definition for this case too
+			appStore.m_mapApps.set = (
+				appId: number,
+				appOverview: AppOverview,
+			): void => {
 				this.appStoreMapAppsSet(appId, appOverview);
 
+				const { originalSet } = appStoreInstance.m_mapApps;
+
+				if (isNil(originalSet)) {
+					logger.error(
+						'Unable to execute "originalSet" function because it is null or undefined.',
+					);
+
+					return;
+				}
+
+				// @ts-expect-error NOTE(ynhhoJ): We already checked if `originalSet` exists above
 				appStoreInstance.m_mapApps.originalSet(appId, appOverview);
 			};
 		}
@@ -134,7 +162,7 @@ class SteamPatches implements Mountable {
 	}
 
 	// here we set playtime to appOverview before the appOverview is added to AppStore_m_mapApps map
-	private appStoreMapAppsSet(appId: number, appOverview: unknown) {
+	private appStoreMapAppsSet(appId: number, appOverview: AppOverview) {
 		//logger.trace(`AppStore.m_mapApps.set (${appId})`);
 		if (appId && appOverview) {
 			this.patchAppOverviewFromCache(appOverview);
