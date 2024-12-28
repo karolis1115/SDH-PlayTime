@@ -4,20 +4,26 @@ import logger from "../utils";
 import type { Game } from "./model";
 import type { EventBus } from "./system";
 
-export { SessionPlayTime };
+export { SessionPlayTime, type PlayTime };
 
 interface ActiveInterval {
 	startedAt: number;
 	game: Game;
 }
 
+type PlayTime = {
+	gameName: string;
+	playTime: number;
+};
+
 class SessionPlayTime {
-	private activeInterval: ActiveInterval | null = null;
+	private activeInterval: Map<string, ActiveInterval> = new Map();
 	private eventBus: EventBus;
 
 	constructor(eventBus: EventBus) {
 		this.eventBus = eventBus;
-		eventBus.addSubscriber((event) => {
+
+		eventBus.addSubscriber(async (event) => {
 			switch (event.type) {
 				case "GameWasRunningBefore":
 					this.startInterval(event.createdAt, event.game);
@@ -28,13 +34,22 @@ class SessionPlayTime {
 					break;
 
 				case "GameStopped":
-					this.commitInterval(event.createdAt, event.game);
+					await this.commitInterval(event.createdAt, event.game);
+
+					this.activeInterval.delete(event.game.id);
 					break;
 
 				case "Suspended":
-					if (this.activeInterval != null) {
-						this.commitInterval(event.createdAt, this.activeInterval.game);
+					for (const key of this.activeInterval.keys()) {
+						const intervalInformation = this.activeInterval.get(key);
+
+						if (isNil(intervalInformation)) {
+							continue;
+						}
+
+						this.commitInterval(event.createdAt, intervalInformation.game);
 					}
+
 					break;
 
 				case "ResumeFromSuspend":
@@ -44,70 +59,86 @@ class SessionPlayTime {
 					break;
 
 				case "Unmount":
-					if (this.activeInterval != null) {
-						this.commitInterval(event.createdAt, this.activeInterval.game);
+					for (const key of this.activeInterval.keys()) {
+						const intervalInformation = this.activeInterval.get(key);
+
+						if (isNil(intervalInformation)) {
+							continue;
+						}
+
+						this.commitInterval(event.createdAt, intervalInformation.game);
 					}
 					break;
 			}
 		});
 	}
 
-	public getPlayTime(requestedAt: number): number {
-		if (this.activeInterval != null) {
-			return (requestedAt - this.activeInterval.startedAt) / 1000;
-		}
-		return 0;
-	}
+	public getPlayTime(requestedAt: number): Array<PlayTime> {
+		if (this.activeInterval.size !== 0) {
+			const response = [];
 
-	public isActiveInterval() {
-		return this.activeInterval != null;
+			for (const key of this.activeInterval.keys()) {
+				const currentGame = this.activeInterval.get(key);
+
+				if (isNil(currentGame)) {
+					continue;
+				}
+
+				const { game, startedAt } = currentGame;
+
+				response.push({
+					gameName: game.name,
+					playTime: (requestedAt - startedAt) / 1000,
+				});
+			}
+
+			return response;
+		}
+
+		return [];
 	}
 
 	private startInterval(startedAt: number, game: Game) {
-		if (
-			!isNil(this.activeInterval) &&
-			this.activeInterval.game.id === game.id
-		) {
+		if (this.activeInterval.size !== 0 && this.activeInterval.has(game.id)) {
 			logger.error("Getting same game start interval, ignoring it");
 
 			return;
 		}
 
-		if (
-			!isNil(this.activeInterval) &&
-			this.activeInterval.game.id !== game.id
-		) {
-			logger.error(
-				`Interval already started but for the different game ['${this.activeInterval.game.id}', '${this.activeInterval.game.name}'] -> [['${game.id}', '${game.name}']];`,
-			);
-
-			this.activeInterval = null;
-		}
-
-		this.activeInterval = {
+		this.activeInterval.set(game.id, {
 			startedAt: startedAt,
 			game: game,
-		} as ActiveInterval;
+		});
 	}
 
-	private commitInterval(endedAt: number, game: Game) {
-		if (this.activeInterval == null) {
+	private async commitInterval(endedAt: number, game: Game) {
+		if (this.activeInterval.size === 0) {
 			logger.error("There is no active interval, ignoring commit");
+
 			return;
 		}
-		if (this.activeInterval.game.id !== game.id) {
+
+		if (isNil(game)) {
+			return;
+		}
+
+		const currentGameInterval = this.activeInterval.get(game?.id);
+
+		if (isNil(currentGameInterval)) {
 			logger.error(
-				`Could not commit interval with different games: ['${this.activeInterval.game.id}', '${this.activeInterval.game.name}'] -> [['${game.id}', '${game.name}']] `,
+				`There is no active interval for ${game.name} (ID: ${game.id}), ignoring commit`,
 			);
+
 			return;
 		}
 
 		this.eventBus.emit({
 			type: "CommitInterval",
-			startedAt: this.activeInterval.startedAt,
+			startedAt: currentGameInterval.startedAt,
 			endedAt: endedAt,
-			game: this.activeInterval.game,
+			game: currentGameInterval.game,
 		});
-		this.activeInterval = null;
+
+		return new Promise((resolve) => resolve(true));
 	}
 }

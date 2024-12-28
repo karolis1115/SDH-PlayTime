@@ -5,7 +5,6 @@ import { SessionPlayTime } from "./app/SessionPlayTime";
 import { Backend } from "./app/backend";
 import { humanReadableTime } from "./app/formatters";
 import { SteamEventMiddleware } from "./app/middleware";
-import type { AppInfoStore, AppStore } from "./app/model";
 import { BreaksReminder } from "./app/notification";
 import { Reports } from "./app/reports";
 import { Settings } from "./app/settings";
@@ -33,12 +32,6 @@ import {
 } from "./pages/navigation";
 import { SteamPatches } from "./steam-ui/SteamPatches";
 import { patchAppPage } from "./steam-ui/patches";
-
-declare global {
-	// @ts-ignore
-	let appStore: AppStore;
-	let appInfoStore: AppInfoStore;
-}
 
 export default definePlugin(() => {
 	console.log("PlayTime plugin loading...");

@@ -4,7 +4,6 @@ from typing import ContextManager
 
 
 class SqlLiteDb:
-
     def __init__(self, database_path: str):
         self._database_path = database_path
 

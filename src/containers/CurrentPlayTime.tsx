@@ -1,20 +1,42 @@
 import { Field, PanelSection, PanelSectionRow } from "@decky/ui";
-import type { VFC } from "react";
+import type { PlayTime } from "@src/app/SessionPlayTime";
 import { humanReadableTime } from "../app/formatters";
 import { useLocator } from "../locator";
 
-export const CurrentPlayTime: VFC = () => {
+function PlaySessionsInformation({
+	currentPlayTime,
+}: { currentPlayTime: Array<PlayTime> }) {
+	if (currentPlayTime.length === 1) {
+		const currentSessionTimeAsText = humanReadableTime(
+			currentPlayTime[0].playTime,
+		);
+
+		return <span>{currentSessionTimeAsText}</span>;
+	}
+
+	return (
+		<div style={{ display: "flex", flexDirection: "column" }}>
+			{currentPlayTime.map((game) => (
+				<span key={game.gameName}>
+					{game.gameName} - {humanReadableTime(game.playTime)}
+				</span>
+			))}
+		</div>
+	);
+}
+
+export const CurrentPlayTime = () => {
 	const { sessionPlayTime } = useLocator();
 
 	const currentPlayTime = sessionPlayTime.getPlayTime(Date.now());
-	const currentSessionTimeAsText = humanReadableTime(currentPlayTime);
+
 	return (
 		<div>
-			{currentPlayTime !== 0 && (
+			{currentPlayTime.length !== 0 && (
 				<PanelSection>
 					<PanelSectionRow>
 						<Field label="Current play session">
-							{currentSessionTimeAsText}
+							<PlaySessionsInformation currentPlayTime={currentPlayTime} />
 						</Field>
 					</PanelSectionRow>
 				</PanelSection>

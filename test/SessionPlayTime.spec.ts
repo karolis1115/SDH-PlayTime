@@ -2,43 +2,61 @@ import { SessionPlayTime } from "../src/app/SessionPlayTime";
 import type { Game } from "../src/app/model";
 import { EventBus } from "../src/app/system";
 
-const gameInfo_01 = {
-	id: "001",
+const gameInfo_01: Game = {
+	id: "1",
 	name: "Game name 001",
-} as Game;
+};
 
-const gameInfo_02 = {
-	id: "002",
+const gameInfo_02: Game = {
+	id: "2",
 	name: "Game name 002",
-} as Game;
+};
 
 describe("SessionPlayTime should calculate time", () => {
 	test("Should calculate ", () => {
 		const eventBus = new EventBus();
 		const sessionPlayTime = new SessionPlayTime(eventBus);
+
 		eventBus.emit({
 			type: "GameStarted",
 			createdAt: 0,
 			game: gameInfo_01,
 		});
-		expect(sessionPlayTime.getPlayTime(1000 * 60 * 5)).toBe(300);
+
+		expect(sessionPlayTime.getPlayTime(1000 * 60 * 5)).toEqual([
+			{
+				gameName: "Game name 001",
+				playTime: 300,
+			},
+		]);
 	});
 
 	test("should ignore interval of game_01, when we received game start event game_02 without ending game_01 event ", () => {
 		const eventBus = new EventBus();
 		const sessionPlayTime = new SessionPlayTime(eventBus);
+
 		eventBus.emit({
 			type: "GameStarted",
 			createdAt: 0,
 			game: gameInfo_01,
 		});
+
 		eventBus.emit({
 			type: "GameStarted",
 			createdAt: 1000 * 60 * 2,
 			game: gameInfo_02,
 		});
 
-		expect(sessionPlayTime.getPlayTime(1000 * 60 * 5)).toBe(180);
+		expect(sessionPlayTime.getPlayTime(1000 * 60 * 5)).toEqual([
+			{
+				gameName: "Game name 001",
+				playTime: 300,
+			},
+			{
+				gameName: "Game name 002",
+				playTime: 180,
+			},
+		]);
 	});
 });
 
@@ -62,11 +80,13 @@ describe("SessionPlayTime should send commit interval", () => {
 					break;
 			}
 		});
+
 		eventBus.emit({
 			type: "GameStarted",
 			createdAt: 0,
 			game: gameInfo_01,
 		});
+
 		eventBus.emit({
 			type: "GameStopped",
 			createdAt: 50,

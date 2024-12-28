@@ -45,7 +45,7 @@ export class BreaksReminder implements Mountable {
 		this.stopTimer();
 
 		if (await this.notificationsAllowed()) {
-			const playedMs = Date.now() - this.sessionStaredAt;
+			const playedMs = Date.now() - (this.sessionStaredAt as number);
 
 			this.eventBus.emit({
 				type: "NotifyToTakeBreak",

@@ -17,20 +17,22 @@ class TestDao(AbstractDatabaseTest):
         self.dao.save_game_dict("1001", "Zelda BOTW")
         self.dao.save_game_dict("1001", "Zelda BOTW - updated")
 
-        result = sqlite3.connect(self.database_file).execute(
-            "select game_id, name from game_dict").fetchone()
+        result = (
+            sqlite3.connect(self.database_file)
+            .execute("select game_id, name from game_dict")
+            .fetchone()
+        )
         self.assertEqual(result[0], "1001")
         self.assertEqual(result[1], "Zelda BOTW - updated")
 
     def test_should_add_new_interval(self):
         self.dao.save_game_dict("1001", "Zelda BOTW")
-        self.dao.save_play_time(
-            datetime(2023, 1, 1, 10, 0),
-            3600,
-            "1001"
+        self.dao.save_play_time(datetime(2023, 1, 1, 10, 0), 3600, "1001")
+        result = (
+            sqlite3.connect(self.database_file)
+            .execute("select date_time, game_id, duration from play_time")
+            .fetchone()
         )
-        result = sqlite3.connect(self.database_file).execute(
-            "select date_time, game_id, duration from play_time").fetchone()
         self.assertEqual(result[0], "2023-01-01T10:00:00")
         self.assertEqual(result[1], "1001")
         self.assertEqual(result[2], 3600)
@@ -38,24 +40,11 @@ class TestDao(AbstractDatabaseTest):
     def test_should_calculate_per_day_time_report(self):
         self.dao.save_game_dict("1001", "Zelda BOTW")
         self.dao.save_game_dict("1002", "DOOM")
-        self.dao.save_play_time(
-            datetime(2023, 1, 1, 9, 0),
-            3600,
-            "1001"
-        )
-        self.dao.save_play_time(
-            datetime(2023, 1, 1, 11, 0),
-            1800,
-            "1001"
-        )
-        self.dao.save_play_time(
-            datetime(2023, 1, 2, 10, 0),
-            2000,
-            "1002"
-        )
+        self.dao.save_play_time(datetime(2023, 1, 1, 9, 0), 3600, "1001")
+        self.dao.save_play_time(datetime(2023, 1, 1, 11, 0), 1800, "1001")
+        self.dao.save_play_time(datetime(2023, 1, 2, 10, 0), 2000, "1002")
         result = self.dao.fetch_per_day_time_report(
-            datetime(2023, 1, 1, 0, 0),
-            datetime(2023, 1, 2, 23, 59)
+            datetime(2023, 1, 1, 0, 0), datetime(2023, 1, 2, 23, 59)
         )
         self.assertEqual(len(result), 2)
 
@@ -77,7 +66,7 @@ class TestDao(AbstractDatabaseTest):
             game_id="1001",
             game_name="Zelda BOTW",
             new_overall_time=3600,
-            source="manually-added_time"
+            source="manually-added_time",
         )
 
         self.assertEqual(self._get_overall_time_for_game("1001"), 3600)
@@ -89,13 +78,12 @@ class TestDao(AbstractDatabaseTest):
             game_id="1001",
             game_name="Zelda BOTW",
             new_overall_time=3600,
-            source="manually-added-time"
+            source="manually-added-time",
         )
 
         self.assertEqual(self._get_overall_time_for_game("1001"), 3600)
 
     def _get_overall_time_for_game(self, game_id: str):
         return list(
-            filter(
-                lambda x: x.game_id == game_id,
-                self.dao.fetch_overall_playtime()))[0].time
+            filter(lambda x: x.game_id == game_id, self.dao.fetch_overall_playtime())
+        )[0].time

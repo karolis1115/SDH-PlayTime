@@ -11,13 +11,9 @@ class Statistics:
     def __init__(self, dao: Dao) -> None:
         self.dao = dao
 
-    def daily_statistics_for_period(self,
-                                    start: date,
-                                    end: date) -> PagedDayStatistics:
-        start_time = datetime.combine(
-            start, time(00, 00, 00))
-        end_time = datetime.combine(
-            end, time(23, 59, 59, 999999))
+    def daily_statistics_for_period(self, start: date, end: date) -> PagedDayStatistics:
+        start_time = datetime.combine(start, time(00, 00, 00))
+        end_time = datetime.combine(end, time(23, 59, 59, 999999))
         data = self.dao.fetch_per_day_time_report(start_time, end_time)
 
         data_as_dict: Dict[str, List[DailyGameTimeDto]] = {}
@@ -35,39 +31,26 @@ class Statistics:
                 games: List[Game] = []
                 total_time = 0
                 for el in data_as_dict[date_str]:
-                    games.append(
-                        GameWithTime(
-                            Game(el.game_id, el.game_name),
-                            el.time
-                        )
-                    )
+                    games.append(GameWithTime(Game(el.game_id, el.game_name), el.time))
                     total_time += el.time
                 result.append(
-                    DayStatistics(
-                        date=date_str,
-                        games=games,
-                        total=total_time
-                    )
+                    DayStatistics(date=date_str, games=games, total=total_time)
                 )
             else:
                 result.append(DayStatistics(date_str, [], 0))
         return PagedDayStatistics(
             data=result,
             hasPrev=self.dao.is_there_is_data_before(start_time),
-            hasNext=self.dao.is_there_is_data_after(end_time)
+            hasNext=self.dao.is_there_is_data_after(end_time),
         )
 
     def per_game_overall_statistic(self) -> List[GameWithTime]:
         data = self.dao.fetch_overall_playtime()
         result: List[GameWithTime] = []
         for g in data:
-            result.append({
-                "game": {
-                    "id": g.game_id,
-                    "name": g.game_name
-                },
-                "time": g.time
-            })
+            result.append(
+                {"game": {"id": g.game_id, "name": g.game_name}, "time": g.time}
+            )
         return result
 
     def _generate_date_range(self, start_date, end_date):

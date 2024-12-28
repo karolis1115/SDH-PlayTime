@@ -1,16 +1,18 @@
 export {
+	convertDailyStatisticsToGameWithTime,
+	type AppAchievement,
+	type AppAchievements,
+	type AppDetails,
+	type AppInfoStore,
+	type AppLanguages,
+	type AppOverview,
+	type AppStore,
+	type DailyStatistics,
 	type Game,
 	type GameWithTime,
-	type DailyStatistics,
-	type AppOverview,
-	type AppDetails,
-	type AppAchievements,
-	type AppAchievement,
-	type AppLanguages,
-	type AppStore,
-	convertDailyStatisticsToGameWithTime,
-	type AppInfoStore,
+	type OverviewChange,
 };
+import type { set as MobXSet } from "mobx";
 
 interface Game {
 	id: string;
@@ -49,8 +51,9 @@ function convertDailyStatisticsToGameWithTime(
 interface AppOverview {
 	__proto__: unknown;
 	appid: number;
-	InitFromProto: unknown;
-	OriginalInitFromProto: unknown;
+	InitFromProto: (proto: unknown) => void;
+	// NOTE(ynhhoJ): Custom added type
+	OriginalInitFromProto: (proto: unknown) => void;
 	display_name: string;
 	app_type: number;
 	mru_index: number;
@@ -265,10 +268,20 @@ interface AppStore {
 	GetCustomHeroImageURLs: unknown;
 	GetCustomLogoImageURLs: unknown;
 	GetStorePageURLForApp: unknown;
-	m_mapApps: unknown;
+	m_mapApps: {
+		// set: (appId: number, appOverview: AppOverview) => void;
+		set: typeof MobXSet;
+		// NOTE(ynhhoJ): Custom added type
+		originalSet: Nullable<typeof MobXSet>;
+	};
+}
+
+interface OverviewChange {
+	appid: () => number;
 }
 
 interface AppInfoStore {
-	OnAppOverviewChange: unknown;
-	OriginalOnAppOverviewChange: unknown;
+	OnAppOverviewChange: (apps: Array<OverviewChange>) => void;
+	// NOTE(ynhhoJ): Custom added type
+	OriginalOnAppOverviewChange: Nullable<(apps: Array<OverviewChange>) => void>;
 }

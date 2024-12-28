@@ -2,10 +2,17 @@ from datetime import date, datetime, timedelta
 
 
 DATE_FORMAT = "%Y-%m-%d"
+DATE_WITH_HOURS_FORMAT = "%Y-%m-%dT%H:%M:%S"
 
 
 def parse_date(date_str: str) -> date:
     return datetime.strptime(date_str, DATE_FORMAT).date()
+
+
+def parse_date_with_hours(date_str: str) -> date:
+    date_without_microseconds = date_str.split(".", 1)[0]
+
+    return datetime.strptime(date_without_microseconds, DATE_WITH_HOURS_FORMAT)
 
 
 def format_date(dt: datetime) -> str:
@@ -16,5 +23,6 @@ def end_of_day(day_to_end: datetime) -> datetime:
     return datetime.fromtimestamp(
         datetime.combine(
             day_to_end + timedelta(days=1), datetime.min.time()
-        ).timestamp() - 1
+        ).timestamp()
+        - 1
     )
