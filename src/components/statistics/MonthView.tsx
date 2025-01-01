@@ -1,6 +1,5 @@
+import moment from "moment";
 import type { FC } from "react";
-import type { DailyStatistics } from "../../app/model";
-import { humanReadableTime } from "../../app/formatters";
 import {
 	Bar,
 	BarChart,
@@ -9,8 +8,9 @@ import {
 	XAxis,
 	YAxis,
 } from "recharts";
+import { humanReadableTime } from "../../app/formatters";
+import type { DailyStatistics } from "../../app/model";
 import { FocusableExt } from "../FocusableExt";
-import moment from "moment";
 
 interface DayTime {
 	time: number;
@@ -24,6 +24,7 @@ export const MonthView: FC<{ statistics: DailyStatistics[] }> = (props) => {
 			date: moment(it.date).toDate(),
 		} as DayTime;
 	});
+
 	return (
 		<FocusableExt>
 			<div className="playtime-chart">
@@ -44,6 +45,7 @@ export const MonthView: FC<{ statistics: DailyStatistics[] }> = (props) => {
 							}}
 						>
 							<CartesianGrid strokeDasharray="1 2" strokeWidth={0.5} />
+
 							<XAxis
 								dataKey="day"
 								interval={0}
@@ -51,9 +53,11 @@ export const MonthView: FC<{ statistics: DailyStatistics[] }> = (props) => {
 								angle={-90}
 								textAnchor="end"
 							/>
+
 							<YAxis
-								tickFormatter={(e: number) => humanReadableTime(e, true)}
 								axisLine={false}
+								domain={["auto", (dataMax: number) => dataMax * 1.05]}
+								tickFormatter={(e: number) => humanReadableTime(e, true)}
 								width={75}
 							/>
 							<Bar dataKey="time" fill="#008ADA" />
