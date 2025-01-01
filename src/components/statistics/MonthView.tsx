@@ -54,6 +54,7 @@ export const MonthView: FC<{ statistics: DailyStatistics[] }> = (props) => {
 							<YAxis
 								tickFormatter={(e: number) => humanReadableTime(e, true)}
 								axisLine={false}
+								width={75}
 							/>
 							<Bar dataKey="time" fill="#008ADA" />
 						</BarChart>
