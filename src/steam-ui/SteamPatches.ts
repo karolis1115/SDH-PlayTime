@@ -1,6 +1,5 @@
 import { isNil } from "@src/utils/isNil";
 import type { Cache } from "../app/cache";
-import type { AppOverview } from "../app/model";
 import type { Mountable } from "../app/system";
 import logger from "../utils";
 
