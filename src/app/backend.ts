@@ -33,6 +33,17 @@ export class Backend {
 	}
 
 	private async addTime(startedAt: number, endedAt: number, game: Game) {
+		const MIN_SECONDS = 5;
+		const playTimeInSeconds = (endedAt - startedAt) / 1000;
+
+		if (playTimeInSeconds < MIN_SECONDS) {
+			logger.info(
+				`Session ignored because play time iss less than ${MIN_SECONDS}. Current play time: ${playTimeInSeconds}`,
+			);
+
+			return;
+		}
+
 		await call<
 			[
 				started_at: number,

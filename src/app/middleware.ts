@@ -1,8 +1,6 @@
-import { Router } from "@decky/ui";
 import { diffArray } from "@src/utils/diff";
 import { reaction } from "mobx";
 import { isNil } from "../utils/isNil";
-import type { AppOverview, Game } from "./model";
 import type { Clock, EventBus, Mountable } from "./system";
 
 export { SteamEventMiddleware, type SteamHook };
@@ -19,13 +17,14 @@ class SteamEventMiddleware implements Mountable {
 	private activeHooks: Array<SteamHook> = [];
 
 	public mount() {
-		const gameInfo = this.fetchGameInfo();
-
-		if (!isNil(gameInfo)) {
+		for (const app of SteamUIStore.RunningApps) {
 			this.eventBus.emit({
 				type: "GameWasRunningBefore",
 				createdAt: this.clock.getTimeMs(),
-				game: gameInfo,
+				game: {
+					id: `${app.appid}`,
+					name: app.display_name,
+				},
 			});
 		}
 
@@ -105,34 +104,33 @@ class SteamEventMiddleware implements Mountable {
 
 		this.activeHooks.push(
 			SteamClient.System.RegisterForOnSuspendRequest(() => {
-				this.eventBus.emit({
-					type: "Suspended",
-					createdAt: this.clock.getTimeMs(),
-					game: this.fetchGameInfo(),
-				});
+				for (const app of SteamUIStore.RunningApps) {
+					this.eventBus.emit({
+						type: "Suspended",
+						createdAt: this.clock.getTimeMs(),
+						game: {
+							id: `${app.appid}`,
+							name: app.display_name,
+						},
+					});
+				}
 			}),
 		);
 
 		this.activeHooks.push(
 			SteamClient.System.RegisterForOnResumeFromSuspend(() => {
-				this.eventBus.emit({
-					type: "ResumeFromSuspend",
-					createdAt: this.clock.getTimeMs(),
-					game: this.fetchGameInfo(),
-				});
+				for (const app of SteamUIStore.RunningApps) {
+					this.eventBus.emit({
+						type: "ResumeFromSuspend",
+						createdAt: this.clock.getTimeMs(),
+						game: {
+							id: `${app.appid}`,
+							name: app.display_name,
+						},
+					});
+				}
 			}),
 		);
-	}
-
-	private fetchGameInfo(): Game | null {
-		if (Router.MainRunningApp != null) {
-			return {
-				id: Router.MainRunningApp.appid,
-				name: Router.MainRunningApp.display_name,
-			} as Game;
-		}
-
-		return null;
 	}
 
 	public async unMount() {

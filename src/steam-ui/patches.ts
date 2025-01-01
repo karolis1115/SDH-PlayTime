@@ -3,7 +3,7 @@ import { afterPatch } from "@decky/ui";
 import { runInAction } from "mobx";
 import type { ReactElement } from "react";
 import type { Cache } from "../app/cache";
-import type { AppDetails, AppOverview } from "../app/model";
+import type { AppDetails } from "../app/model";
 import type { Mountable } from "../app/system";
 
 function routePatch(path: string, patch: RoutePatch): Mountable {

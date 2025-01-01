@@ -1,5 +1,5 @@
 import type { Backend } from "./backend";
-import type { AppOverview, GameWithTime } from "./model";
+import type { GameWithTime } from "./model";
 
 export const nonSteamGamesPredicate = (app: AppOverview) =>
 	app.app_type === 1073741824;
