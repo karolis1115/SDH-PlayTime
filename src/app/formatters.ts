@@ -1,3 +1,5 @@
+import { isNil } from "@src/utils/isNil";
+import { type Duration, intervalToDuration } from "date-fns";
 import type { Interval } from "./reports";
 
 export {
@@ -7,36 +9,57 @@ export {
 	formatWeekInterval,
 };
 
-function humanReadableTime(seconds: number, short = true): string {
-	const minutes = Math.floor(seconds / 60);
-	const hours = Math.floor(minutes / 60);
+function humanReadableTime(
+	seconds: number,
+	short = true,
+	withSeconds = false,
+): string {
+	let duration: Duration = {};
 
-	const plurals = (value: number, nonPlural: string) => {
-		if (value === 1) {
-			return nonPlural;
-		}
-
-		return `${nonPlural}s`;
-	};
-
-	let result = "";
-
-	if (short) {
-		if (hours > 0) {
-			result += `${hours}h `;
-		}
-		result += `${minutes % 60}m`;
-
-		return result;
+	if (seconds === 0) {
+		duration = {
+			seconds: 0,
+		};
+	} else {
+		duration = intervalToDuration({
+			start: new Date(),
+			end: new Date().getTime() + seconds * 1000,
+		});
 	}
 
-	if (hours > 0) {
-		result += `${hours} ${plurals(hours, "hour")} `;
-	}
+	console.log(duration);
 
-	result += `${minutes % 60} ${plurals(minutes % 60, "minute")}`;
+	return Object.keys(duration)
+		.reduce<Array<string>>((accumulator, key) => {
+			if (
+				key === "seconds" &&
+				!withSeconds &&
+				// NOTE(ynhhoJ): If `seconds` key is only one in object then we should display it
+				Object.keys(duration).length !== 1
+			) {
+				return accumulator;
+			}
 
-	return result;
+			const durationValue = duration[key as keyof Duration];
+
+			if (isNil(durationValue)) {
+				return accumulator;
+			}
+
+			if (short) {
+				accumulator.push(`${durationValue}${key[0]}`);
+
+				return accumulator;
+			}
+
+			const durationTime =
+				durationValue === 1 ? key.slice(0, key.length - 1) : key;
+
+			accumulator.push(`${durationValue} ${durationTime}`);
+
+			return accumulator;
+		}, [])
+		.join(" ");
 }
 
 function toIsoDateOnly(date: Date) {
