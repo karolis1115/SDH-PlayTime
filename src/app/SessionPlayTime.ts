@@ -78,7 +78,7 @@ class SessionPlayTime {
 			const response = [];
 
 			for (const key of this.activeInterval.keys()) {
-				const currentGame = this.activeInterval.get(key);
+				const currentGame = this.activeInterval.get(`${key}`);
 
 				if (isNil(currentGame)) {
 					continue;
@@ -105,7 +105,7 @@ class SessionPlayTime {
 			return;
 		}
 
-		this.activeInterval.set(game.id, {
+		this.activeInterval.set(`${game.id}`, {
 			startedAt: startedAt,
 			game: game,
 		});
@@ -122,7 +122,7 @@ class SessionPlayTime {
 			return;
 		}
 
-		const currentGameInterval = this.activeInterval.get(game?.id);
+		const currentGameInterval = this.activeInterval.get(`${game?.id}`);
 
 		if (isNil(currentGameInterval)) {
 			logger.error(
