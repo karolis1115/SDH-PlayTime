@@ -9,6 +9,8 @@ function PlaySessionsInformation({
 	if (currentPlayTime.length === 1) {
 		const currentSessionTimeAsText = humanReadableTime(
 			currentPlayTime[0].playTime,
+			true,
+			true,
 		);
 
 		return <span>{currentSessionTimeAsText}</span>;
@@ -18,7 +20,7 @@ function PlaySessionsInformation({
 		<div style={{ display: "flex", flexDirection: "column" }}>
 			{currentPlayTime.map((game) => (
 				<span key={game.gameName}>
-					{game.gameName} - {humanReadableTime(game.playTime)}
+					{game.gameName} - {humanReadableTime(game.playTime, true, true)}
 				</span>
 			))}
 		</div>
