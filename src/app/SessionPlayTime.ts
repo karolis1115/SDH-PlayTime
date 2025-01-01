@@ -138,6 +138,7 @@ class SessionPlayTime {
 			endedAt: endedAt,
 			game: currentGameInterval.game,
 		});
+		this.activeInterval.delete(currentGameInterval.game.id);
 
 		return new Promise((resolve) => resolve(true));
 	}
