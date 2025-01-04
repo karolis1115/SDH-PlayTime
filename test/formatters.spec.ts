@@ -1,3 +1,4 @@
+import { describe, expect, test } from "bun:test";
 import { humanReadableTime } from "../src/app/formatters";
 
 describe("Should present play time as correct human readable text", () => {

@@ -1,3 +1,4 @@
+import { describe, expect, test } from "bun:test";
 import { SessionPlayTime } from "../src/app/SessionPlayTime";
 import type { Game } from "../src/app/model";
 import { EventBus } from "../src/app/system";
