@@ -1,11 +1,6 @@
 import { isNil } from "@src/utils/isNil";
 import logger from "../utils";
 
-declare global {
-	// @ts-ignore
-	let SteamClient: SteamClient;
-}
-
 export interface PlayTimeSettings {
 	gameChartStyle: ChartStyle;
 	reminderToTakeBreaksInterval: number;
@@ -35,13 +30,15 @@ export class Settings {
 	}
 
 	async get(): Promise<PlayTimeSettings> {
-		const settings = await SteamClient.Storage.GetJSON(PLAY_TIME_SETTINGS_KEY);
+		const settings = await SteamClient.Storage.GetJSON<string>(
+			PLAY_TIME_SETTINGS_KEY,
+		);
 
 		if (isNil(settings)) {
 			return DEFAULTS;
 		}
 
-		return JSON.parse(settings) as PlayTimeSettings;
+		return JSON.parse(settings);
 	}
 
 	async save(data: PlayTimeSettings) {

@@ -1,5 +1,4 @@
 import { ButtonItem, PanelSection, PanelSectionRow } from "@decky/ui";
-import type { VFC } from "react";
 import { CurrentPlayTime } from "../containers/CurrentPlayTime";
 import { ReportWeekly } from "../containers/ReportWeekly";
 import {
@@ -8,11 +7,13 @@ import {
 	navigateToPage,
 } from "./navigation";
 
-export const DeckyPanelPage: VFC = () => {
+export const DeckyPanelPage = () => {
 	return (
 		<div>
 			<CurrentPlayTime />
-			<ReportWeekly />
+
+			<ReportWeekly slim={true} />
+
 			<PanelSection title="Misc">
 				<PanelSectionRow>
 					<ButtonItem

@@ -37,13 +37,17 @@ function convertDailyStatisticsToGameWithTime(
 	for (const day of data) {
 		for (const game of day.games) {
 			const found = result.find((g) => g.game.id === game.game.id);
+
 			if (found) {
 				found.time += game.time;
-			} else {
-				result.push(game);
+
+				continue;
 			}
+
+			result.push(game);
 		}
 	}
+
 	return result;
 }
 

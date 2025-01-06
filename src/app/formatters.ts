@@ -27,8 +27,6 @@ function humanReadableTime(
 		});
 	}
 
-	console.log(duration);
-
 	return Object.keys(duration)
 		.reduce<Array<string>>((accumulator, key) => {
 			if (
