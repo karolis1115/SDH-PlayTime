@@ -14,6 +14,7 @@ export const GamesTimeBarView: React.FC<{ data: GameWithTime[] }> = (props) => {
 				<FocusableExt key={`${it.game.name}${index}`}>
 					<VerticalContainer>
 						<div style={hide_text_on_overflow}>{it.game.name}</div>
+
 						<Timebar time={it.time} allTime={allTime} />
 					</VerticalContainer>
 				</FocusableExt>

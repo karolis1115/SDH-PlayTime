@@ -28,6 +28,7 @@ export function patchAppPage(timeCache: Cache<Map<string, number>>): Mountable {
 
 				// just getting value - it fixes blinking issue
 				details.nPlaytimeForever;
+
 				if (overview.app_type === 1073741824) {
 					if (details && timeCache.isReady()) {
 						runInAction(() => {

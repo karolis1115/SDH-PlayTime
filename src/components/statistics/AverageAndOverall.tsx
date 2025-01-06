@@ -1,9 +1,9 @@
-import type { FC } from "react";
-import type { DailyStatistics } from "../../app/model";
-import { humanReadableTime } from "../../app/formatters";
 import { Field, PanelSection, PanelSectionRow } from "@decky/ui";
-import { FocusableExt } from "../FocusableExt";
 import moment from "moment";
+import type { FC } from "react";
+import { humanReadableTime } from "../../app/formatters";
+import type { DailyStatistics } from "../../app/model";
+import { FocusableExt } from "../FocusableExt";
 
 export const AverageAndOverall: FC<{ statistics: DailyStatistics[] }> = (
 	props,
@@ -16,6 +16,7 @@ export const AverageAndOverall: FC<{ statistics: DailyStatistics[] }> = (
 		moment(it.date).startOf("day").isSameOrBefore(today),
 	).length;
 	const average = overall / daysPassed;
+
 	return (
 		<FocusableExt>
 			<PanelSection title="Average and overall">
@@ -24,6 +25,7 @@ export const AverageAndOverall: FC<{ statistics: DailyStatistics[] }> = (
 						{humanReadableTime(average)}
 					</Field>
 				</PanelSectionRow>
+
 				<PanelSectionRow>
 					<Field label="Overall" bottomSeparator="none">
 						{humanReadableTime(overall)}
