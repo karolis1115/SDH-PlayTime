@@ -5,4 +5,5 @@ declare global {
 	let appStore: AppStore;
 	let appInfoStore: AppInfoStore;
 	let SteamUIStore: SteamUIStore;
+	let SteamClient: SteamClient;
 }
