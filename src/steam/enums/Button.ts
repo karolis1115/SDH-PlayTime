@@ -1,0 +1,41 @@
+export enum Button {
+	R2 = 0,
+	L2 = 1,
+	R1 = 2,
+	L1 = 3,
+
+	Y = 4,
+	B = 5,
+	X = 6,
+	A = 7,
+
+	DPAD_UP = 8,
+	DPAD_RIGHT = 9,
+	DPAD_LEFT = 10,
+	DPAD_DOWN = 11,
+
+	SELECT = 12,
+	STEAM = 13,
+	START = 14,
+
+	L5 = 15,
+	R5 = 16,
+
+	LEFT_TOUCHPAD_CLICK = 17,
+	RIGHT_TOUCHPAD_CLICK = 18,
+	LEFT_TOUCHPAD_TOUCH = 19,
+	RIGHT_TOUCHPAD_TOUCH = 20,
+
+	L3 = 22,
+	R3 = 26,
+
+	MUTE_DUALSENSE = 29,
+
+	L4 = 9 + 32,
+	R4 = 10 + 32,
+
+	LEFT_JOYSTICK_TOUCH = 14 + 32,
+	RIGHT_JOYSTICK_TOUCH = 15 + 32,
+
+	QUICK_ACCESS_MENU = 18 + 32,
+}
