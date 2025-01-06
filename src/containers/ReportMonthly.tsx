@@ -1,5 +1,4 @@
 import { PanelSection, PanelSectionRow } from "@decky/ui";
-import { Button } from "@src/steam/enums/Button";
 import { registerForInputEvent } from "@src/steam/registerForInputEvent";
 import { useEffect, useState } from "react";
 import { formatMonthInterval } from "../app/formatters";
@@ -35,22 +34,32 @@ export const ReportMonthly = () => {
 	}, []);
 
 	useEffect(() => {
-		const { unregister } = registerForInputEvent((buttons) => {
-			if (buttons.length !== 1) {
+		const { unregister } = registerForInputEvent((_buttons, rawEvent) => {
+			if (rawEvent.length === 0) {
 				return;
 			}
 
-			if (new Date().getTime() - lastChangedPageTimeStamp <= 500) {
+			const DELAY = 500;
+
+			if (new Date().getTime() - lastChangedPageTimeStamp <= DELAY) {
 				return;
 			}
 
-			if (buttons.includes(Button.L2) && currentPage.hasPrev()) {
+			// NOTE(ynhhoJ): Aproximative value
+			const TRIGGER_PUSH_FORCE_UNTIL_VIBRATION = 12000;
+			const isLeftTriggerPressed =
+				rawEvent[0].sTriggerL >= TRIGGER_PUSH_FORCE_UNTIL_VIBRATION;
+
+			if (isLeftTriggerPressed && currentPage.hasPrev()) {
 				setLastChangedPageTimeStamp(new Date().getTime());
 
 				onPrevWeek();
 			}
 
-			if (buttons.includes(Button.R2) && currentPage.hasNext()) {
+			const isRightTriggerPressed =
+				rawEvent[0].sTriggerR >= TRIGGER_PUSH_FORCE_UNTIL_VIBRATION;
+
+			if (isRightTriggerPressed && currentPage.hasNext()) {
 				setLastChangedPageTimeStamp(new Date().getTime());
 
 				onNextWeek();
