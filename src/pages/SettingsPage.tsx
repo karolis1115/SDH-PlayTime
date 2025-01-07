@@ -6,19 +6,20 @@ import {
 	PanelSectionRow,
 	SidebarNavigation,
 } from "@decky/ui";
-import { type VFC, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ChartStyle, DEFAULTS, type PlayTimeSettings } from "../app/settings";
 import { Tab } from "../components/Tab";
 import { useLocator } from "../locator";
 import { MANUALLY_ADJUST_TIME, navigateToPage } from "./navigation";
 
-export const GeneralSettings: VFC = () => {
+export const GeneralSettings = () => {
 	const { settings } = useLocator();
 	const [current, setCurrent] = useState<PlayTimeSettings>(DEFAULTS);
 	const [loaded, setLoaded] = useState<boolean>(false);
 
 	const loadSettings = () => {
 		setLoaded(false);
+
 		settings.get().then((r) => {
 			setCurrent(r);
 			setLoaded(true);
@@ -59,8 +60,49 @@ export const GeneralSettings: VFC = () => {
 									}}
 								/>
 							</Field>
+
+							<Field label="Display played time in">
+								<Dropdown
+									selectedOption={current?.displayTime.showTimeInHours}
+									rgOptions={[
+										{
+											label: "Days",
+											data: false,
+										},
+										{
+											label: "Hours",
+											data: true,
+										},
+									]}
+									onChange={(v) => {
+										current.displayTime.showTimeInHours = v.data;
+										updateSettings();
+									}}
+								/>
+							</Field>
+
+							<Field label="Show seconds">
+								<Dropdown
+									selectedOption={current?.displayTime.showSeconds}
+									rgOptions={[
+										{
+											label: "No",
+											data: false,
+										},
+										{
+											label: "Yes",
+											data: true,
+										},
+									]}
+									onChange={(v) => {
+										current.displayTime.showSeconds = v.data;
+										updateSettings();
+									}}
+								/>
+							</Field>
 						</PanelSectionRow>
 					</PanelSection>
+
 					<PanelSection title="Notifications">
 						<PanelSectionRow>
 							<Field label="Remind me to take breaks">
@@ -87,7 +129,7 @@ export const GeneralSettings: VFC = () => {
 	);
 };
 
-export const TimeManipulation: VFC = () => {
+export const TimeManipulation = () => {
 	return (
 		<div>
 			<PanelSection title="Change overall play time">
@@ -101,7 +143,7 @@ export const TimeManipulation: VFC = () => {
 	);
 };
 
-export const SettingsPage: VFC = () => {
+export const SettingsPage = () => {
 	return (
 		<SidebarNavigation
 			pages={[
