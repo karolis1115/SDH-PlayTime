@@ -1,5 +1,14 @@
 # PlayTime
 
+<div align="center">
+
+  [![License](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
+  ![Testing store Downloads](https://img.shields.io/badge/dynamic/json?url=https://testing.deckbrew.xyz/plugins?query=PlayTime&query=$[:1].downloads&suffix=%20installs&label=Testing%20store%20downloads)
+  ![Testing store Updates](https://img.shields.io/badge/dynamic/json?url=https://testing.deckbrew.xyz/plugins?query=PlayTime&query=$[:1].updates&suffix=%20installs&label=Testing%20store%20updates)
+  ![Stable store Downloads](https://img.shields.io/badge/dynamic/json?url=https://plugins.deckbrew.xyz/plugins?query=PlayTime&query=$[:1].downloads&suffix=%20installs&label=Stable%20store%20downloads)
+  ![Stable store Updates](https://img.shields.io/badge/dynamic/json?url=https://plugins.deckbrew.xyz/plugins?query=PlayTime&query=$[:1].updates&suffix=%20installs&label=Stable%20store%20updates)
+</div>
+
 ![PlayTime Logo](assets/image.png)
 
 PlayTime is a plugin for the SteamDeck gaming console, designed to track the amount of time you spend playing games. It provides weekly and monthly reports, as well as an overall summary of your gaming time. In addition, it offers data migration from the SteamLessTimes and MetaDeck plugins. PlayTime also allows you to manually adjust your overall playtime through the settings.
@@ -37,7 +46,7 @@ Alternatively, you can build PlayTime from source by following these steps:
 
 To contribute or modify PlayTime, ensure you have the following requirements installed:
 
-* pnpm version 8.6.x or higher
+* pnpm version 9.x.x or higher
 
 You can install `pnpm` by following the instructions in the [pnpm GitHub repository](https://github.com/pnpm/pnpm).
 
@@ -77,4 +86,4 @@ Discord [PlayTime support thread](https://discord.com/channels/96028155142852204
 Discord](https://discord.com/invite/U88fbeHyzt) server
 We appreciate your feedback!
 
-Happy gaming with PlayTime!
+Happy gaming with **PlayTime**!
