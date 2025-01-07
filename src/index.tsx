@@ -3,7 +3,7 @@ import { definePlugin, staticClasses } from "@decky/ui";
 import { FaClock } from "react-icons/fa";
 import { SessionPlayTime } from "./app/SessionPlayTime";
 import { Backend } from "./app/backend";
-import { humanReadableTime } from "./app/formatters";
+import { getDurationInHours } from "./app/formatters";
 import { SteamEventMiddleware } from "./app/middleware";
 import { BreaksReminder } from "./app/notification";
 import { Reports } from "./app/reports";
@@ -93,14 +93,15 @@ function createMountables(
 		backend,
 		eventBus,
 	);
+
 	eventBus.addSubscriber((event) => {
 		switch (event.type) {
 			case "NotifyToTakeBreak":
 				toaster.toast({
 					body: (
 						<div>
-							You already playing for {humanReadableTime(event.playTimeSeconds)}
-							,
+							You already playing for{" "}
+							{getDurationInHours(event.playTimeSeconds)},
 						</div>
 					),
 					title: "PlayTime: remember to take a breaks",

@@ -1,3 +1,4 @@
+import { useLocator } from "@src/locator";
 import moment from "moment";
 import type { FC } from "react";
 import {
@@ -18,6 +19,7 @@ interface DayTime {
 }
 
 export const MonthView: FC<{ statistics: DailyStatistics[] }> = (props) => {
+	const { currentSettings: settings } = useLocator();
 	const dayTimes = props.statistics.map((it) => {
 		return {
 			time: it.total,
@@ -57,7 +59,13 @@ export const MonthView: FC<{ statistics: DailyStatistics[] }> = (props) => {
 							<YAxis
 								axisLine={false}
 								domain={["auto", (dataMax: number) => dataMax * 1.05]}
-								tickFormatter={(e: number) => humanReadableTime(e, true)}
+								tickFormatter={(e: number) =>
+									humanReadableTime(
+										settings.displayTime.showTimeInHours,
+										e,
+										true,
+									)
+								}
 								width={75}
 							/>
 							<Bar dataKey="time" fill="#008ADA" />
