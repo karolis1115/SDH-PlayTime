@@ -42,8 +42,10 @@ export const LocatorProvider: React.FC<
 
 export const useLocator = () => {
 	const locator = useContext(LocatorContext);
+
 	if (!locator) {
 		throw new Error("Locator not found");
 	}
+
 	return locator;
 };

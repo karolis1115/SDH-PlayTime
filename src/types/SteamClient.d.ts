@@ -108,7 +108,7 @@ interface SteamClient {
 	};
 
 	Storage: {
-		GetJSON<T>(key: string): Promise<T>;
+		GetJSON(key: string): Promise<string>;
 		SetObject<T>(key: string, value: unknown): T;
 	};
 }

@@ -6,7 +6,7 @@ import {
 	PanelSection,
 	TextField,
 } from "@decky/ui";
-import { type VFC, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import type { DeepNonNullable } from "ts-essentials";
 import { humanReadableTime } from "../app/formatters";
 import type { GameWithTime } from "../app/model";
@@ -23,8 +23,9 @@ interface TableRowsProps {
 	desiredHours: number | undefined;
 }
 
-export const ManuallyAdjustTimePage: VFC = () => {
-	const { timeManipulation: timeMigration } = useLocator();
+export const ManuallyAdjustTimePage = () => {
+	const { timeManipulation: timeMigration, currentSettings: settings } =
+		useLocator();
 	const [isLoading, setLoading] = useState<boolean>(true);
 	const [gameWithTimeByAppId, setGameWithTimeByAppId] = useState<
 		Map<string, GameWithTime>
@@ -145,7 +146,14 @@ export const ManuallyAdjustTimePage: VFC = () => {
 								/>
 
 								<div>
-									{map(row.playTimeTrackedSec, (it) => humanReadableTime(it))}
+									{map(row.playTimeTrackedSec, (it) =>
+										humanReadableTime(
+											settings.displayTime.showTimeInHours,
+											it,
+											true,
+											settings.displayTime.showSeconds,
+										),
+									)}
 								</div>
 
 								<TextField

@@ -6,8 +6,11 @@ import { useLocator } from "../locator";
 function PlaySessionsInformation({
 	currentPlayTime,
 }: { currentPlayTime: Array<PlayTime> }) {
+	const { currentSettings: settings } = useLocator();
+
 	if (currentPlayTime.length === 1) {
 		const currentSessionTimeAsText = humanReadableTime(
+			settings.displayTime.showTimeInHours,
 			currentPlayTime[0].playTime,
 			true,
 			true,
@@ -20,7 +23,13 @@ function PlaySessionsInformation({
 		<div style={{ display: "flex", flexDirection: "column" }}>
 			{currentPlayTime.map((game) => (
 				<span key={game.gameName}>
-					{game.gameName} - {humanReadableTime(game.playTime, true, true)}
+					{game.gameName} -{" "}
+					{humanReadableTime(
+						settings.displayTime.showTimeInHours,
+						game.playTime,
+						true,
+						true,
+					)}
 				</span>
 			))}
 		</div>

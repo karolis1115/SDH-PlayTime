@@ -1,4 +1,5 @@
 import { Field, PanelSection, PanelSectionRow } from "@decky/ui";
+import { useLocator } from "@src/locator";
 import moment from "moment";
 import type { FC } from "react";
 import { humanReadableTime } from "../../app/formatters";
@@ -8,6 +9,7 @@ import { FocusableExt } from "../FocusableExt";
 export const AverageAndOverall: FC<{ statistics: DailyStatistics[] }> = (
 	props,
 ) => {
+	const { currentSettings: settings } = useLocator();
 	const overall = props.statistics
 		.map((it) => it.total)
 		.reduce((a, c) => a + c, 0);
@@ -22,13 +24,23 @@ export const AverageAndOverall: FC<{ statistics: DailyStatistics[] }> = (
 			<PanelSection title="Average and overall">
 				<PanelSectionRow>
 					<Field label="Daily average" bottomSeparator="none">
-						{humanReadableTime(average)}
+						{humanReadableTime(
+							settings.displayTime.showTimeInHours,
+							average,
+							true,
+							settings.displayTime.showSeconds,
+						)}
 					</Field>
 				</PanelSectionRow>
 
 				<PanelSectionRow>
 					<Field label="Overall" bottomSeparator="none">
-						{humanReadableTime(overall)}
+						{humanReadableTime(
+							settings.displayTime.showTimeInHours,
+							overall,
+							true,
+							settings.displayTime.showSeconds,
+						)}
 					</Field>
 				</PanelSectionRow>
 			</PanelSection>
