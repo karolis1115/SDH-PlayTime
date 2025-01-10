@@ -131,6 +131,36 @@ class SteamEventMiddleware implements Mountable {
 				}
 			}),
 		);
+
+		this.activeHooks.push(
+			(() => {
+				const originalInitiateSleep = SuspendResumeStore.InitiateSleep;
+				const instance = this;
+
+				SuspendResumeStore.InitiateSleep = function () {
+					for (const app of SteamUIStore.RunningApps) {
+						instance.eventBus.emit({
+							type: "Suspended",
+							createdAt: instance.clock.getTimeMs(),
+							game: {
+								id: `${app.appid}`,
+								name: app.display_name,
+							},
+						});
+					}
+
+					originalInitiateSleep.apply(this);
+				};
+
+				return {
+					unregister: () => {
+						SuspendResumeStore.InitiateSleep = function () {
+							originalInitiateSleep.apply(this);
+						};
+					},
+				};
+			})(),
+		);
 	}
 
 	public async unMount() {
