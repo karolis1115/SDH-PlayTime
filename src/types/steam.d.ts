@@ -6,4 +6,5 @@ declare global {
 	let appInfoStore: AppInfoStore;
 	let SteamUIStore: SteamUIStore;
 	let SteamClient: SteamClient;
+	let SuspendResumeStore: SuspendResumeStore;
 }
