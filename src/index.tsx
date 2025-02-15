@@ -1,5 +1,5 @@
 import { routerHook, toaster } from "@decky/api";
-import { definePlugin, staticClasses } from "@decky/ui";
+import { definePlugin, staticClasses, useParams } from "@decky/ui";
 import { FaClock } from "react-icons/fa";
 import { SessionPlayTime } from "./app/SessionPlayTime";
 import { Backend } from "./app/backend";
@@ -22,11 +22,13 @@ import {
 } from "./cachables";
 import { LocatorProvider } from "./locator";
 import { DeckyPanelPage } from "./pages/DeckyPanelPage";
+import { GameActivity } from "./pages/GameActivity";
 import { ManuallyAdjustTimePage } from "./pages/ManuallyAdjustTimePage";
 import { DetailedPage } from "./pages/ReportPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import {
 	DETAILED_REPORT_ROUTE,
+	GAME_REPORT_ROUTE,
 	MANUALLY_ADJUST_TIME,
 	SETTINGS_ROUTE,
 } from "./pages/navigation";
@@ -178,6 +180,28 @@ function createMountables(
 		},
 		unMount() {
 			routerHook.removeRoute(MANUALLY_ADJUST_TIME);
+		},
+	});
+
+	mounts.push({
+		mount() {
+			routerHook.addRoute(GAME_REPORT_ROUTE, () => {
+				const { gameId } = useParams<{ gameId: string }>();
+
+				return (
+					<LocatorProvider
+						reports={reports}
+						sessionPlayTime={sessionPlayTime}
+						settings={settings}
+						timeManipulation={timeMigration}
+					>
+						<GameActivity gameId={gameId} />
+					</LocatorProvider>
+				);
+			});
+		},
+		unMount() {
+			routerHook.removeRoute(GAME_REPORT_ROUTE);
 		},
 	});
 
