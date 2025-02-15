@@ -20,7 +20,7 @@ export const AverageAndOverall: FC<{ statistics: DailyStatistics[] }> = (
 	const average = overall / daysPassed;
 
 	return (
-		<FocusableExt>
+		<FocusableExt style={{ marginTop: "16px" }}>
 			<PanelSection title="Average and overall">
 				<PanelSectionRow>
 					<Field label="Daily average" bottomSeparator="none">
