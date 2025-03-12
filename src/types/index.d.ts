@@ -1,3 +1,5 @@
+declare module "*.css";
+
 type Nullable<T> = T | null | undefined;
 
 interface Unregisterable {
