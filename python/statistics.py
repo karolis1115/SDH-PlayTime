@@ -11,12 +11,15 @@ class Statistics:
     def __init__(self, dao: Dao) -> None:
         self.dao = dao
 
-    def daily_statistics_for_period(self, start: date, end: date) -> PagedDayStatistics:
+    def daily_statistics_for_period(
+        self, start: date, end: date, game_id: str = None
+    ) -> PagedDayStatistics:
         start_time = datetime.combine(start, time(00, 00, 00))
         end_time = datetime.combine(end, time(23, 59, 59, 999999))
-        data = self.dao.fetch_per_day_time_report(start_time, end_time)
+        data = self.dao.fetch_per_day_time_report(start_time, end_time, game_id)
 
         data_as_dict: Dict[str, List[DailyGameTimeDto]] = {}
+
         for it in data:
             if it.date in data_as_dict:
                 data_as_dict[it.date].append(it)
@@ -25,6 +28,7 @@ class Statistics:
 
         result: List[DayStatistics] = []
         date_range = self._generate_date_range(start, end)
+
         for day in date_range:
             date_str = format_date(day)
             if date_str in data_as_dict:
@@ -38,6 +42,7 @@ class Statistics:
                 )
             else:
                 result.append(DayStatistics(date_str, [], 0))
+
         return PagedDayStatistics(
             data=result,
             hasPrev=self.dao.is_there_is_data_before(start_time),

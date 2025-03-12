@@ -58,10 +58,13 @@ class Dao:
                 self._save_play_time(connection, create_at, delta_time, game_id, source)
 
     def fetch_per_day_time_report(
-        self, begin: type[datetime.datetime], end: type[datetime.datetime]
+        self,
+        begin: type[datetime.datetime],
+        end: type[datetime.datetime],
+        game_id: str = None,
     ) -> List[DailyGameTimeDto]:
         with self._db.transactional() as connection:
-            return self._fetch_per_day_time_report(connection, begin, end)
+            return self._fetch_per_day_time_report(connection, begin, end, game_id)
 
     def is_there_is_data_before(self, date: type[datetime.datetime]) -> bool:
         with self._db.transactional() as connection:
@@ -166,10 +169,37 @@ class Dao:
         connection: sqlite3.Connection,
         begin: type[datetime.datetime],
         end: type[datetime.datetime],
+        game_id: str = None,
     ) -> List[DailyGameTimeDto]:
         connection.row_factory = lambda c, row: DailyGameTimeDto(
             date=row[0], game_id=row[1], game_name=row[2], time=row[3]
         )
+
+        if game_id:
+            return connection.execute(
+                """
+                SELECT STRFTIME('%Y-%m-%d', STRFTIME('%s', date_time), 'unixepoch') as date,
+                    pt.game_id as game_id,
+                    gd.name as game_name,
+                    SUM(duration) as total_time,
+                    duration as total_time
+                FROM play_time pt
+                        LEFT JOIN game_dict gd ON pt.game_id = gd.game_id
+                WHERE STRFTIME('%s', date_time) BETWEEN STRFTIME('%s', :begin) AND
+                    STRFTIME('%s', :end) AND pt.game_id = :game_id
+                AND migrated IS NULL
+
+                GROUP BY STRFTIME('%Y-%m-%d', STRFTIME('%s', date_time), 'unixepoch'),
+                         pt.game_id,
+                         gd.name
+            """,
+                {
+                    "begin": begin.isoformat(),
+                    "end": end.isoformat(),
+                    "game_id": game_id,
+                },
+            ).fetchall()
+
         result = connection.execute(
             """
                 SELECT STRFTIME('%Y-%m-%d', STRFTIME('%s', date_time), 'unixepoch') as date,
