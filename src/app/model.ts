@@ -18,9 +18,16 @@ interface Game {
 	name: string;
 }
 
+interface LastSessionInformation {
+	date: string;
+	duration: number;
+}
+
 interface GameWithTime {
 	game: Game;
 	time: number;
+	sessions: number;
+	last_session: LastSessionInformation;
 }
 
 interface DailyStatistics {
