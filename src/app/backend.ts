@@ -126,4 +126,19 @@ export class Backend {
 			message: message,
 		});
 	}
+
+	async getGame(gameId: string): Promise<Nullable<GameInformation>> {
+		return await call<[gameId: string], Nullable<GameInformation>>(
+			"get_game",
+			gameId,
+		)
+			.then((response) => {
+				return response;
+			})
+			.catch((error) => {
+				logger.error(error);
+
+				return null;
+			});
+	}
 }

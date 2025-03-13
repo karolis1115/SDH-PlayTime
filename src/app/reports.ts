@@ -88,6 +88,10 @@ export class Reports {
 	public async overallStatistics(): Promise<GameWithTime[]> {
 		return await this.backend.fetchPerGameOverallStatistics();
 	}
+
+	public async getGame(gameId: string): Promise<Nullable<GameInformation>> {
+		return await this.backend.getGame(gameId);
+	}
 }
 
 class PerDayPaginatedImpl implements Paginated<DailyStatistics> {
