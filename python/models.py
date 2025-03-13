@@ -9,9 +9,17 @@ class Game:
 
 
 @dataclass
+class LastSessionInformation:
+    date: str
+    duration: float
+
+
+@dataclass
 class GameWithTime:
     game: Game
     time: int
+    sessions: int
+    last_session: LastSessionInformation
 
 
 @dataclass

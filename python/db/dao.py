@@ -22,6 +22,23 @@ class DailyGameTimeDto:
     game_id: str
     game_name: str
     time: int
+    sessions: int
+
+
+@dataclass
+class LastSessionInformation:
+    date: str
+    duration: float
+
+
+@dataclass
+class OverallGamesTimeDto:
+    game_id: str
+    game_name: str
+    last_play_duration_time: float
+    last_play_time_date: str
+    time: int
+    total_sessions: int
 
 
 class Dao:
@@ -115,7 +132,7 @@ class Dao:
             {"game_id": game_id, "game_name": game_name},
         )
 
-    def fetch_overall_playtime(self) -> List[GameTimeDto]:
+    def fetch_overall_playtime(self) -> List[OverallGamesTimeDto]:
         with self._db.transactional() as connection:
             return self._fetch_overall_playtime(connection)
 
@@ -152,15 +169,50 @@ class Dao:
     def _fetch_overall_playtime(
         self,
         connection: sqlite3.Connection,
-    ) -> List[GameTimeDto]:
-        connection.row_factory = lambda c, row: GameTimeDto(
-            game_id=row[0], game_name=row[1], time=row[2]
+    ) -> List[OverallGamesTimeDto]:
+        connection.row_factory = lambda c, row: OverallGamesTimeDto(
+            game_id=row[0],
+            game_name=row[1],
+            time=row[2],
+            total_sessions=row[3],
+            last_play_time_date=row[4],
+            last_play_duration_time=row[5],
         )
         return connection.execute(
             """
-                SELECT ot.game_id, gd.name AS game_name, ot.duration
-                FROM overall_time ot
-                        JOIN game_dict gd ON ot.game_id = gd.game_id
+                SELECT
+                    ot.game_id,
+                    gd.name AS game_name,
+                    ot.duration,
+                    session_counts.sessions,
+                    pt.date_time AS last_play_time,
+                    pt.duration AS last_duration_time
+                FROM
+                    overall_time ot
+                JOIN
+                    game_dict gd ON ot.game_id = gd.game_id
+                JOIN
+                    play_time pt ON ot.game_id = pt.game_id
+                JOIN (
+                    SELECT
+                        game_id,
+                        COUNT(game_id) AS sessions
+                    FROM
+                        play_time
+                    GROUP BY
+                        game_id
+                ) session_counts ON ot.game_id = session_counts.game_id
+                JOIN (
+                    SELECT
+                        game_id,
+                        MAX(date_time) AS last_play_time
+                    FROM
+                        play_time
+                    GROUP BY
+                        game_id
+                ) latest_play ON pt.game_id = latest_play.game_id AND pt.date_time = latest_play.last_play_time
+                GROUP BY
+                    ot.game_id, gd.name, ot.duration, pt.date_time, pt.duration, session_counts.sessions;
             """
         ).fetchall()
 
@@ -172,7 +224,7 @@ class Dao:
         game_id: str = None,
     ) -> List[DailyGameTimeDto]:
         connection.row_factory = lambda c, row: DailyGameTimeDto(
-            date=row[0], game_id=row[1], game_name=row[2], time=row[3]
+            date=row[0], game_id=row[1], game_name=row[2], time=row[3], sessions=row[4]
         )
 
         if game_id:
@@ -182,13 +234,12 @@ class Dao:
                     pt.game_id as game_id,
                     gd.name as game_name,
                     SUM(duration) as total_time,
-                    duration as total_time
+                    COUNT(pt.game_id) AS sessions
                 FROM play_time pt
                         LEFT JOIN game_dict gd ON pt.game_id = gd.game_id
                 WHERE STRFTIME('%s', date_time) BETWEEN STRFTIME('%s', :begin) AND
                     STRFTIME('%s', :end) AND pt.game_id = :game_id
                 AND migrated IS NULL
-
                 GROUP BY STRFTIME('%Y-%m-%d', STRFTIME('%s', date_time), 'unixepoch'),
                          pt.game_id,
                          gd.name
@@ -206,13 +257,12 @@ class Dao:
                     pt.game_id as game_id,
                     gd.name as game_name,
                     SUM(duration) as total_time,
-                    duration as total_time
+                    COUNT(pt.game_id) AS sessions
                 FROM play_time pt
                         LEFT JOIN game_dict gd ON pt.game_id = gd.game_id
                 WHERE STRFTIME('%s', date_time) BETWEEN STRFTIME('%s', :begin) AND
                     STRFTIME('%s', :end)
                 AND migrated IS NULL
-
                 GROUP BY STRFTIME('%Y-%m-%d', STRFTIME('%s', date_time), 'unixepoch'),
                          pt.game_id,
                          gd.name
@@ -220,3 +270,33 @@ class Dao:
             {"begin": begin.isoformat(), "end": end.isoformat()},
         ).fetchall()
         return result
+
+    def fetch_last_playtime_session_information(
+        self, game_id: int
+    ) -> LastSessionInformation:
+        with self._db.transactional() as connection:
+            return self._fetch_last_playtime_session_information(connection, game_id)
+
+    def _fetch_last_playtime_session_information(
+        self, connection: sqlite3.Connection, game_id: int
+    ) -> LastSessionInformation:
+        connection.row_factory = lambda c, row: LastSessionInformation(
+            date=row[0],
+            duration=row[1],
+        )
+
+        return connection.execute(
+            """
+            SELECT
+                pt.date_time,
+                pt.duration
+            FROM
+                play_time pt
+            WHERE
+                pt.game_id = ?
+            ORDER BY
+                pt.date_time
+            DESC LIMIT 1;
+            """,
+            (game_id,),
+        ).fetchone()
