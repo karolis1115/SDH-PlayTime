@@ -15,9 +15,9 @@ plugin_dir = Path(os.environ["DECKY_PLUGIN_DIR"])
 
 logging.basicConfig(
     filename=f"{log_dir}/decky-playtime.log",
-    format='[Playtime] %(asctime)s %(levelname)s %(message)s',
-    filemode='w+',
-    force=True
+    format="[Playtime] %(asctime)s %(levelname)s %(message)s",
+    filemode="w+",
+    force=True,
 )
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -58,27 +58,27 @@ class Plugin:
         except Exception:
             logger.exception("Unhandled exception")
 
-    async def add_time(self,
-                       started_at: int,
-                       ended_at: int,
-                       game_id: str,
-                       game_name: str):
+    async def add_time(
+        self, started_at: int, ended_at: int, game_id: str, game_name: str
+    ):
         try:
             self.time_tracking.add_time(
                 started_at=started_at,
                 ended_at=ended_at,
                 game_id=game_id,
-                game_name=game_name
+                game_name=game_name,
             )
         except Exception:
             logger.exception("Unhandled exception")
 
-    async def daily_statistics_for_period(self, start_date: str, end_date: str):
+    async def daily_statistics_for_period(
+        self, start_date: str, end_date: str, game_id: str
+    ):
         try:
             return dataclasses.asdict(
                 self.statistics.daily_statistics_for_period(
-                    parse_date(start_date),
-                    parse_date(end_date))
+                    parse_date(start_date), parse_date(end_date), game_id
+                )
             )
         except Exception:
             logger.exception("Unhandled exception")
@@ -90,10 +90,11 @@ class Plugin:
             logger.exception("Unhandled exception")
 
     async def apply_manual_time_correction(
-            self, list_of_game_stats: List[dict[str, Any]]):
+        self, list_of_game_stats: List[dict[str, Any]]
+    ):
         try:
             return self.time_tracking.apply_manual_time_for_games(
-                list_of_game_stats=list_of_game_stats,
-                source="manually-changed")
+                list_of_game_stats=list_of_game_stats, source="manually-changed"
+            )
         except Exception:
             logger.exception("Unhandled exception")
