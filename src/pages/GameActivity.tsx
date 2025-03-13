@@ -1,5 +1,6 @@
 import { PanelSection, PanelSectionRow } from "@decky/ui";
 import { formatYearInterval, humanReadableTime } from "@src/app/formatters";
+import type { DailyStatistics, SessionInformation } from "@src/app/model";
 import { FocusableExt } from "@src/components/FocusableExt";
 import { getGameCoverImage } from "@src/components/GameCard";
 import { VerticalContainer } from "@src/components/VerticalContainer";
@@ -74,6 +75,13 @@ function SessionsList({
 	});
 }
 
+function sortDateDesc(
+	a: DailyStatistics | SessionInformation,
+	b: DailyStatistics | SessionInformation,
+) {
+	return new Date(b.date).getTime() - new Date(a.date).getTime();
+}
+
 export function GameActivity({ gameId }: GameActivityProperties) {
 	const { reports, currentSettings: settings } = useLocator();
 	const [isLoading, setLoading] = useState<boolean>(false);
@@ -81,7 +89,7 @@ export function GameActivity({ gameId }: GameActivityProperties) {
 		useState<number>(0);
 
 	const [gameName, setGameName] = useState("");
-	const [currentPage, setCurrentPage] = useState<Paginated<YearlyStatistics>>(
+	const [currentPage, setCurrentPage] = useState<Paginated<DailyStatistics>>(
 		empty(),
 	);
 
@@ -101,6 +109,7 @@ export function GameActivity({ gameId }: GameActivityProperties) {
 				}
 
 				const { name } = response;
+
 				setGameName(name);
 			})
 			.catch((error) => {
@@ -113,22 +122,27 @@ export function GameActivity({ gameId }: GameActivityProperties) {
 			.current()
 			.data // NOTE: Copy original array
 			.slice(0)
-			.sort((a, b) => b.month - a.month)
-			.reduce<Array<Session>>((accumulator, currentValue) => {
-				return accumulator.concat(currentValue.sessions);
-			}, [])
-			.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+			.filter((statistics) => statistics.total)
+			.sort(sortDateDesc)
 			.reduce<SessionByDay>((accumulator, session) => {
 				const { date } = session;
 				const formattedDate = format(new Date(date), "MMMM-d");
 
+				const sessionsByDay = [];
+
+				for (const games of session.games) {
+					for (const sessions of games.sessions) {
+						sessionsByDay.push(sessions);
+					}
+				}
+
 				if (isNil(accumulator[formattedDate])) {
-					accumulator[formattedDate] = [session];
+					accumulator[formattedDate] = sessionsByDay.sort(sortDateDesc);
 
 					return accumulator;
 				}
 
-				accumulator[formattedDate].push(session);
+				accumulator[formattedDate].push(...sessionsByDay.sort(sortDateDesc));
 
 				return accumulator;
 			}, {});
