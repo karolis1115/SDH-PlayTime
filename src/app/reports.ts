@@ -1,4 +1,11 @@
-import { endOfMonth, endOfWeek, startOfMonth, startOfWeek } from "../utils";
+import { endOfYear } from "date-fns";
+import {
+	endOfMonth,
+	endOfWeek,
+	startOfMonth,
+	startOfWeek,
+	startOfYear,
+} from "../utils";
 import type { Backend } from "./backend";
 import type { DailyStatistics, GameWithTime } from "./model";
 
@@ -44,6 +51,7 @@ export function empty<T>() {
 export enum IntervalType {
 	Weekly = 0,
 	Monthly = 1,
+	Yearly = 2,
 }
 
 export class Reports {
@@ -67,6 +75,16 @@ export class Reports {
 		);
 	}
 
+	public async yearlyStatistics(
+		gameId: string,
+	): Promise<Paginated<DailyStatistics>> {
+		return PerDayPaginatedImpl.create(
+			this.backend,
+			IntervalPagerImpl.create(IntervalType.Yearly, new Date()),
+			gameId,
+		);
+	}
+
 	public async overallStatistics(): Promise<GameWithTime[]> {
 		return await this.backend.fetchPerGameOverallStatistics();
 	}
@@ -77,22 +95,26 @@ class PerDayPaginatedImpl implements Paginated<DailyStatistics> {
 	private intervalPager: IntervalPager;
 	private data: DailyStatistics[];
 	private hasPrevPage: boolean;
+	private gameId?: string;
 
 	private constructor(
 		backend: Backend,
 		intervalPager: IntervalPager,
 		data: DailyStatistics[],
 		hasPrevPage: boolean,
+		gameId?: string,
 	) {
 		this.backend = backend;
 		this.intervalPager = intervalPager;
 		this.data = data;
 		this.hasPrevPage = hasPrevPage;
+		this.gameId = gameId;
 	}
 
 	hasNext(): boolean {
 		const nextInterval = this.intervalPager.next().current();
 		const today = new Date();
+
 		return nextInterval.start <= today;
 	}
 
@@ -103,26 +125,41 @@ class PerDayPaginatedImpl implements Paginated<DailyStatistics> {
 	static async create(
 		backend: Backend,
 		intervalPager: IntervalPager,
+		gameId?: string,
 	): Promise<Paginated<DailyStatistics>> {
 		const data = await backend.fetchDailyStatisticForInterval(
 			intervalPager.current().start,
 			intervalPager.current().end,
+			gameId,
 		);
+
 		return new PerDayPaginatedImpl(
 			backend,
 			intervalPager,
 			data.data,
 			data.hasPrev,
+			gameId,
 		);
 	}
 
 	next(): Promise<Paginated<DailyStatistics>> {
 		const nextIntervalPager = this.intervalPager.next();
-		return PerDayPaginatedImpl.create(this.backend, nextIntervalPager);
+
+		return PerDayPaginatedImpl.create(
+			this.backend,
+			nextIntervalPager,
+			this.gameId,
+		);
 	}
+
 	prev(): Promise<Paginated<DailyStatistics>> {
 		const prevIntervalPager = this.intervalPager.prev();
-		return PerDayPaginatedImpl.create(this.backend, prevIntervalPager);
+
+		return PerDayPaginatedImpl.create(
+			this.backend,
+			prevIntervalPager,
+			this.gameId,
+		);
 	}
 
 	current(): Page<DailyStatistics> {
@@ -150,6 +187,13 @@ export class IntervalPagerImpl {
 			return new IntervalPagerImpl(type, { start, end });
 		}
 
+		if (type === IntervalType.Yearly) {
+			const start = startOfYear(date);
+			const end = endOfYear(start);
+
+			return new IntervalPagerImpl(type, { start, end });
+		}
+
 		const start = startOfMonth(date);
 		const end = endOfMonth(start);
 
@@ -167,6 +211,16 @@ export class IntervalPagerImpl {
 			return new IntervalPagerImpl(this.type, { start, end });
 		}
 
+		if (this.type === IntervalType.Yearly) {
+			const nextDate = new Date(this.interval.end);
+			nextDate.setFullYear(this.interval.end.getFullYear() + 1);
+
+			const start = startOfYear(nextDate);
+			const end = endOfYear(start);
+
+			return new IntervalPagerImpl(this.type, { start, end });
+		}
+
 		const start = startOfMonth(nextDate);
 		const end = endOfMonth(start);
 
@@ -180,6 +234,16 @@ export class IntervalPagerImpl {
 		if (this.type === IntervalType.Weekly) {
 			const start = startOfWeek(prevDate);
 			const end = endOfWeek(start);
+
+			return new IntervalPagerImpl(this.type, { start, end });
+		}
+
+		if (this.type === IntervalType.Yearly) {
+			const prevDate = new Date(this.interval.start);
+			prevDate.setFullYear(this.interval.start.getFullYear() - 1);
+
+			const start = startOfYear(prevDate);
+			const end = endOfYear(start);
 
 			return new IntervalPagerImpl(this.type, { start, end });
 		}
