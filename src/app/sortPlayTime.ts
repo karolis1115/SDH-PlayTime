@@ -54,17 +54,17 @@ function sortByLeastPlayed(playedTime: Array<GameWithTime>) {
 }
 
 function sortByMostLaunched(playedTime: Array<GameWithTime>) {
-	return playedTime.sort((a, b) => b.sessions - a.sessions);
+	return playedTime.sort((a, b) => b.sessions.length - a.sessions.length);
 }
 
 function sortByLeastLaunched(playedTime: Array<GameWithTime>) {
-	return playedTime.sort((a, b) => a.sessions - b.sessions);
+	return playedTime.sort((a, b) => a.sessions.length - b.sessions.length);
 }
 
 function sortByMostAverageTimePlayed(playedTime: Array<GameWithTime>) {
 	return playedTime.sort((a, b) => {
-		const avgTimeA = a.time / a.sessions;
-		const avgTimeB = b.time / b.sessions;
+		const avgTimeA = a.time / a.sessions.length;
+		const avgTimeB = b.time / b.sessions.length;
 
 		return avgTimeB - avgTimeA;
 	});
@@ -72,8 +72,8 @@ function sortByMostAverageTimePlayed(playedTime: Array<GameWithTime>) {
 
 function sortByLeastAverageTimePlayed(playedTime: Array<GameWithTime>) {
 	return playedTime.sort((a, b) => {
-		const avgTimeA = a.time / a.sessions;
-		const avgTimeB = b.time / b.sessions;
+		const avgTimeA = a.time / a.sessions.length;
+		const avgTimeB = b.time / b.sessions.length;
 
 		return avgTimeA - avgTimeB;
 	});
