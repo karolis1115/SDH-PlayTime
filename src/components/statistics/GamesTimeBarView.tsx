@@ -111,8 +111,8 @@ function GamesTimeBarViewWithCovers({
 										<span>Last played {lastPlayedDate} ago</span>
 
 										<span>
-											Played {it?.sessions} time
-											{it?.sessions === 1 ? "" : "s"}
+											Played {it?.sessions.length} time
+											{it?.sessions.length === 1 ? "" : "s"}
 										</span>
 									</div>
 								</div>
