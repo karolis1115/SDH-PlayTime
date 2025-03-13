@@ -9,7 +9,7 @@ class Game:
 
 
 @dataclass
-class LastSessionInformation:
+class SessionInformation:
     date: str
     duration: float
 
@@ -18,8 +18,8 @@ class LastSessionInformation:
 class GameWithTime:
     game: Game
     time: int
-    sessions: int
-    last_session: LastSessionInformation
+    sessions: List[SessionInformation]
+    last_session: SessionInformation
 
 
 @dataclass

@@ -26,7 +26,7 @@ class DailyGameTimeDto:
 
 
 @dataclass
-class LastSessionInformation:
+class SessionInformation:
     date: str
     duration: float
 
@@ -280,14 +280,14 @@ class Dao:
 
     def fetch_last_playtime_session_information(
         self, game_id: int
-    ) -> LastSessionInformation:
+    ) -> SessionInformation:
         with self._db.transactional() as connection:
             return self._fetch_last_playtime_session_information(connection, game_id)
 
     def _fetch_last_playtime_session_information(
         self, connection: sqlite3.Connection, game_id: int
-    ) -> LastSessionInformation:
-        connection.row_factory = lambda c, row: LastSessionInformation(
+    ) -> SessionInformation:
+        connection.row_factory = lambda c, row: SessionInformation(
             date=row[0],
             duration=row[1],
         )
@@ -307,6 +307,43 @@ class Dao:
             """,
             (game_id,),
         ).fetchone()
+
+    def fetch_per_day_game_sessions_report(
+        self, date: type[datetime.datetime], game_id: int
+    ) -> SessionInformation:
+        with self._db.transactional() as connection:
+            return self._fetch_per_day_game_sessions_report(connection, date, game_id)
+
+    def _fetch_per_day_game_sessions_report(
+        self,
+        connection: sqlite3.Connection,
+        date: type[datetime.datetime],
+        game_id: int,
+    ) -> SessionInformation:
+        connection.row_factory = lambda c, row: SessionInformation(
+            date=row[0],
+            duration=row[1],
+        )
+
+        return connection.execute(
+            """
+                SELECT
+                    pt.date_time,
+                    pt.duration
+                FROM
+                    play_time pt
+                WHERE
+                    pt.game_id = :game_id
+                AND
+                    STRFTIME('%Y-%m-%d', date_time) = :date
+                ORDER BY
+                    pt.date_time;
+            """,
+            {
+                "date": date,
+                "game_id": game_id,
+            },
+        ).fetchall()
 
     def get_game(self, game_id: int) -> GameInformationDto:
         with self._db.transactional() as connection:

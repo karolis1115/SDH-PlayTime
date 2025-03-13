@@ -7,7 +7,7 @@ from python.models import (
     Game,
     GameInformationDto,
     GameWithTime,
-    LastSessionInformation,
+    SessionInformation,
     PagedDayStatistics,
 )
 
@@ -48,13 +48,18 @@ class Statistics:
                     last_playtime_session_information = (
                         self.dao.fetch_last_playtime_session_information(el.game_id)
                     )
+                    per_day_game_sessions_report = (
+                        self.dao.fetch_per_day_game_sessions_report(
+                            date_str, el.game_id
+                        )
+                    )
 
                     games.append(
                         GameWithTime(
                             Game(el.game_id, el.game_name),
                             el.time,
-                            el.sessions,
-                            LastSessionInformation(
+                            per_day_game_sessions_report,
+                            SessionInformation(
                                 date=last_playtime_session_information.date,
                                 duration=last_playtime_session_information.duration,
                             ),
