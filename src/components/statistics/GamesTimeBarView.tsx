@@ -21,15 +21,14 @@ type GamesTimeBarViewCoversProperties = Omit<
 >;
 
 function getLastPlayedTime(game: GameWithTime) {
-	const { last_play_time_date, last_play_duration_time } = game;
+	const { last_session } = game;
+	const { date, duration } = last_session;
 
-	if (isNil(last_play_time_date) || isNil(last_play_duration_time)) {
+	if (isNil(date) || isNil(duration)) {
 		return undefined;
 	}
 
-	const lastPlayedDate = new Date(
-		new Date(last_play_time_date).getTime() + last_play_duration_time * 1000,
-	);
+	const lastPlayedDate = new Date(new Date(date).getTime() + duration * 1000);
 
 	return formatDistanceToNow(lastPlayedDate, { includeSeconds: true });
 }
@@ -112,8 +111,8 @@ function GamesTimeBarViewWithCovers({
 										<span>Last played {lastPlayedDate} ago</span>
 
 										<span>
-											Played {it?.total_sessions} time
-											{it?.total_sessions === 1 ? "" : "s"}
+											Played {it?.sessions} time
+											{it?.sessions === 1 ? "" : "s"}
 										</span>
 									</div>
 								</div>
