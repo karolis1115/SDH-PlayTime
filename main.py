@@ -98,3 +98,9 @@ class Plugin:
             )
         except Exception:
             logger.exception("Unhandled exception")
+
+    async def get_game(self, game_id: str):
+        try:
+            return dataclasses.asdict(self.statistics.get_game(game_id))
+        except Exception:
+            logger.exception("Unhandled exception")

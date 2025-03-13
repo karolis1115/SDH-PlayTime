@@ -34,3 +34,10 @@ class PagedDayStatistics:
     data: List[DayStatistics]
     hasPrev: bool
     hasNext: bool
+
+
+@dataclass
+class GameInformationDto:
+    id: str
+    name: str
+    time: float

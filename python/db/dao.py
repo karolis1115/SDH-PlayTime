@@ -41,6 +41,13 @@ class OverallGamesTimeDto:
     total_sessions: int
 
 
+@dataclass
+class GameInformationDto:
+    id: str
+    name: str
+    time: float
+
+
 class Dao:
     def __init__(self, db: SqlLiteDb):
         self._db = db
@@ -297,6 +304,29 @@ class Dao:
             ORDER BY
                 pt.date_time
             DESC LIMIT 1;
+            """,
+            (game_id,),
+        ).fetchone()
+
+    def get_game(self, game_id: int) -> GameInformationDto:
+        with self._db.transactional() as connection:
+            return self._get_game(connection, game_id)
+
+    def _get_game(
+        self, connection: sqlite3.Connection, game_id: int
+    ) -> GameInformationDto:
+        return connection.execute(
+            """
+            SELECT
+                gd.game_id,
+                gd.name,
+                ot.duration
+            FROM
+                game_dict gd
+            INNER JOIN overall_time ot
+                ON gd.game_id = ot.game_id
+            WHERE
+                gd.game_id = ?
             """,
             (game_id,),
         ).fetchone()

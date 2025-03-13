@@ -5,9 +5,10 @@ from python.helpers import format_date
 from python.models import (
     DayStatistics,
     Game,
+    GameInformationDto,
     GameWithTime,
-    PagedDayStatistics,
     LastSessionInformation,
+    PagedDayStatistics,
 )
 
 
@@ -102,3 +103,8 @@ class Statistics:
             curr_date += timedelta(days=1)
 
         return date_list
+
+    def get_game(self, game_id: int) -> GameInformationDto:
+        response = self.dao.get_game(game_id)
+
+        return GameInformationDto(id=response[0], name=response[1], time=response[2])
