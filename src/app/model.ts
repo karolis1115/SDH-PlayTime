@@ -10,6 +10,7 @@ export {
 	type Game,
 	type GameWithTime,
 	type OverviewChange,
+	type SessionInformation,
 };
 import type { set as MobXSet } from "mobx";
 
