@@ -64,11 +64,17 @@ export class Backend {
 	async fetchDailyStatisticForInterval(
 		start: Date,
 		end: Date,
+		gameId?: string,
 	): Promise<StatisticForIntervalResponse> {
 		return await call<
-			[start_date: string, end_date: string],
+			[start_date: string, end_date: string, gameId?: string],
 			StatisticForIntervalResponse
-		>("daily_statistics_for_period", toIsoDateOnly(start), toIsoDateOnly(end))
+		>(
+			"daily_statistics_for_period",
+			toIsoDateOnly(start),
+			toIsoDateOnly(end),
+			gameId,
+		)
 			.then((response) => {
 				return response;
 			})
