@@ -243,8 +243,8 @@ export class IntervalPagerImpl {
 		}
 
 		if (this.type === IntervalType.Yearly) {
-			const prevDate = new Date(this.interval.start);
-			prevDate.setFullYear(this.interval.start.getFullYear() - 1);
+			const prevDate = new Date(this.interval.end);
+			prevDate.setFullYear(this.interval.end.getFullYear() - 1);
 
 			const start = startOfYear(prevDate);
 			const end = endOfYear(start);
