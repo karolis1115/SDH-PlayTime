@@ -1,6 +1,7 @@
 import { humanReadableTime } from "@src/app/formatters";
+import type { DailyStatistics } from "@src/app/model";
 import { useLocator } from "@src/locator";
-import { isNil } from "@src/utils/isNil";
+import { format } from "date-fns";
 import { useMemo } from "react";
 import {
 	Bar,
@@ -14,33 +15,43 @@ import {
 } from "recharts";
 import { FocusableExt } from "../FocusableExt";
 
-interface YearlyStatisticsWithMigratedTime extends YearlyStatistics {
-	migrated?: number;
+interface YearViewProperties {
+	statistics: Array<DailyStatistics>;
 }
 
-interface YearViewProperties {
-	statistics: Array<YearlyStatisticsWithMigratedTime>;
-}
+type ChartsStatistics = {
+	monthName: string;
+	total: number;
+	migrated: number;
+};
 
 export function YearView({ statistics: yearStatistics }: YearViewProperties) {
 	const { currentSettings: settings } = useLocator();
 
 	const statistics = useMemo(() => {
-		return yearStatistics.reduce<Array<YearlyStatisticsWithMigratedTime>>(
+		return yearStatistics.reduce<Array<ChartsStatistics>>(
 			(accumulator, currentValue) => {
-				let migrated = 0;
-				let total = currentValue.total;
+				const { date, total } = currentValue;
 
-				for (const session of currentValue.sessions) {
-					if (isNil(session.migrated) || session.migrated.length === 0) {
-						continue;
-					}
+				const monthName = format(date, "MMM");
+				const index = accumulator.findIndex(
+					(item) => item.monthName === monthName,
+				);
 
-					migrated += session.duration;
-					total -= session.duration;
+				if (index === -1) {
+					accumulator.push({
+						monthName,
+						total,
+						migrated: 0,
+					});
+
+					return accumulator;
 				}
 
-				accumulator.push({ ...currentValue, migrated, total });
+				accumulator[index] = {
+					...accumulator[index],
+					total: accumulator[index].total + total,
+				};
 
 				return accumulator;
 			},
@@ -65,7 +76,7 @@ export function YearView({ statistics: yearStatistics }: YearViewProperties) {
 							<CartesianGrid strokeDasharray="1 2" strokeWidth={0.5} />
 
 							<XAxis
-								dataKey="month_name"
+								dataKey="monthName"
 								interval={0}
 								scale="band"
 								textAnchor="middle"
