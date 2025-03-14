@@ -9,6 +9,7 @@ interface FocusableExtProperties {
 	onOptionsActionDescription?: JSX.Element;
 	onOptionsButton?: () => void;
 	style?: CSSProperties;
+	autoFocus?: boolean;
 }
 
 export const FocusableExt: React.FC<FocusableExtProperties> = ({
@@ -18,6 +19,7 @@ export const FocusableExt: React.FC<FocusableExtProperties> = ({
 	onOptionsActionDescription,
 	onOptionsButton,
 	style = {},
+	autoFocus = undefined,
 }) => {
 	return (
 		<Focusable
@@ -26,6 +28,7 @@ export const FocusableExt: React.FC<FocusableExtProperties> = ({
 			onOptionsActionDescription={onOptionsActionDescription}
 			onOptionsButton={onOptionsButton}
 			style={{ ...focus_panel_no_padding, ...style }}
+			autoFocus={autoFocus}
 		>
 			{children}
 		</Focusable>
