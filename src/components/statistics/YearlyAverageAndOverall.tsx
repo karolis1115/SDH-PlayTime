@@ -1,52 +1,55 @@
 import { Field, PanelSection, PanelSectionRow } from "@decky/ui";
+import type { DailyStatistics } from "@src/app/model";
 import { useLocator } from "@src/locator";
-import { isNil } from "@src/utils/isNil";
+import { format } from "date-fns";
 import { type FC, useMemo } from "react";
 import { humanReadableTime } from "../../app/formatters";
 import { FocusableExt } from "../FocusableExt";
 
-function calculateAverages(yearlyStats: Array<YearlyStatistics>): {
+function calculateAverages(yearlyStats: Array<DailyStatistics>): {
 	averagePlaytime: number;
 	averagePerMonth: number;
 	averagePerDay: number;
 } {
-	const totalMonths = yearlyStats.filter(
-		(month) => month.sessions.length !== 0,
-	).length;
-
+	const totalMonths = new Map();
 	let totalPlaytime = 0;
 	let totalSessions = 0;
-	let totalDays = 0;
+	const totalDays = new Map();
 
-	for (const monthStats of yearlyStats) {
-		// Add total playtime for the month
-		totalPlaytime += monthStats.total;
+	const daysWithStatistics = yearlyStats
+		.slice(0)
+		.filter((statistics) => statistics.total);
 
-		// Add the number of sessions for this month
-		totalSessions += monthStats.sessions_count;
+	for (const dailyStatistics of daysWithStatistics) {
+		const { games } = dailyStatistics;
 
-		// Count the number of days (using sessions to avoid duplicates)
-		totalDays += monthStats.sessions.reduce(
-			(accumulator, session) => {
-				const date = new Date(session.date).getDate();
+		for (const game of games) {
+			const { sessions } = game;
 
-				if (isNil(accumulator.dates[date])) {
-					accumulator.dates[date] = 1;
-					accumulator.days += 1;
+			totalSessions += sessions.length;
+			totalPlaytime += game.time;
 
-					return accumulator;
+			for (const session of sessions) {
+				const formattedDate = format(new Date(session.date), "M-d");
+				const formattedMonth = format(new Date(session.date), "M");
+
+				if (!totalMonths.has(formattedMonth)) {
+					totalMonths.set(formattedMonth, true);
 				}
 
-				return accumulator;
-			},
-			{ days: 0, dates: {} },
-		).days;
+				if (totalDays.has(formattedDate)) {
+					continue;
+				}
+
+				totalDays.set(formattedDate, true);
+			}
+		}
 	}
 
 	// Calculate averages
-	const averagePlaytime = totalPlaytime / totalSessions;
-	const averagePerMonth = totalPlaytime / totalMonths;
-	const averagePerDay = totalPlaytime / totalDays;
+	const averagePlaytime = totalPlaytime / totalSessions || 0;
+	const averagePerMonth = totalPlaytime / totalMonths.size || 0;
+	const averagePerDay = totalPlaytime / totalDays.size || 0;
 
 	return {
 		averagePlaytime,
@@ -56,7 +59,7 @@ function calculateAverages(yearlyStats: Array<YearlyStatistics>): {
 }
 
 export const YearlyAverageAndOverall: FC<{
-	statistics: Array<YearlyStatistics>;
+	statistics: Array<DailyStatistics>;
 }> = ({ statistics }) => {
 	const { currentSettings: settings } = useLocator();
 
