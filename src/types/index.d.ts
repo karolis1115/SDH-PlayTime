@@ -8,3 +8,9 @@ interface Unregisterable {
 	 */
 	unregister(): void;
 }
+
+interface Session {
+	date: string;
+	duration: number;
+	migrated?: string;
+}
