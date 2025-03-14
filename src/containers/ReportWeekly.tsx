@@ -26,15 +26,16 @@ interface ReportWeeklyProperties {
 }
 
 export const ReportWeekly = ({ slim = false }: ReportWeeklyProperties) => {
-	const { reports, currentSettings: settings } = useLocator();
+	const { reports, currentSettings, settings } = useLocator();
 	const [lastChangedPageTimeStamp, setLastChangedPageTimeStamp] =
 		useState<number>(0);
 	const [isLoading, setLoading] = useState<boolean>(false);
 	const [currentPage, setCurrentPage] = useState<Paginated<DailyStatistics>>(
 		empty(),
 	);
-
-	const [sortType, setSortType] = useState<SortByKeys>("mostPlayed");
+	const [sortType, setSortType] = useState<SortByKeys>(
+		currentSettings.selectedSortByOption || "mostPlayed",
+	);
 
 	const sortedData = useMemo(
 		() =>
@@ -56,6 +57,17 @@ export const ReportWeekly = ({ slim = false }: ReportWeeklyProperties) => {
 			setLoading(false);
 		});
 	}, []);
+
+	useEffect(() => {
+		settings
+			.save({
+				...currentSettings,
+				selectedSortByOption: sortType,
+			})
+			.then(() => {
+				currentSettings.selectedSortByOption = sortType;
+			});
+	}, [sortType]);
 
 	useEffect(() => {
 		if (slim) {
@@ -132,6 +144,9 @@ export const ReportWeekly = ({ slim = false }: ReportWeeklyProperties) => {
 		const objectKeys = Object.keys(
 			SortBy,
 		) as unknown as Array<SortByObjectKeys>;
+		const selectedOption = objectKeys.find(
+			(item) => SortBy[item].key === currentSettings.selectedSortByOption,
+		);
 
 		showContextMenu(
 			<Menu label="Sort titles">
@@ -142,6 +157,7 @@ export const ReportWeekly = ({ slim = false }: ReportWeeklyProperties) => {
 							onSelected={() => {
 								setSortType(() => SortBy[key].key);
 							}}
+							disabled={key === selectedOption}
 						>
 							{SortBy[key].name}
 						</MenuItem>
@@ -183,7 +199,7 @@ export const ReportWeekly = ({ slim = false }: ReportWeeklyProperties) => {
 								onOptionsPress={onOptionsPress}
 							/>
 
-							{settings.gameChartStyle === ChartStyle.PIE_AND_BARS && (
+							{currentSettings.gameChartStyle === ChartStyle.PIE_AND_BARS && (
 								<PieView statistics={data} />
 							)}
 						</PanelSection>

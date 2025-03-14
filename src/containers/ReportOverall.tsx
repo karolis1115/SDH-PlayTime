@@ -11,10 +11,12 @@ import { GamesTimeBarView } from "../components/statistics/GamesTimeBarView";
 import { useLocator } from "../locator";
 
 export const ReportOverall = () => {
-	const { reports } = useLocator();
+	const { reports, currentSettings, settings } = useLocator();
 	const [data, setData] = useState<GameWithTime[]>([]);
 	const [isLoading, setLoading] = useState<boolean>(false);
-	const [sortType, setSortType] = useState<SortByKeys>("mostPlayed");
+	const [sortType, setSortType] = useState<SortByKeys>(
+		currentSettings.selectedSortByOption || "mostPlayed",
+	);
 
 	useEffect(() => {
 		setLoading(true);
@@ -24,6 +26,17 @@ export const ReportOverall = () => {
 			setLoading(false);
 		});
 	}, []);
+
+	useEffect(() => {
+		settings
+			.save({
+				...currentSettings,
+				selectedSortByOption: sortType,
+			})
+			.then(() => {
+				currentSettings.selectedSortByOption = sortType;
+			});
+	}, [sortType]);
 
 	const sortedData = useMemo(
 		() => sortPlayedTime(data, sortType),
@@ -42,6 +55,9 @@ export const ReportOverall = () => {
 		const objectKeys = Object.keys(
 			SortBy,
 		) as unknown as Array<SortByObjectKeys>;
+		const selectedOption = objectKeys.find(
+			(item) => SortBy[item].key === currentSettings.selectedSortByOption,
+		);
 
 		showContextMenu(
 			<Menu label="Sort titles">
@@ -52,6 +68,7 @@ export const ReportOverall = () => {
 							onSelected={() => {
 								setSortType(() => SortBy[key].key);
 							}}
+							disabled={key === selectedOption}
 						>
 							{SortBy[key].name}
 						</MenuItem>
