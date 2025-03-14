@@ -7,7 +7,7 @@ on:
 
 jobs:
   check:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
@@ -45,7 +45,7 @@ jobs:
     needs: check
     permissions:
       contents: write
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.TOKEN }}
     outputs:
@@ -96,7 +96,7 @@ jobs:
     needs: create-release
     permissions:
       contents: write
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
@@ -213,7 +213,7 @@ jobs:
     needs: [create-release, build-plugin]
     permissions:
       contents: write
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
