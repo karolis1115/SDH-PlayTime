@@ -1,3 +1,4 @@
+import { isNil } from "@src/utils/isNil";
 import type { GameWithTime } from "./model";
 
 export const SortBy = {
@@ -11,11 +12,11 @@ export const SortBy = {
 	},
 	MOST_PLAYED: {
 		key: "mostPlayed",
-		name: "By Most Played",
+		name: "By Most Played Time",
 	},
 	LEAST_PLAYED: {
 		key: "leastPlayed",
-		name: "By Least Played",
+		name: "By Least Played Time",
 	},
 	MOST_LAUNCHED: {
 		key: "mostLaunched",
@@ -43,6 +44,19 @@ export type SortByKeys = Pick<
 
 function sortByName(playedTime: Array<GameWithTime>) {
 	return playedTime.sort((a, b) => a.game.name.localeCompare(b.game.name));
+}
+
+function sortByFirstPlayTime(playedTime: Array<GameWithTime>) {
+	return playedTime.sort((a, b) => {
+		const firstSessionA = a.sessions[0]?.date;
+		const firstSessionB = b.sessions[0]?.date;
+
+		if (isNil(firstSessionA) || isNil(firstSessionB)) return 0;
+
+		return (
+			new Date(firstSessionA).getTime() - new Date(firstSessionB).getTime()
+		);
+	});
 }
 
 function sortByMostPlayed(playedTime: Array<GameWithTime>) {
@@ -87,6 +101,10 @@ export function sortPlayedTime(
 
 	if (SortBy.NAME.key === sort) {
 		return sortByName(playedTime);
+	}
+
+	if (SortBy.FIRST_PLAYTIME.key === sort) {
+		return sortByFirstPlayTime(playedTime);
 	}
 
 	if (SortBy.MOST_PLAYED.key === sort) {
