@@ -1,5 +1,6 @@
 import { isNil } from "@src/utils/isNil";
 import logger from "../utils";
+import { SortBy, type SortByKeys, type SortByObjectKeys } from "./sortPlayTime";
 
 export interface PlayTimeSettings {
 	gameChartStyle: ChartStyle;
@@ -13,6 +14,7 @@ export interface PlayTimeSettings {
 		showTimeInHours: boolean;
 	};
 	coverScale: number;
+	selectedSortByOption: SortByKeys;
 }
 
 export enum ChartStyle {
@@ -30,6 +32,7 @@ export const DEFAULTS: PlayTimeSettings = {
 		showSeconds: false,
 	},
 	coverScale: 1,
+	selectedSortByOption: "mostPlayed",
 };
 
 export class Settings {
@@ -38,8 +41,9 @@ export class Settings {
 			.then(async (json) => {
 				const parsedJson = JSON.parse(json) as PlayTimeSettings;
 
-				this.setDefaultDisplayTimeIfNeeded(parsedJson);
-				this.setDefaultCoverScaleIfNeeded(parsedJson);
+				await this.setDefaultDisplayTimeIfNeeded(parsedJson);
+				await this.setDefaultCoverScaleIfNeeded(parsedJson);
+				await this.setDefaultSortByOptionIfNeeded(parsedJson);
 			})
 			.catch((e: Error) => {
 				if (e.message === "Not found") {
@@ -123,6 +127,33 @@ export class Settings {
 		await SteamClient.Storage.SetObject(PLAY_TIME_SETTINGS_KEY, {
 			...settings,
 			coverScale: DEFAULTS.coverScale,
+		});
+	}
+
+	async setDefaultSortByOptionIfNeeded(settings: PlayTimeSettings) {
+		// NOTE(ynhhoJ): If fore some reason `settings` is `null` or `undefined` we should set it
+		if (isNil(settings)) {
+			SteamClient.Storage.SetObject(PLAY_TIME_SETTINGS_KEY, DEFAULTS);
+
+			return;
+		}
+
+		const { selectedSortByOption } = settings;
+		const sortByObjectKeys = Object.keys(
+			SortBy,
+		) as unknown as Array<SortByObjectKeys>;
+		const sortByKeys = sortByObjectKeys.map((item) => SortBy[item].key);
+
+		if (
+			!isNil(selectedSortByOption) &&
+			sortByKeys.includes(selectedSortByOption)
+		) {
+			return;
+		}
+
+		await SteamClient.Storage.SetObject(PLAY_TIME_SETTINGS_KEY, {
+			...settings,
+			selectedSortByOption: DEFAULTS.selectedSortByOption,
 		});
 	}
 }
