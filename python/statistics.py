@@ -77,8 +77,8 @@ class Statistics:
 
         return PagedDayStatistics(
             data=result,
-            hasPrev=self.dao.is_there_is_data_before(start_time),
-            hasNext=self.dao.is_there_is_data_after(end_time),
+            hasPrev=self.dao.is_there_is_data_before(start_time, game_id),
+            hasNext=self.dao.is_there_is_data_after(end_time, game_id),
         )
 
     def per_game_overall_statistic(self) -> List[GameWithTime]:

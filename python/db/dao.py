@@ -90,38 +90,54 @@ class Dao:
         with self._db.transactional() as connection:
             return self._fetch_per_day_time_report(connection, begin, end, game_id)
 
-    def is_there_is_data_before(self, date: type[datetime.datetime]) -> bool:
+    def is_there_is_data_before(
+        self, date: type[datetime.datetime], game_id: str = None
+    ) -> bool:
         with self._db.transactional() as connection:
-            return self._is_there_is_data_before(connection, date)
+            return self._is_there_is_data_before(connection, date, game_id)
 
-    def is_there_is_data_after(self, date: type[datetime.datetime]) -> bool:
+    def is_there_is_data_after(
+        self, date: type[datetime.datetime], game_id: str = None
+    ) -> bool:
         with self._db.transactional() as connection:
-            return self._is_there_is_data_after(connection, date)
+            return self._is_there_is_data_after(connection, date, game_id)
 
     def _is_there_is_data_before(
-        self, connection: sqlite3.Connection, date: type[datetime.datetime]
+        self,
+        connection: sqlite3.Connection,
+        date: type[datetime.datetime],
+        game_id: str = None,
     ) -> bool:
         return (
             connection.execute(
                 """
-                SELECT count(1) FROM play_time
-                WHERE date_time < ?
+                SELECT count(1) FROM play_time pt
+                WHERE date_time < ? AND pt.game_id = ?
             """,
-                (date.isoformat(),),
+                (
+                    date.isoformat(),
+                    game_id,
+                ),
             ).fetchone()[0]
             > 0
         )
 
     def _is_there_is_data_after(
-        self, connection: sqlite3.Connection, date: type[datetime.datetime]
+        self,
+        connection: sqlite3.Connection,
+        date: type[datetime.datetime],
+        game_id: str = None,
     ) -> bool:
         return (
             connection.execute(
                 """
-                SELECT count(1) FROM play_time
-                WHERE date_time > ?
+                SELECT count(1) FROM play_time pt
+                WHERE date_time > ? AND pt.game_id = ?
             """,
-                (date.isoformat(),),
+                (
+                    date.isoformat(),
+                    game_id,
+                ),
             ).fetchone()[0]
             > 0
         )
