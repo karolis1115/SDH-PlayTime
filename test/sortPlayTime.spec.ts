@@ -110,6 +110,7 @@ describe("sortPlayedTime", () => {
 	});
 
 	test("default sorting is by most played", () => {
+		// biome-ignore lint/suspicious/noExplicitAny: `any` is allowed here
 		const sorted = sortPlayedTime(games, "nonExistentSortKey" as any); // Pass an invalid sort key.
 
 		expect(sorted[0].time).toBe(60 + 90 + 30 + 180);
