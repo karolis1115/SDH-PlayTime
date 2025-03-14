@@ -1,3 +1,4 @@
+import dataclasses
 from datetime import datetime, date, time, timedelta
 from typing import Dict, List
 from python.db.dao import DailyGameTimeDto, Dao
@@ -85,16 +86,26 @@ class Statistics:
         result: List[GameWithTime] = []
 
         for g in data:
+            last_playtime_session_information = (
+                self.dao.fetch_last_playtime_session_information(g.game_id)
+            )
+
+            per_day_game_sessions_report = self.dao.fetch_game_sessions_report(
+                g.game_id
+            )
+
             result.append(
-                {
-                    "game": {"id": g.game_id, "name": g.game_name},
-                    "time": g.time,
-                    "sessions": g.total_sessions,
-                    "last_session": {
-                        "date": g.last_play_time_date,
-                        "duration": g.last_play_duration_time,
-                    },
-                }
+                dataclasses.asdict(
+                    GameWithTime(
+                        Game(g.game_id, g.game_name),
+                        g.time,
+                        per_day_game_sessions_report,
+                        SessionInformation(
+                            date=last_playtime_session_information.date,
+                            duration=last_playtime_session_information.duration,
+                        ),
+                    )
+                )
             )
 
         return result

@@ -177,49 +177,24 @@ class Dao:
         self,
         connection: sqlite3.Connection,
     ) -> List[OverallGamesTimeDto]:
-        connection.row_factory = lambda c, row: OverallGamesTimeDto(
+        connection.row_factory = lambda c, row: GameTimeDto(
             game_id=row[0],
             game_name=row[1],
             time=row[2],
-            total_sessions=row[3],
-            last_play_time_date=row[4],
-            last_play_duration_time=row[5],
         )
+
         return connection.execute(
             """
                 SELECT
                     ot.game_id,
                     gd.name AS game_name,
-                    ot.duration,
-                    session_counts.sessions,
-                    pt.date_time AS last_play_time,
-                    pt.duration AS last_duration_time
+                    ot.duration
                 FROM
                     overall_time ot
-                JOIN
-                    game_dict gd ON ot.game_id = gd.game_id
-                JOIN
-                    play_time pt ON ot.game_id = pt.game_id
-                JOIN (
-                    SELECT
-                        game_id,
-                        COUNT(game_id) AS sessions
-                    FROM
-                        play_time
-                    GROUP BY
-                        game_id
-                ) session_counts ON ot.game_id = session_counts.game_id
-                JOIN (
-                    SELECT
-                        game_id,
-                        MAX(date_time) AS last_play_time
-                    FROM
-                        play_time
-                    GROUP BY
-                        game_id
-                ) latest_play ON pt.game_id = latest_play.game_id AND pt.date_time = latest_play.last_play_time
-                GROUP BY
-                    ot.game_id, gd.name, ot.duration, pt.date_time, pt.duration, session_counts.sessions;
+                JOIN 
+                    game_dict gd
+                ON
+                    ot.game_id = gd.game_id;
             """
         ).fetchall()
 
@@ -341,6 +316,37 @@ class Dao:
             """,
             {
                 "date": date,
+                "game_id": game_id,
+            },
+        ).fetchall()
+
+    def fetch_game_sessions_report(self, game_id: int) -> SessionInformation:
+        with self._db.transactional() as connection:
+            return self._fetch_game_sessions_report(connection, game_id)
+
+    def _fetch_game_sessions_report(
+        self,
+        connection: sqlite3.Connection,
+        game_id: int,
+    ) -> SessionInformation:
+        connection.row_factory = lambda c, row: SessionInformation(
+            date=row[0],
+            duration=row[1],
+        )
+
+        return connection.execute(
+            """
+                SELECT
+                    pt.date_time,
+                    pt.duration
+                FROM
+                    play_time pt
+                WHERE
+                    pt.game_id = :game_id
+                ORDER BY
+                    pt.date_time;
+            """,
+            {
                 "game_id": game_id,
             },
         ).fetchall()
