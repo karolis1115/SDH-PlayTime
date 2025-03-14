@@ -48,6 +48,7 @@ function convertDailyStatisticsToGameWithTime(
 
 			if (found) {
 				found.time += game.time;
+				found.sessions.push(...game.sessions);
 
 				continue;
 			}
