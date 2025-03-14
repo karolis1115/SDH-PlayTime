@@ -14,3 +14,9 @@ interface Session {
 	duration: number;
 	migrated?: string;
 }
+
+interface GameInformation {
+	id: string;
+	name: string;
+	time: number;
+}
