@@ -100,7 +100,11 @@ jobs:
                 const dirContents = fs.readdirSync(srcPath, { withFileTypes: true });
                 const dirDestPath = path.join(dest, fileName);
                 fs.mkdirSync(dirDestPath, { recursive: true });
-                copyDirRecursive(path.join(parentPath, fileName), dirContents, dirDestPath);
+                copyDirRecursive(
+                  path.join(parentPath, fileName),
+                  dirContents,
+                  dirDestPath,
+                );
               } else {
                 fs.copyFileSync(srcPath, destPath);
               }
@@ -118,29 +122,38 @@ jobs:
 
           fs.mkdirSync(bundlePath, { recursive: true });
           fs.mkdirSync(path.join(bundlePath, "dist"));
+          fs.mkdirSync(path.join(bundlePath, "python"));
 
           for (const fileToInclude of includeInBuild) {
-              const srcPath = path.join(cwdPath, fileToInclude);
-              const destPath = path.join(bundlePath, fileToInclude);
+            const srcPath = path.join(cwdPath, fileToInclude);
+            const destPath = path.join(bundlePath, fileToInclude);
 
-              fs.copyFileSync(srcPath, destPath);
-            }
+            fs.copyFileSync(srcPath, destPath);
+          }
 
-            // * check contents of defaults
-            const defaultsPath = path.join(cwdPath, "defaults");
+          // * check contents of defaults
+          const defaultsPath = path.join(cwdPath, "python");
 
-            if (fs.existsSync(defaultsPath)) {
-              const defaultContents = fs.readdirSync(defaultsPath, { withFileTypes: true });
-              copyDirRecursive("defaults", defaultContents, `bundle${path.sep}SDH-PlayTime`);
-            }
+          if (fs.existsSync(defaultsPath)) {
+            const defaultContents = fs.readdirSync(defaultsPath, { withFileTypes: true });
+            copyDirRecursive(
+              "python",
+              defaultContents,
+              `bundle${path.sep}SDH-PlayTime${path.sep}/python`,
+            );
+          }
 
-            // * check contents of dist
-            const distPath = path.join(cwdPath, "dist");
+          // * check contents of dist
+          const distPath = path.join(cwdPath, "dist");
 
-            if (fs.existsSync(distPath)) {
-              const distContents = fs.readdirSync(distPath, { withFileTypes: true });
-              copyDirRecursive("dist", distContents, `bundle${path.sep}SDH-PlayTime${path.sep}/dist`);
-            }
+          if (fs.existsSync(distPath)) {
+            const distContents = fs.readdirSync(distPath, { withFileTypes: true });
+            copyDirRecursive(
+              "dist",
+              distContents,
+              `bundle${path.sep}SDH-PlayTime${path.sep}/dist`,
+            );
+          }
 
     - name: Upload plugin build as artifact
       uses: actions/upload-artifact@v4
