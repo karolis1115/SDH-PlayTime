@@ -108,16 +108,28 @@ class Dao:
         date: type[datetime.datetime],
         game_id: str = None,
     ) -> bool:
-        return (
-            connection.execute(
-                """
+        if game_id:
+            return (
+                connection.execute(
+                    """
                 SELECT count(1) FROM play_time pt
                 WHERE date_time < ? AND pt.game_id = ?
             """,
-                (
-                    date.isoformat(),
-                    game_id,
-                ),
+                    (
+                        date.isoformat(),
+                        game_id,
+                    ),
+                ).fetchone()[0]
+                > 0
+            )
+
+        return (
+            connection.execute(
+                """
+                SELECT count(1) FROM play_time
+                WHERE date_time < ?
+            """,
+                (date.isoformat(),),
             ).fetchone()[0]
             > 0
         )
@@ -128,16 +140,28 @@ class Dao:
         date: type[datetime.datetime],
         game_id: str = None,
     ) -> bool:
-        return (
-            connection.execute(
-                """
+        if game_id:
+            return (
+                connection.execute(
+                    """
                 SELECT count(1) FROM play_time pt
                 WHERE date_time > ? AND pt.game_id = ?
             """,
-                (
-                    date.isoformat(),
-                    game_id,
-                ),
+                    (
+                        date.isoformat(),
+                        game_id,
+                    ),
+                ).fetchone()[0]
+                > 0
+            )
+
+        return (
+            connection.execute(
+                """
+                SELECT count(1) FROM play_time
+                WHERE date_time > ?
+            """,
+                (date.isoformat(),),
             ).fetchone()[0]
             > 0
         )
