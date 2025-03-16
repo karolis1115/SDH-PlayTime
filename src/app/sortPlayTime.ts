@@ -94,10 +94,14 @@ function sortByLeastAverageTimePlayed(playedTime: Array<GameWithTime>) {
 }
 
 export function sortPlayedTime(
-	playedTimea: Array<GameWithTime>,
-	sort: SortByKeys,
+	playedTimeOriginal: Array<GameWithTime>,
+	sort?: SortByKeys,
 ) {
-	const playedTime = playedTimea.slice(0);
+	if (isNil(playedTimeOriginal)) {
+		return [];
+	}
+
+	const playedTime = playedTimeOriginal.slice(0);
 
 	if (SortBy.NAME.key === sort) {
 		return sortByName(playedTime);

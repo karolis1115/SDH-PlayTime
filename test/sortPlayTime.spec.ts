@@ -117,4 +117,10 @@ describe("sortPlayedTime", () => {
 		expect(sorted[1].time).toBe(30 + 45);
 		expect(sorted[2].time).toBe(50);
 	});
+
+	test("should return empty value if data is null or undefined", () => {
+		// @ts-expect-error
+		const sorted = sortPlayedTime(null);
+		expect(sorted.length).toBe(0);
+	});
 });
