@@ -89,6 +89,7 @@ export function GameActivity({ gameId }: GameActivityProperties) {
 		useState<number>(0);
 
 	const [gameName, setGameName] = useState("");
+	const [playedTime, setPlayedTime] = useState("");
 	const [currentPage, setCurrentPage] = useState<Paginated<DailyStatistics>>(
 		empty(),
 	);
@@ -108,9 +109,17 @@ export function GameActivity({ gameId }: GameActivityProperties) {
 					return;
 				}
 
-				const { name } = response;
+				const { name, time } = response;
 
 				setGameName(name);
+				setPlayedTime(
+					humanReadableTime(
+						settings.displayTime.showTimeInHours,
+						time,
+						false,
+						settings.displayTime.showSeconds,
+					),
+				);
 			})
 			.catch((error) => {
 				logger.error(error);
@@ -249,6 +258,8 @@ export function GameActivity({ gameId }: GameActivityProperties) {
 									{gameName}
 								</span>
 							</div>
+
+							<span>{playedTime}</span>
 						</header>
 
 						<PanelSection>
