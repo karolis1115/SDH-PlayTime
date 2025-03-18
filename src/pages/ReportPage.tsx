@@ -16,6 +16,7 @@ export const DetailedPage = () => {
 				onShowTab={(tabId: string) => {
 					setCurrentTabRoute(tabId);
 				}}
+				autoFocusContents={true}
 				tabs={[
 					{
 						title: "All Time",
