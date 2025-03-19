@@ -1,3 +1,4 @@
+import { humanReadableTime } from "@src/app/formatters";
 import { useLocator } from "@src/locator";
 import { GAME_REPORT_ROUTE, navigateToPage } from "@src/pages/navigation";
 import { isNil } from "@src/utils/isNil";
@@ -20,6 +21,10 @@ type GamesTimeBarViewCoversProperties = Omit<
 	"showCovers"
 >;
 
+type PlayedSessionsInformation = {
+	game: GameWithTime;
+};
+
 function getLastPlayedTime(game: GameWithTime) {
 	const { last_session } = game;
 	const { date, duration } = last_session;
@@ -31,6 +36,37 @@ function getLastPlayedTime(game: GameWithTime) {
 	const lastPlayedDate = new Date(new Date(date).getTime() + duration * 1000);
 
 	return formatDistanceToNow(lastPlayedDate, { includeSeconds: true });
+}
+
+function PlayedSessionsInformation({ game }: PlayedSessionsInformation) {
+	const { currentSettings: settings } = useLocator();
+
+	if (
+		["mostAverageTimePlayed", "leastAverageTimePlayed"].includes(
+			settings.selectedSortByOption,
+		)
+	) {
+		const averagePlayedTime = game.time / game.sessions.length;
+
+		return (
+			<span>
+				Average playtime:{" "}
+				{humanReadableTime(
+					settings.displayTime.showTimeInHours,
+					averagePlayedTime,
+					true,
+					settings.displayTime.showSeconds,
+				)}
+			</span>
+		);
+	}
+
+	return (
+		<span>
+			Played {game.sessions.length} time
+			{game.sessions.length === 1 ? "" : "s"}
+		</span>
+	);
 }
 
 function GamesTimeBarViewWithCovers({
@@ -110,10 +146,7 @@ function GamesTimeBarViewWithCovers({
 									>
 										<span>Last played {lastPlayedDate} ago</span>
 
-										<span>
-											Played {it?.sessions.length} time
-											{it?.sessions.length === 1 ? "" : "s"}
-										</span>
+										<PlayedSessionsInformation game={it} />
 									</div>
 								</div>
 							</div>
@@ -130,7 +163,6 @@ export const GamesTimeBarView: React.FC<GamesTimeBarViewProperties> = ({
 	showCovers = false,
 	onOptionsPress,
 }) => {
-	console.log("GamesTimeBarView Rerender -> ", data);
 	if (showCovers) {
 		return (
 			<GamesTimeBarViewWithCovers data={data} onOptionsPress={onOptionsPress} />
