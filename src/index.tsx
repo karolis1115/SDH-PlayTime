@@ -34,9 +34,10 @@ import {
 } from "./pages/navigation";
 import { SteamPatches } from "./steam-ui/SteamPatches";
 import { patchAppPage } from "./steam-ui/patches";
+import { log } from "./utils";
 
 export default definePlugin(() => {
-	console.log("PlayTime plugin loading...");
+	log("PlayTime plugin loading...");
 
 	const clock = systemClock;
 	const eventBus = new EventBus();
@@ -62,6 +63,7 @@ export default definePlugin(() => {
 	}
 
 	mountManager.mount();
+
 	return {
 		title: <div className={staticClasses.Title}>PlayTime</div>,
 		content: (
