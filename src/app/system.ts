@@ -1,3 +1,4 @@
+import type { Dispatch, SetStateAction } from "react";
 import logger from "../utils";
 import type { SessionPlayTime } from "./SessionPlayTime";
 import type { Events } from "./events";
@@ -91,6 +92,7 @@ interface Locator {
 	settings: Settings;
 	sessionPlayTime: SessionPlayTime;
 	timeManipulation: TimeManipulation;
+	setCurrentSettings: Dispatch<SetStateAction<PlayTimeSettings>>;
 }
 
 interface LocatorDependencies {
