@@ -1,18 +1,7 @@
-import {
-	Menu,
-	MenuItem,
-	PanelSection,
-	PanelSectionRow,
-	showContextMenu,
-} from "@decky/ui";
-import {
-	SortBy,
-	type SortByKeys,
-	type SortByObjectKeys,
-	sortPlayedTime,
-} from "@src/app/sortPlayTime";
-import { registerForInputEvent } from "@src/steam/registerForInputEvent";
-import { useEffect, useState } from "react";
+import { PanelSection, PanelSectionRow } from "@decky/ui";
+import { sortPlayedTime } from "@src/app/sortPlayTime";
+import { showSortTitlesContextMenu } from "@src/components/showSortTitlesContextMenu";
+import { useEffect, useMemo, useState } from "react";
 import { formatMonthInterval } from "../app/formatters";
 import {
 	type DailyStatistics,
@@ -28,32 +17,24 @@ import { PieView } from "../components/statistics/PieView";
 import { useLocator } from "../locator";
 
 export const ReportMonthly = () => {
-	const { reports, currentSettings, settings } = useLocator();
-	const [lastChangedPageTimeStamp, setLastChangedPageTimeStamp] =
-		useState<number>(0);
+	const { reports, currentSettings, settings, setCurrentSettings } =
+		useLocator();
 	const [isLoading, setLoading] = useState<boolean>(false);
 	const [currentPage, setCurrentPage] = useState<Paginated<DailyStatistics>>(
 		empty(),
 	);
-	const [sortType, setSortType] = useState<SortByKeys>(
-		currentSettings.selectedSortByOption || "mostPlayed",
-	);
+	const sortType = currentSettings.selectedSortByOption || "mostPlayed";
+	const { interval } = currentPage.current();
+	const { start, end } = interval;
 
-	const sortedData = sortPlayedTime(
-		convertDailyStatisticsToGameWithTime(currentPage.current().data),
-		sortType,
+	const sortedData = useMemo(
+		() =>
+			sortPlayedTime(
+				convertDailyStatisticsToGameWithTime(currentPage.current().data),
+				currentSettings.selectedSortByOption,
+			),
+		[sortType, `${start} - ${end}`],
 	);
-
-	useEffect(() => {
-		settings
-			.save({
-				...currentSettings,
-				selectedSortByOption: sortType,
-			})
-			.then(() => {
-				currentSettings.selectedSortByOption = sortType;
-			});
-	}, [sortType]);
 
 	useEffect(() => {
 		setLoading(true);
@@ -63,47 +44,6 @@ export const ReportMonthly = () => {
 			setLoading(false);
 		});
 	}, []);
-
-	useEffect(() => {
-		const { unregister } = registerForInputEvent((_buttons, rawEvent) => {
-			if (rawEvent.length === 0) {
-				return;
-			}
-
-			const DELAY = 500;
-
-			if (new Date().getTime() - lastChangedPageTimeStamp <= DELAY) {
-				return;
-			}
-
-			// NOTE(ynhhoJ): Aproximative value
-			const TRIGGER_PUSH_FORCE_UNTIL_VIBRATION = 12000;
-			const isLeftTriggerPressed =
-				rawEvent[0].sTriggerL >= TRIGGER_PUSH_FORCE_UNTIL_VIBRATION;
-
-			if (isLeftTriggerPressed && currentPage.hasPrev()) {
-				setLastChangedPageTimeStamp(new Date().getTime());
-
-				onPrevWeek();
-			}
-
-			const isRightTriggerPressed =
-				rawEvent[0].sTriggerR >= TRIGGER_PUSH_FORCE_UNTIL_VIBRATION;
-
-			if (isRightTriggerPressed && currentPage.hasNext()) {
-				setLastChangedPageTimeStamp(new Date().getTime());
-
-				onNextWeek();
-			}
-		});
-
-		return () => {
-			unregister();
-		};
-	}, [
-		currentPage.current().interval.start.getTime(),
-		currentPage.current().interval.end.getTime(),
-	]);
 
 	const onNextWeek = () => {
 		setLoading(true);
@@ -124,30 +64,11 @@ export const ReportMonthly = () => {
 	};
 
 	const onOptionsPress = () => {
-		const objectKeys = Object.keys(
-			SortBy,
-		) as unknown as Array<SortByObjectKeys>;
-		const selectedOption = objectKeys.find(
-			(item) => SortBy[item].key === currentSettings.selectedSortByOption,
-		);
-
-		showContextMenu(
-			<Menu label="Sort titles">
-				{objectKeys.map((key) => {
-					return (
-						<MenuItem
-							key={SortBy[key].key}
-							onSelected={() => {
-								setSortType(() => SortBy[key].key);
-							}}
-							disabled={key === selectedOption}
-						>
-							{SortBy[key].name}
-						</MenuItem>
-					);
-				})}
-			</Menu>,
-		);
+		showSortTitlesContextMenu({
+			currentSettings,
+			settings,
+			setCurrentSettings,
+		})();
 	};
 
 	return (
@@ -162,6 +83,7 @@ export const ReportMonthly = () => {
 						hasPrev={currentPage.hasPrev()}
 						prevKey="l2"
 						nextKey="r2"
+						isEnabledChangePagesWithTriggers={true}
 					/>
 				</PanelSectionRow>
 			</PanelSection>
@@ -173,6 +95,7 @@ export const ReportMonthly = () => {
 			{!isLoading && currentPage && (
 				<div>
 					<AverageAndOverall statistics={currentPage.current().data} />
+
 					<MonthView statistics={currentPage.current().data} />
 
 					<GamesTimeBarView

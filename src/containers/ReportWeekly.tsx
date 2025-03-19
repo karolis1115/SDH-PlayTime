@@ -1,11 +1,6 @@
-import { Menu, MenuItem, PanelSection, showContextMenu } from "@decky/ui";
-import {
-	SortBy,
-	type SortByKeys,
-	type SortByObjectKeys,
-	sortPlayedTime,
-} from "@src/app/sortPlayTime";
-import { registerForInputEvent } from "@src/steam/registerForInputEvent";
+import { PanelSection } from "@decky/ui";
+import { sortPlayedTime } from "@src/app/sortPlayTime";
+import { showSortTitlesContextMenu } from "@src/components/showSortTitlesContextMenu";
 import { useEffect, useMemo, useState } from "react";
 import { formatWeekInterval } from "../app/formatters";
 import {
@@ -26,27 +21,24 @@ interface ReportWeeklyProperties {
 }
 
 export const ReportWeekly = ({ slim = false }: ReportWeeklyProperties) => {
-	const { reports, currentSettings, settings } = useLocator();
-	const [lastChangedPageTimeStamp, setLastChangedPageTimeStamp] =
-		useState<number>(0);
+	const { reports, currentSettings, settings, setCurrentSettings } =
+		useLocator();
 	const [isLoading, setLoading] = useState<boolean>(false);
 	const [currentPage, setCurrentPage] = useState<Paginated<DailyStatistics>>(
 		empty(),
 	);
-	const [sortType, setSortType] = useState<SortByKeys>(
-		currentSettings.selectedSortByOption || "mostPlayed",
-	);
+	const sortType = currentSettings.selectedSortByOption || "mostPlayed";
+
+	const { interval } = currentPage.current();
+	const { start, end } = interval;
 
 	const sortedData = useMemo(
 		() =>
 			sortPlayedTime(
 				convertDailyStatisticsToGameWithTime(currentPage.current().data),
-				sortType,
+				currentSettings.selectedSortByOption,
 			),
-		[
-			sortType,
-			convertDailyStatisticsToGameWithTime(currentPage.current().data),
-		],
+		[sortType, `${start} - ${end}`],
 	);
 
 	useEffect(() => {
@@ -57,62 +49,6 @@ export const ReportWeekly = ({ slim = false }: ReportWeeklyProperties) => {
 			setLoading(false);
 		});
 	}, []);
-
-	useEffect(() => {
-		settings
-			.save({
-				...currentSettings,
-				selectedSortByOption: sortType,
-			})
-			.then(() => {
-				currentSettings.selectedSortByOption = sortType;
-			});
-	}, [sortType]);
-
-	useEffect(() => {
-		if (slim) {
-			return;
-		}
-
-		const { unregister } = registerForInputEvent((_buttons, rawEvent) => {
-			if (rawEvent.length === 0) {
-				return;
-			}
-
-			const DELAY = 500;
-
-			if (new Date().getTime() - lastChangedPageTimeStamp <= DELAY) {
-				return;
-			}
-
-			// NOTE(ynhhoJ): Aproximative value
-			const TRIGGER_PUSH_FORCE_UNTIL_VIBRATION = 12000;
-			const isLeftTriggerPressed =
-				rawEvent[0].sTriggerL >= TRIGGER_PUSH_FORCE_UNTIL_VIBRATION;
-
-			if (isLeftTriggerPressed && currentPage.hasPrev()) {
-				setLastChangedPageTimeStamp(new Date().getTime());
-
-				onPrevWeek();
-			}
-
-			const isRightTriggerPressed =
-				rawEvent[0].sTriggerR >= TRIGGER_PUSH_FORCE_UNTIL_VIBRATION;
-
-			if (isRightTriggerPressed && currentPage.hasNext()) {
-				setLastChangedPageTimeStamp(new Date().getTime());
-
-				onNextWeek();
-			}
-		});
-
-		return () => {
-			unregister();
-		};
-	}, [
-		currentPage.current().interval.start.getTime(),
-		currentPage.current().interval.end.getTime(),
-	]);
 
 	const onNextWeek = () => {
 		setLoading(true);
@@ -141,30 +77,11 @@ export const ReportWeekly = ({ slim = false }: ReportWeeklyProperties) => {
 			.reduce((a, b) => a + b, 0) > 0;
 
 	const onOptionsPress = () => {
-		const objectKeys = Object.keys(
-			SortBy,
-		) as unknown as Array<SortByObjectKeys>;
-		const selectedOption = objectKeys.find(
-			(item) => SortBy[item].key === currentSettings.selectedSortByOption,
-		);
-
-		showContextMenu(
-			<Menu label="Sort titles">
-				{objectKeys.map((key) => {
-					return (
-						<MenuItem
-							key={SortBy[key].key}
-							onSelected={() => {
-								setSortType(() => SortBy[key].key);
-							}}
-							disabled={key === selectedOption}
-						>
-							{SortBy[key].name}
-						</MenuItem>
-					);
-				})}
-			</Menu>,
-		);
+		showSortTitlesContextMenu({
+			currentSettings,
+			settings,
+			setCurrentSettings,
+		})();
 	};
 
 	return (
@@ -177,6 +94,7 @@ export const ReportWeekly = ({ slim = false }: ReportWeeklyProperties) => {
 				hasPrev={currentPage.hasPrev()}
 				prevKey={slim ? undefined : "l2"}
 				nextKey={slim ? undefined : "r2"}
+				isEnabledChangePagesWithTriggers={!slim}
 			/>
 
 			{isLoading && <div>Loading...</div>}
