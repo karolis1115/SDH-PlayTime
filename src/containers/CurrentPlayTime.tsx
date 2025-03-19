@@ -38,20 +38,21 @@ function PlaySessionsInformation({
 
 export const CurrentPlayTime = () => {
 	const { sessionPlayTime } = useLocator();
-
 	const currentPlayTime = sessionPlayTime.getPlayTime(Date.now());
+
+	if (currentPlayTime.length === 0) {
+		return null;
+	}
 
 	return (
 		<div>
-			{currentPlayTime.length !== 0 && (
-				<PanelSection>
-					<PanelSectionRow>
-						<Field label="Current play session">
-							<PlaySessionsInformation currentPlayTime={currentPlayTime} />
-						</Field>
-					</PanelSectionRow>
-				</PanelSection>
-			)}
+			<PanelSection>
+				<PanelSectionRow>
+					<Field label="Current play session">
+						<PlaySessionsInformation currentPlayTime={currentPlayTime} />
+					</Field>
+				</PanelSectionRow>
+			</PanelSection>
 		</div>
 	);
 };
