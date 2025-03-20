@@ -5,7 +5,42 @@ on:
     types: [opened, synchronize, reopened, closed]
 
 jobs:
-  check:
+  back_end_unit_tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Test with pytest
+        run: |
+          pip install pytest
+          pytest
+
+  front_end_unit_tests:
+    needs: back_end_unit_tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun i
+
+      - name: Testing
+        run: bun test
+
+  check_linting_types_and_formating:
+    needs: front_end_unit_tests
     runs-on: ubuntu-latest
 
     steps:
@@ -34,14 +69,8 @@ jobs:
       - name: Check linting
         run: pnpm biome lint
 
-      - name: Setup bun
-        uses: oven-sh/setup-bun@v2
-
-      - name: Testing
-        run: bun test
-
   create_merge_request_artifact:
-    needs: check
+    needs: check_linting_types_and_formating
     runs-on: ubuntu-latest
     permissions:
       contents: write
