@@ -6,7 +6,6 @@ import { getGameCoverImage } from "@src/components/GameCard";
 import { VerticalContainer } from "@src/components/VerticalContainer";
 import { YearView } from "@src/components/statistics/YearView";
 import { YearlyAverageAndOverall } from "@src/components/statistics/YearlyAverageAndOverall";
-import { registerForInputEvent } from "@src/steam/registerForInputEvent";
 import logger from "@src/utils";
 import { isNil } from "@src/utils/isNil";
 import { format } from "date-fns";
@@ -85,8 +84,6 @@ function sortDateDesc(
 export function GameActivity({ gameId }: GameActivityProperties) {
 	const { reports, currentSettings: settings } = useLocator();
 	const [isLoading, setLoading] = useState<boolean>(false);
-	const [lastChangedPageTimeStamp, setLastChangedPageTimeStamp] =
-		useState<number>(0);
 
 	const [gameName, setGameName] = useState("");
 	const [playedTime, setPlayedTime] = useState("");
@@ -175,47 +172,6 @@ export function GameActivity({ gameId }: GameActivityProperties) {
 		});
 	};
 
-	useEffect(() => {
-		const { unregister } = registerForInputEvent((_buttons, rawEvent) => {
-			if (rawEvent.length === 0) {
-				return;
-			}
-
-			const DELAY = 500;
-
-			if (new Date().getTime() - lastChangedPageTimeStamp <= DELAY) {
-				return;
-			}
-
-			// NOTE(ynhhoJ): Aproximative value
-			const TRIGGER_PUSH_FORCE_UNTIL_VIBRATION = 12000;
-			const isLeftTriggerPressed =
-				rawEvent[0].sTriggerL >= TRIGGER_PUSH_FORCE_UNTIL_VIBRATION;
-
-			if (isLeftTriggerPressed && currentPage.hasPrev()) {
-				setLastChangedPageTimeStamp(new Date().getTime());
-
-				onPrevYear();
-			}
-
-			const isRightTriggerPressed =
-				rawEvent[0].sTriggerR >= TRIGGER_PUSH_FORCE_UNTIL_VIBRATION;
-
-			if (isRightTriggerPressed && currentPage.hasNext()) {
-				setLastChangedPageTimeStamp(new Date().getTime());
-
-				onNextYear();
-			}
-		});
-
-		return () => {
-			unregister();
-		};
-	}, [
-		currentPage.current().interval.start.getTime(),
-		currentPage.current().interval.end.getTime(),
-	]);
-
 	return (
 		<PageWrapper
 			style={{
@@ -254,9 +210,11 @@ export function GameActivity({ gameId }: GameActivityProperties) {
 									}}
 								/>
 
-								<span style={{ marginLeft: "8px", fontWeight: "bold" }}>
-									{gameName}
-								</span>
+								<FocusableExt>
+									<span style={{ marginLeft: "8px", fontWeight: "bold" }}>
+										{gameName}
+									</span>
+								</FocusableExt>
 							</div>
 
 							<span>{playedTime}</span>
@@ -272,8 +230,7 @@ export function GameActivity({ gameId }: GameActivityProperties) {
 									)}
 									hasNext={currentPage.hasNext()}
 									hasPrev={currentPage.hasPrev()}
-									prevKey={"l2"}
-									nextKey={"r2"}
+									isEnabledChangePagesWithTriggers={true}
 								/>
 							</PanelSectionRow>
 						</PanelSection>

@@ -81,8 +81,6 @@ export const ReportMonthly = () => {
 						currentText={formatMonthInterval(currentPage.current().interval)}
 						hasNext={currentPage.hasNext()}
 						hasPrev={currentPage.hasPrev()}
-						prevKey="l2"
-						nextKey="r2"
 						isEnabledChangePagesWithTriggers={true}
 					/>
 				</PanelSectionRow>
