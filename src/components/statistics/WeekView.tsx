@@ -1,4 +1,4 @@
-import moment from "moment";
+import { toDate } from "date-fns";
 import type { FC } from "react";
 import type { DailyStatistics } from "../../app/model";
 import { FocusableExt } from "../FocusableExt";
@@ -13,7 +13,7 @@ interface DayTime {
 
 export const WeekView: FC<{ statistics: DailyStatistics[] }> = (props) => {
 	const dayTimes = props.statistics.map((it) => {
-		const date = moment(it.date).toDate();
+		const date = toDate(it.date);
 		return {
 			dayOfWeek: date.toLocaleString(undefined, { weekday: "long" }),
 			time: it.total,

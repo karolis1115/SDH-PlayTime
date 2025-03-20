@@ -1,11 +1,11 @@
-import { endOfYear } from "date-fns";
 import {
 	endOfMonth,
 	endOfWeek,
+	endOfYear,
 	startOfMonth,
 	startOfWeek,
 	startOfYear,
-} from "../utils";
+} from "date-fns";
 import type { Backend } from "./backend";
 import type { DailyStatistics, GameWithTime } from "./model";
 
@@ -185,8 +185,8 @@ export class IntervalPagerImpl {
 
 	static create(type: IntervalType, date: Date): IntervalPager {
 		if (type === IntervalType.Weekly) {
-			const start = startOfWeek(date);
-			const end = endOfWeek(start);
+			const start = startOfWeek(date, { weekStartsOn: 1 });
+			const end = endOfWeek(start, { weekStartsOn: 1 });
 
 			return new IntervalPagerImpl(type, { start, end });
 		}
@@ -209,8 +209,8 @@ export class IntervalPagerImpl {
 		nextDate.setDate(this.interval.end.getDate() + 1);
 
 		if (this.type === IntervalType.Weekly) {
-			const start = startOfWeek(nextDate);
-			const end = endOfWeek(start);
+			const start = startOfWeek(nextDate, { weekStartsOn: 1 });
+			const end = endOfWeek(start, { weekStartsOn: 1 });
 
 			return new IntervalPagerImpl(this.type, { start, end });
 		}
@@ -236,8 +236,8 @@ export class IntervalPagerImpl {
 		prevDate.setDate(this.interval.start.getDate() - 1);
 
 		if (this.type === IntervalType.Weekly) {
-			const start = startOfWeek(prevDate);
-			const end = endOfWeek(start);
+			const start = startOfWeek(prevDate, { weekStartsOn: 1 });
+			const end = endOfWeek(start, { weekStartsOn: 1 });
 
 			return new IntervalPagerImpl(this.type, { start, end });
 		}

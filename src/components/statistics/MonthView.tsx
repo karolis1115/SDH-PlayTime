@@ -1,5 +1,5 @@
 import { useLocator } from "@src/locator";
-import moment from "moment";
+import { toDate } from "date-fns";
 import type { FC } from "react";
 import {
 	Bar,
@@ -21,9 +21,11 @@ interface DayTime {
 export const MonthView: FC<{ statistics: DailyStatistics[] }> = (props) => {
 	const { currentSettings: settings } = useLocator();
 	const dayTimes = props.statistics.map((it) => {
+		const date = toDate(it.date);
+
 		return {
 			time: it.total,
-			date: moment(it.date).toDate(),
+			date,
 		} as DayTime;
 	});
 

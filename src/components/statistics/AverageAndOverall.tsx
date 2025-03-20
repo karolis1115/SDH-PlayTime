@@ -1,6 +1,6 @@
 import { Field, PanelSection, PanelSectionRow } from "@decky/ui";
 import { useLocator } from "@src/locator";
-import moment from "moment";
+import { isBefore, isSameDay, startOfDay } from "date-fns";
 import type { FC } from "react";
 import { humanReadableTime } from "../../app/formatters";
 import type { DailyStatistics } from "../../app/model";
@@ -13,9 +13,11 @@ export const AverageAndOverall: FC<{ statistics: DailyStatistics[] }> = (
 	const overall = props.statistics
 		.map((it) => it.total)
 		.reduce((a, c) => a + c, 0);
-	const today = moment(new Date()).startOf("day");
-	const daysPassed = props.statistics.filter((it) =>
-		moment(it.date).startOf("day").isSameOrBefore(today),
+	const today = startOfDay(new Date());
+	const daysPassed = props.statistics.filter(
+		(it) =>
+			isSameDay(it.date, startOfDay(today)) ||
+			isBefore(it.date, startOfDay(today)),
 	).length;
 	const average = overall / daysPassed;
 
