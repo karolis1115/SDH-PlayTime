@@ -7,7 +7,7 @@ import {
 	navigateToPage,
 } from "./navigation";
 
-export const DeckyPanelPage = () => {
+export function DeckyPanelPage() {
 	return (
 		<div>
 			<CurrentPlayTime />
@@ -23,6 +23,7 @@ export const DeckyPanelPage = () => {
 						Detailed report
 					</ButtonItem>
 				</PanelSectionRow>
+
 				<PanelSectionRow>
 					<ButtonItem
 						layout="below"
@@ -34,4 +35,4 @@ export const DeckyPanelPage = () => {
 			</PanelSection>
 		</div>
 	);
-};
+}

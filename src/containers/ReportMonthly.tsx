@@ -1,5 +1,6 @@
 import { PanelSection, PanelSectionRow } from "@decky/ui";
 import { sortPlayedTime } from "@src/app/sortPlayTime";
+import { SortBy, getSelectedSortOptionByKey } from "@src/app/sortPlayTime";
 import { showSortTitlesContextMenu } from "@src/components/showSortTitlesContextMenu";
 import { useEffect, useMemo, useState } from "react";
 import { formatMonthInterval } from "../app/formatters";
@@ -26,6 +27,11 @@ export const ReportMonthly = () => {
 	const sortType = currentSettings.selectedSortByOption || "mostPlayed";
 	const { interval } = currentPage.current();
 	const { start, end } = interval;
+
+	const selectedSortOptionByKey =
+		getSelectedSortOptionByKey(currentSettings.selectedSortByOption) ||
+		"MOST_PLAYED";
+	const sortOptionName = SortBy[selectedSortOptionByKey].name;
 
 	const sortedData = useMemo(
 		() =>
@@ -96,15 +102,17 @@ export const ReportMonthly = () => {
 
 					<MonthView statistics={currentPage.current().data} />
 
-					<GamesTimeBarView
-						data={sortedData}
-						showCovers={true}
-						onOptionsPress={onOptionsPress}
-					/>
+					<PanelSection title={`Sort ${sortOptionName}`}>
+						<GamesTimeBarView
+							data={sortedData}
+							showCovers={true}
+							onOptionsPress={onOptionsPress}
+						/>
 
-					{currentSettings.gameChartStyle === ChartStyle.PIE_AND_BARS && (
-						<PieView statistics={currentPage.current().data} />
-					)}
+						{currentSettings.gameChartStyle === ChartStyle.PIE_AND_BARS && (
+							<PieView statistics={currentPage.current().data} />
+						)}
+					</PanelSection>
 				</div>
 			)}
 		</div>

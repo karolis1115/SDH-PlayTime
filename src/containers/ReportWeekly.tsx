@@ -1,5 +1,6 @@
 import { PanelSection } from "@decky/ui";
 import { sortPlayedTime } from "@src/app/sortPlayTime";
+import { SortBy, getSelectedSortOptionByKey } from "@src/app/sortPlayTime";
 import { showSortTitlesContextMenu } from "@src/components/showSortTitlesContextMenu";
 import { useEffect, useMemo, useState } from "react";
 import { formatWeekInterval } from "../app/formatters";
@@ -28,6 +29,12 @@ export const ReportWeekly = ({ slim = false }: ReportWeeklyProperties) => {
 		empty(),
 	);
 	const sortType = currentSettings.selectedSortByOption || "mostPlayed";
+
+	const selectedSortOptionByKey =
+		getSelectedSortOptionByKey(currentSettings.selectedSortByOption) ||
+		"MOST_PLAYED";
+	const sortOptionName = SortBy[selectedSortOptionByKey].name;
+	const sectionTitle = slim ? "By Game" : `Sort ${sortOptionName}`;
 
 	const { interval } = currentPage.current();
 	const { start, end } = interval;
@@ -110,7 +117,7 @@ export const ReportWeekly = ({ slim = false }: ReportWeeklyProperties) => {
 					</PanelSection>
 
 					{isAnyGames && (
-						<PanelSection title="By game">
+						<PanelSection title={sectionTitle}>
 							<GamesTimeBarView
 								data={sortedData}
 								showCovers={!slim}

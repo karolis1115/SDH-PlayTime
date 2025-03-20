@@ -1,5 +1,9 @@
 import { Menu, MenuItem, showContextMenu } from "@decky/ui";
-import { SortBy, type SortByObjectKeys } from "@src/app/sortPlayTime";
+import {
+	SortBy,
+	type SortByObjectKeys,
+	getSelectedSortOptionByKey,
+} from "@src/app/sortPlayTime";
 import type { Locator } from "@src/app/system";
 
 type ShowSortTitlesContextMenuProperties = {
@@ -18,8 +22,8 @@ export function showSortTitlesContextMenu({
 			SortBy,
 		) as unknown as Array<SortByObjectKeys>;
 
-		const selectedOption = objectKeys.find(
-			(item) => SortBy[item].key === currentSettings.selectedSortByOption,
+		const selectedOption = getSelectedSortOptionByKey(
+			currentSettings.selectedSortByOption,
 		);
 
 		showContextMenu(
