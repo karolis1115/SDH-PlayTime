@@ -42,6 +42,12 @@ export type SortByKeys = Pick<
 	"key"
 >["key"];
 
+export function getSelectedSortOptionByKey(key: SortByKeys) {
+	const objectKeys = Object.keys(SortBy) as unknown as Array<SortByObjectKeys>;
+
+	return objectKeys.find((item) => SortBy[item].key === key);
+}
+
 function sortByName(playedTime: Array<GameWithTime>) {
 	return playedTime.sort((a, b) => a.game.name.localeCompare(b.game.name));
 }
