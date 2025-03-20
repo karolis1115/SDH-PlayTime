@@ -14,12 +14,12 @@ export const Pager: React.FC<{
 	isEnabledChangePagesWithTriggers?: boolean;
 }> = ({
 	currentText,
-	prevKey,
+	prevKey = "l2",
 	hasNext,
 	hasPrev,
 	onNext,
 	onPrev,
-	nextKey,
+	nextKey = "r2",
 	isEnabledChangePagesWithTriggers = false,
 }) => {
 	const [lastChangedPageTimeStamp, setLastChangedPageTimeStamp] =
@@ -72,7 +72,7 @@ export const Pager: React.FC<{
 			style={{ ...pager_container, ...focus_panel_no_padding }}
 			flow-children="horizontal"
 		>
-			{prevKey && (
+			{prevKey && isEnabledChangePagesWithTriggers && (
 				<img
 					src={`/steaminputglyphs/sd_${prevKey}.svg`}
 					alt={prevKey}
@@ -114,7 +114,7 @@ export const Pager: React.FC<{
 				&gt;
 			</DialogButton>
 
-			{nextKey && (
+			{nextKey && isEnabledChangePagesWithTriggers && (
 				<img
 					src={`/steaminputglyphs/sd_${nextKey}.svg`}
 					alt={nextKey}
