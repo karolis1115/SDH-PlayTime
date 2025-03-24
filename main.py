@@ -1,5 +1,4 @@
-# autopep8: off
-import decky  # type: ignore
+import decky
 import dataclasses
 import logging
 import os
@@ -55,8 +54,8 @@ class Plugin:
             dao = Dao(db)
             self.time_tracking = TimeTracking(dao)
             self.statistics = Statistics(dao)
-        except Exception:
-            logger.exception("Unhandled exception")
+        except Exception as e:
+            logger.exception("Unhandled exception: ", str(e))
 
     async def add_time(
         self, started_at: int, ended_at: int, game_id: str, game_name: str
@@ -68,8 +67,8 @@ class Plugin:
                 game_id=game_id,
                 game_name=game_name,
             )
-        except Exception:
-            logger.exception("Unhandled exception")
+        except Exception as e:
+            logger.exception("Unhandled exception: ", str(e))
 
     async def daily_statistics_for_period(
         self, start_date: str, end_date: str, game_id: str
@@ -80,14 +79,14 @@ class Plugin:
                     parse_date(start_date), parse_date(end_date), game_id
                 )
             )
-        except Exception:
-            logger.exception("Unhandled exception")
+        except Exception as e:
+            logger.exception("Unhandled exception: ", str(e))
 
     async def per_game_overall_statistics(self):
         try:
             return self.statistics.per_game_overall_statistic()
-        except Exception:
-            logger.exception("Unhandled exception")
+        except Exception as e:
+            logger.exception("Unhandled exception: ", str(e))
 
     async def apply_manual_time_correction(
         self, list_of_game_stats: List[dict[str, Any]]
@@ -96,11 +95,11 @@ class Plugin:
             return self.time_tracking.apply_manual_time_for_games(
                 list_of_game_stats=list_of_game_stats, source="manually-changed"
             )
-        except Exception:
-            logger.exception("Unhandled exception")
+        except Exception as e:
+            logger.exception("Unhandled exception: ", str(e))
 
     async def get_game(self, game_id: str):
         try:
             return dataclasses.asdict(self.statistics.get_game(game_id))
-        except Exception:
-            logger.exception("Unhandled exception")
+        except Exception as e:
+            logger.exception("Unhandled exception: ", str(e))
