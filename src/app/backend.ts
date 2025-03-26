@@ -17,6 +17,8 @@ export interface StatisticForIntervalResponse {
 export class Backend {
 	private eventBus: EventBus;
 
+	public static dataDirectoryPath: Nullable<string> = undefined;
+
 	constructor(eventBus: EventBus) {
 		this.eventBus = eventBus;
 
@@ -30,6 +32,12 @@ export class Backend {
 					break;
 			}
 		});
+
+		Backend.getDataDirectory()
+			.then((response) => {
+				Backend.dataDirectoryPath = response;
+			})
+			.catch((error) => logger.error(error));
 	}
 
 	private async addTime(startedAt: number, endedAt: number, game: Game) {
@@ -80,6 +88,7 @@ export class Backend {
 			})
 			.catch((error) => {
 				logger.error(error);
+
 				return {
 					hasNext: false,
 					hasPrev: false,
@@ -114,6 +123,7 @@ export class Backend {
 			})
 			.catch((error) => {
 				logger.error(error);
+
 				return false;
 			});
 	}
@@ -139,6 +149,42 @@ export class Backend {
 				logger.error(error);
 
 				return null;
+			});
+	}
+
+	public static async getFileSHA256(path: string): Promise<Nullable<string>> {
+		return await call<[path: string], Nullable<string>>("get_file_sha256", path)
+			.then((response) => {
+				return response;
+			})
+			.catch((error) => {
+				logger.error(error);
+
+				return undefined;
+			});
+	}
+
+	public static async getHasMinRequiredPythonVersion(): Promise<boolean> {
+		return await call<[], boolean>("has_min_required_python_version")
+			.then((response) => {
+				return response;
+			})
+			.catch((error) => {
+				logger.error(error);
+
+				return false;
+			});
+	}
+
+	public static async getDataDirectory(): Promise<Nullable<string>> {
+		return await call<[], string>("get_data_directory")
+			.then((response) => {
+				return response;
+			})
+			.catch((error) => {
+				logger.error(error);
+
+				return undefined;
 			});
 	}
 }
