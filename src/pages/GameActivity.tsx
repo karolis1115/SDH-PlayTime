@@ -21,6 +21,80 @@ interface GameActivityProperties {
 
 type SessionByDay = Record<string, Array<Session>>;
 
+interface SessionsProperties {
+	sessionsList: SessionByDay;
+	showTimeInHours: boolean;
+	showSeconds: boolean;
+}
+
+interface HeaderProperties {
+	gameId: string;
+}
+
+function Header({ gameId }: HeaderProperties) {
+	const { reports, currentSettings: settings } = useLocator();
+	const [gameName, setGameName] = useState("");
+	const [playedTime, setPlayedTime] = useState("");
+
+	useEffect(() => {
+		reports
+			.getGame(gameId)
+			.then((response) => {
+				if (!response) {
+					return;
+				}
+
+				const { name, time } = response;
+
+				setGameName(name);
+				setPlayedTime(
+					humanReadableTime(
+						settings.displayTime.showTimeInHours,
+						time,
+						false,
+						settings.displayTime.showSeconds,
+					),
+				);
+			})
+			.catch((error) => {
+				logger.error(error);
+			});
+	}, []);
+
+	return (
+		<header
+			style={{
+				display: "flex",
+				justifyContent: "space-between",
+				alignItems: "center",
+				borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+				marginBottom: "16px",
+				paddingBottom: "8px",
+			}}
+		>
+			<div style={{ display: "flex", alignItems: "center" }}>
+				<div
+					style={{
+						backgroundImage: getGameCoverImage(gameId),
+						width: "25px",
+						height: "25px",
+						backgroundSize: "cover",
+						backgroundPosition: "center",
+					}}
+				/>
+
+				<FocusableExt>
+					<span style={{ marginLeft: "8px", fontWeight: "bold" }}>
+						{gameName}
+					</span>
+				</FocusableExt>
+			</div>
+
+			<span>{playedTime}</span>
+		</header>
+	);
+}
+
 function SessionsList({
 	sessions,
 	sessionDateKey,
@@ -74,6 +148,54 @@ function SessionsList({
 	});
 }
 
+function Sessions({
+	sessionsList,
+	showSeconds,
+	showTimeInHours,
+}: SessionsProperties) {
+	return Object.keys(sessionsList).map((sessionDateKey) => {
+		const [month, day] = sessionDateKey.split("-");
+
+		return (
+			<VerticalContainer key={sessionDateKey}>
+				<div
+					style={{
+						color: "rgb(0, 138, 218)",
+						fontSize: "18px",
+						marginTop: "18px",
+					}}
+				>
+					<div
+						style={{
+							textWrap: "nowrap",
+							display: "flex",
+							alignItems: "center",
+						}}
+					>
+						<span style={{ paddingRight: "16px" }}>
+							{`${month.toUpperCase()} ${day}`}
+						</span>
+
+						<div
+							style={{
+								borderTop: "1px solid rgba(255, 255, 255, 0.1)",
+								width: "100%",
+							}}
+						/>
+					</div>
+				</div>
+
+				<SessionsList
+					sessions={sessionsList[sessionDateKey]}
+					sessionDateKey={sessionDateKey}
+					showTimeInHours={showTimeInHours}
+					showSeconds={showSeconds}
+				/>
+			</VerticalContainer>
+		);
+	});
+}
+
 function sortDateDesc(
 	a: DailyStatistics | SessionInformation,
 	b: DailyStatistics | SessionInformation,
@@ -85,8 +207,6 @@ export function GameActivity({ gameId }: GameActivityProperties) {
 	const { reports, currentSettings: settings } = useLocator();
 	const [isLoading, setLoading] = useState<boolean>(false);
 
-	const [gameName, setGameName] = useState("");
-	const [playedTime, setPlayedTime] = useState("");
 	const [currentPage, setCurrentPage] = useState<Paginated<DailyStatistics>>(
 		empty(),
 	);
@@ -98,29 +218,6 @@ export function GameActivity({ gameId }: GameActivityProperties) {
 			setCurrentPage(yearlyStatistics);
 			setLoading(false);
 		});
-
-		reports
-			.getGame(gameId)
-			.then((response) => {
-				if (!response) {
-					return;
-				}
-
-				const { name, time } = response;
-
-				setGameName(name);
-				setPlayedTime(
-					humanReadableTime(
-						settings.displayTime.showTimeInHours,
-						time,
-						false,
-						settings.displayTime.showSeconds,
-					),
-				);
-			})
-			.catch((error) => {
-				logger.error(error);
-			});
 	}, []);
 
 	const sessionsList = useMemo(() => {
@@ -183,103 +280,36 @@ export function GameActivity({ gameId }: GameActivityProperties) {
 			}}
 		>
 			<>
+				<Header gameId={gameId} />
+
+				<PanelSection>
+					<PanelSectionRow>
+						<Pager
+							onNext={onNextYear}
+							onPrev={onPrevYear}
+							currentText={formatYearInterval(currentPage.current().interval)}
+							hasNext={currentPage.hasNext()}
+							hasPrev={currentPage.hasPrev()}
+							isEnabledChangePagesWithTriggers={true}
+						/>
+					</PanelSectionRow>
+				</PanelSection>
+
 				{isLoading && <div>Loading...</div>}
 
 				{!isLoading && !currentPage && <div>Error while loading data</div>}
 
 				{!isLoading && currentPage && (
 					<>
-						<header
-							style={{
-								display: "flex",
-								justifyContent: "space-between",
-								alignItems: "center",
-								borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
-								marginBottom: "16px",
-								paddingBottom: "8px",
-							}}
-						>
-							<div style={{ display: "flex", alignItems: "center" }}>
-								<div
-									style={{
-										backgroundImage: getGameCoverImage(gameId),
-										width: "25px",
-										height: "25px",
-										backgroundSize: "cover",
-										backgroundPosition: "center",
-									}}
-								/>
-
-								<FocusableExt>
-									<span style={{ marginLeft: "8px", fontWeight: "bold" }}>
-										{gameName}
-									</span>
-								</FocusableExt>
-							</div>
-
-							<span>{playedTime}</span>
-						</header>
-
-						<PanelSection>
-							<PanelSectionRow>
-								<Pager
-									onNext={onNextYear}
-									onPrev={onPrevYear}
-									currentText={formatYearInterval(
-										currentPage.current().interval,
-									)}
-									hasNext={currentPage.hasNext()}
-									hasPrev={currentPage.hasPrev()}
-									isEnabledChangePagesWithTriggers={true}
-								/>
-							</PanelSectionRow>
-						</PanelSection>
-
 						<YearlyAverageAndOverall statistics={currentPage.current().data} />
 
 						<YearView statistics={currentPage.current().data} />
 
-						{Object.keys(sessionsList).map((sessionDateKey) => {
-							const [month, day] = sessionDateKey.split("-");
-
-							return (
-								<VerticalContainer key={sessionDateKey}>
-									<div
-										style={{
-											color: "rgb(0, 138, 218)",
-											fontSize: "18px",
-											marginTop: "18px",
-										}}
-									>
-										<div
-											style={{
-												textWrap: "nowrap",
-												display: "flex",
-												alignItems: "center",
-											}}
-										>
-											<span style={{ paddingRight: "16px" }}>
-												{`${month.toUpperCase()} ${day}`}
-											</span>
-
-											<div
-												style={{
-													borderTop: "1px solid rgba(255, 255, 255, 0.1)",
-													width: "100%",
-												}}
-											/>
-										</div>
-									</div>
-
-									<SessionsList
-										sessions={sessionsList[sessionDateKey]}
-										sessionDateKey={sessionDateKey}
-										showTimeInHours={settings.displayTime.showTimeInHours}
-										showSeconds={settings.displayTime.showSeconds}
-									/>
-								</VerticalContainer>
-							);
-						})}
+						<Sessions
+							sessionsList={sessionsList}
+							showTimeInHours={settings.displayTime.showTimeInHours}
+							showSeconds={settings.displayTime.showSeconds}
+						/>
 					</>
 				)}
 			</>
