@@ -36,6 +36,7 @@ from python.db.migration import DbMigration
 from python.statistics import Statistics
 from python.time_tracking import TimeTracking
 from python.helpers import parse_date
+from python.files import Files
 # pylint: enable=wrong-import-position
 
 # autopep8: on
@@ -44,6 +45,7 @@ from python.helpers import parse_date
 class Plugin:
     time_tracking = None
     statistics = None
+    files: Files = Files()
 
     async def _main(self):
         try:
@@ -101,5 +103,29 @@ class Plugin:
     async def get_game(self, game_id: str):
         try:
             return dataclasses.asdict(self.statistics.get_game(game_id))
+        except Exception as e:
+            logger.exception("Unhandled exception: ", str(e))
+
+    async def has_min_required_python_version(self) -> bool:
+        if sys.version_info < (3, 15):
+            return False
+
+        return True
+
+    async def get_file_sha256(self, path: str):
+        try:
+            return self.files.get_file_sha256(path)
+        except Exception as e:
+            logger.exception("Unhandled exception: ", str(e))
+
+    async def get_game_cover_base64_by_id(self, game_id: str):
+        try:
+            return self.files.get_game_cover_base64_by_id(game_id)
+        except Exception as e:
+            logger.exception("Unhandled exception: ", str(e))
+
+    async def get_data_directory(self) -> str:
+        try:
+            return data_dir
         except Exception as e:
             logger.exception("Unhandled exception: ", str(e))
