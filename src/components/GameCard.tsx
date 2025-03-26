@@ -7,14 +7,20 @@ interface GameCardProperties {
 	coverScale?: number;
 }
 
+function getGameCoverFromPluginDataFolder(gameId: string): string {
+	const coversPath = "http://127.0.0.1:1337/plugins/PlayTime/assets";
+
+	return `url(${coversPath}/${gameId}.png), url(${coversPath}/${gameId}.jpg), url(/images/defaultappimage.png)`;
+}
+
 export function getGameCoverImage(gameId: string) {
 	const image = getGameCoverImageMemo(gameId);
 
 	if (isNil(image)) {
-		return "url(/images/defaultappimage.png)";
+		return getGameCoverFromPluginDataFolder(gameId);
 	}
 
-	return `url(${image}), url(${image.replace("png", "jpg")})`;
+	return `url(${image}), url(${image.replace("png", "jpg")}), url(/images/defaultappimage.png)`;
 }
 
 export function GameCoverStyle() {
