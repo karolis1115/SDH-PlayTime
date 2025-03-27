@@ -1,10 +1,10 @@
 import { type RoutePatch, routerHook } from "@decky/api";
 import { afterPatch } from "@decky/ui";
+import type { Cache } from "@src/app/cache";
+import type { AppDetails } from "@src/app/model";
+import type { Mountable } from "@src/app/system";
 import { runInAction } from "mobx";
 import type { ReactElement } from "react";
-import type { Cache } from "../app/cache";
-import type { AppDetails } from "../app/model";
-import type { Mountable } from "../app/system";
 
 function routePatch(path: string, patch: RoutePatch): Mountable {
 	return {

@@ -1,5 +1,7 @@
 import { routerHook, toaster } from "@decky/api";
 import { definePlugin, staticClasses, useParams } from "@decky/ui";
+import { patchAppPage } from "@src/steam/ui/routePatches";
+import { SteamPatches } from "@src/steam/ui/steamPatches";
 import { FaClock } from "react-icons/fa";
 import { SessionPlayTime } from "./app/SessionPlayTime";
 import { Backend } from "./app/backend";
@@ -32,8 +34,6 @@ import {
 	MANUALLY_ADJUST_TIME,
 	SETTINGS_ROUTE,
 } from "./pages/navigation";
-import { SteamPatches } from "./steam-ui/SteamPatches";
-import { patchAppPage } from "./steam-ui/patches";
 import { log } from "./utils";
 
 export default definePlugin(() => {
