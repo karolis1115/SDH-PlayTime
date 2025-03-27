@@ -9,7 +9,7 @@ import {
 import { humanReadableTime } from "@utils/formatters";
 import { useEffect, useState } from "react";
 import type { DeepNonNullable } from "ts-essentials";
-import { excludeApps } from "../app/time-manipulation";
+import { excludeApps } from "../app/timeManipulation";
 import { PageWrapper } from "../components/PageWrapper";
 import { useLocator } from "../locator";
 import { TableCSS } from "../styles";

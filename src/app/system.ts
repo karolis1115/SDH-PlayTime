@@ -4,7 +4,7 @@ import type { SessionPlayTime } from "./SessionPlayTime";
 import type { Events } from "./events";
 import type { Reports } from "./reports";
 import type { PlayTimeSettings, Settings } from "./settings";
-import type { TimeManipulation } from "./time-manipulation";
+import type { TimeManipulation } from "./timeManipulation";
 
 export {
 	type Clock,

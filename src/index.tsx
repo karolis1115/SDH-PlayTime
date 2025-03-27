@@ -17,7 +17,7 @@ import {
 	type Mountable,
 	systemClock,
 } from "./app/system";
-import { TimeManipulation } from "./app/time-manipulation";
+import { TimeManipulation } from "./app/timeManipulation";
 import {
 	createCachedLastTwoWeeksPlayTimes,
 	createCachedPlayTimes,
