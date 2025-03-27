@@ -1,5 +1,5 @@
+import { getGameCoverImageMemo } from "@src/steam/utils/getGameCoverImage";
 import { isNil } from "@src/utils/isNil";
-import { getGameCoverImageMemo } from "@src/utils/steam/getGameCoverImage";
 import Card from "../styles/card.css";
 
 interface GameCardProperties {
