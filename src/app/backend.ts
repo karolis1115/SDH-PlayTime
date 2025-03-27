@@ -1,6 +1,6 @@
 import { call } from "@decky/api";
+import logger from "@src/utils/logger";
 import { toIsoDateOnly } from "@utils/formatters";
-import logger from "../utils";
 import type { EventBus } from "./system";
 
 export interface OverallPlayTimes {

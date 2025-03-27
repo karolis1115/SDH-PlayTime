@@ -1,5 +1,5 @@
 import { isNil } from "@src/utils/isNil";
-import logger from "../utils";
+import logger from "@src/utils/logger";
 
 import type { EventBus } from "./system";
 

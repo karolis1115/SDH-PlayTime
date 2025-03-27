@@ -1,5 +1,5 @@
+import logger from "@src/utils/logger";
 import type { Dispatch, SetStateAction } from "react";
-import logger from "../utils";
 import type { SessionPlayTime } from "./SessionPlayTime";
 import type { Events } from "./events";
 import type { Reports } from "./reports";

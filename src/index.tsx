@@ -34,7 +34,7 @@ import {
 	MANUALLY_ADJUST_TIME,
 	SETTINGS_ROUTE,
 } from "./pages/navigation";
-import { log } from "./utils";
+import { log } from "./utils/logger";
 
 export default definePlugin(() => {
 	log("PlayTime plugin loading...");

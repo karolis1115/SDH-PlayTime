@@ -1,7 +1,7 @@
 import type { Cache } from "@src/app/cache";
 import type { Mountable } from "@src/app/system";
-import logger from "@src/utils";
 import { isNil } from "@src/utils/isNil";
+import logger from "@utils/logger";
 
 export { SteamPatches };
 
