@@ -1,6 +1,6 @@
 import { Field, PanelSection, PanelSectionRow } from "@decky/ui";
 import type { PlayTime } from "@src/app/SessionPlayTime";
-import { humanReadableTime } from "../app/formatters";
+import { humanReadableTime } from "@utils/formatters";
 import { useLocator } from "../locator";
 
 function PlaySessionsInformation({

@@ -1,4 +1,5 @@
 import { useLocator } from "@src/locator";
+import { humanReadableTime } from "@utils/formatters";
 import { toDate } from "date-fns";
 import type { FC } from "react";
 import {
@@ -9,7 +10,6 @@ import {
 	XAxis,
 	YAxis,
 } from "recharts";
-import { humanReadableTime } from "../../app/formatters";
 import { FocusableExt } from "../FocusableExt";
 
 interface DayTime {

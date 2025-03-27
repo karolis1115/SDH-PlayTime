@@ -1,6 +1,6 @@
+import type { Interval } from "@src/app/reports";
 import { isNil } from "@src/utils/isNil";
 import { type Duration, intervalToDuration } from "date-fns";
-import type { Interval } from "./reports";
 
 export {
 	formatMonthInterval,

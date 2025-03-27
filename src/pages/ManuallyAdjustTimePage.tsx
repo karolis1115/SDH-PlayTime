@@ -6,9 +6,9 @@ import {
 	PanelSection,
 	TextField,
 } from "@decky/ui";
+import { humanReadableTime } from "@utils/formatters";
 import { useEffect, useState } from "react";
 import type { DeepNonNullable } from "ts-essentials";
-import { humanReadableTime } from "../app/formatters";
 import { excludeApps } from "../app/time-manipulation";
 import { PageWrapper } from "../components/PageWrapper";
 import { useLocator } from "../locator";

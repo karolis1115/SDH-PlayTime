@@ -1,5 +1,5 @@
-import { humanReadableTime } from "@src/app/formatters";
 import { useLocator } from "@src/locator";
+import { humanReadableTime } from "@utils/formatters";
 import { format } from "date-fns";
 import { useMemo } from "react";
 import {

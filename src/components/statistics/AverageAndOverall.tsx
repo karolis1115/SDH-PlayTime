@@ -1,8 +1,8 @@
 import { Field, PanelSection, PanelSectionRow } from "@decky/ui";
 import { useLocator } from "@src/locator";
+import { humanReadableTime } from "@utils/formatters";
 import { isBefore, isSameDay, startOfDay } from "date-fns";
 import type { FC } from "react";
-import { humanReadableTime } from "../../app/formatters";
 import { FocusableExt } from "../FocusableExt";
 
 export const AverageAndOverall: FC<{ statistics: DailyStatistics[] }> = (

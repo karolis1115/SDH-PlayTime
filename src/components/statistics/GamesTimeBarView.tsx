@@ -1,7 +1,7 @@
-import { humanReadableTime } from "@src/app/formatters";
 import { useLocator } from "@src/locator";
 import { GAME_REPORT_ROUTE, navigateToPage } from "@src/pages/navigation";
 import { isNil } from "@src/utils/isNil";
+import { humanReadableTime } from "@utils/formatters";
 import { formatDistanceToNow } from "date-fns";
 
 import { hide_text_on_overflow } from "../../styles";

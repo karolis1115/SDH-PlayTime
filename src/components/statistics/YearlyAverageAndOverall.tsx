@@ -1,8 +1,8 @@
 import { Field, PanelSection, PanelSectionRow } from "@decky/ui";
 import { useLocator } from "@src/locator";
+import { humanReadableTime } from "@utils/formatters";
 import { format } from "date-fns";
 import { type FC, useMemo } from "react";
-import { humanReadableTime } from "../../app/formatters";
 import { FocusableExt } from "../FocusableExt";
 
 function calculateAverages(yearlyStats: Array<DailyStatistics>): {

@@ -1,5 +1,4 @@
 import { PanelSection, PanelSectionRow } from "@decky/ui";
-import { formatYearInterval, humanReadableTime } from "@src/app/formatters";
 import { FocusableExt } from "@src/components/FocusableExt";
 import { getGameCoverImage } from "@src/components/GameCard";
 import { VerticalContainer } from "@src/components/VerticalContainer";
@@ -7,6 +6,7 @@ import { YearView } from "@src/components/statistics/YearView";
 import { YearlyAverageAndOverall } from "@src/components/statistics/YearlyAverageAndOverall";
 import logger from "@src/utils";
 import { isNil } from "@src/utils/isNil";
+import { formatYearInterval, humanReadableTime } from "@utils/formatters";
 import { format } from "date-fns";
 import { useEffect, useMemo, useState } from "react";
 import { type Paginated, empty } from "../app/reports";
