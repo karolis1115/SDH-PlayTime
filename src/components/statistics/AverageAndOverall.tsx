@@ -3,7 +3,6 @@ import { useLocator } from "@src/locator";
 import { isBefore, isSameDay, startOfDay } from "date-fns";
 import type { FC } from "react";
 import { humanReadableTime } from "../../app/formatters";
-import type { DailyStatistics } from "../../app/model";
 import { FocusableExt } from "../FocusableExt";
 
 export const AverageAndOverall: FC<{ statistics: DailyStatistics[] }> = (

@@ -10,7 +10,6 @@ import {
 	YAxis,
 } from "recharts";
 import { humanReadableTime } from "../../app/formatters";
-import type { DailyStatistics } from "../../app/model";
 import { FocusableExt } from "../FocusableExt";
 
 interface DayTime {

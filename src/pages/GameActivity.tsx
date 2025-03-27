@@ -1,6 +1,5 @@
 import { PanelSection, PanelSectionRow } from "@decky/ui";
 import { formatYearInterval, humanReadableTime } from "@src/app/formatters";
-import type { DailyStatistics, SessionInformation } from "@src/app/model";
 import { FocusableExt } from "@src/components/FocusableExt";
 import { getGameCoverImage } from "@src/components/GameCard";
 import { VerticalContainer } from "@src/components/VerticalContainer";

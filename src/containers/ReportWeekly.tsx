@@ -4,10 +4,7 @@ import { SortBy, getSelectedSortOptionByKey } from "@src/app/sortPlayTime";
 import { showSortTitlesContextMenu } from "@src/components/showSortTitlesContextMenu";
 import { useEffect, useMemo, useState } from "react";
 import { formatWeekInterval } from "../app/formatters";
-import {
-	type DailyStatistics,
-	convertDailyStatisticsToGameWithTime,
-} from "../app/model";
+import { convertDailyStatisticsToGameWithTime } from "../app/model";
 import { type Paginated, empty } from "../app/reports";
 import { ChartStyle } from "../app/settings";
 import { Pager } from "../components/Pager";

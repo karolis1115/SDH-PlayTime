@@ -128,7 +128,6 @@ function createMountables(
 	const mounts: Mountable[] = [];
 
 	mounts.push(new BreaksReminder(eventBus, settings));
-
 	mounts.push(new SteamEventMiddleware(eventBus, clock));
 
 	mounts.push({

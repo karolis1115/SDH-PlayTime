@@ -1,7 +1,6 @@
 import { isNil } from "@src/utils/isNil";
 import logger from "../utils";
 
-import type { Game } from "./model";
 import type { EventBus } from "./system";
 
 export { SessionPlayTime, type PlayTime };

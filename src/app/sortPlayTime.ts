@@ -1,5 +1,4 @@
 import { isNil } from "@src/utils/isNil";
-import type { GameWithTime } from "./model";
 
 export const SortBy = {
 	NAME: {

@@ -3,7 +3,6 @@ import { sortPlayedTime } from "@src/app/sortPlayTime";
 import { SortBy, getSelectedSortOptionByKey } from "@src/app/sortPlayTime";
 import { showSortTitlesContextMenu } from "@src/components/showSortTitlesContextMenu";
 import { useEffect, useMemo, useState } from "react";
-import type { GameWithTime } from "../app/model";
 import { GamesTimeBarView } from "../components/statistics/GamesTimeBarView";
 import { useLocator } from "../locator";
 

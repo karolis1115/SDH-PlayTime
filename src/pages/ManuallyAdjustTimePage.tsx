@@ -9,7 +9,6 @@ import {
 import { useEffect, useState } from "react";
 import type { DeepNonNullable } from "ts-essentials";
 import { humanReadableTime } from "../app/formatters";
-import type { GameWithTime } from "../app/model";
 import { excludeApps } from "../app/time-manipulation";
 import { PageWrapper } from "../components/PageWrapper";
 import { useLocator } from "../locator";

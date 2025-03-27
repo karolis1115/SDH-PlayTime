@@ -1,5 +1,4 @@
 import { humanReadableTime } from "@src/app/formatters";
-import type { DailyStatistics } from "@src/app/model";
 import { useLocator } from "@src/locator";
 import { format } from "date-fns";
 import { useMemo } from "react";

@@ -7,7 +7,6 @@ import {
 	startOfYear,
 } from "date-fns";
 import type { Backend } from "./backend";
-import type { DailyStatistics, GameWithTime } from "./model";
 
 export interface Interval {
 	start: Date;

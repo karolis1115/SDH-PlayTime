@@ -3,7 +3,7 @@ import { useLocator } from "@src/locator";
 import { GAME_REPORT_ROUTE, navigateToPage } from "@src/pages/navigation";
 import { isNil } from "@src/utils/isNil";
 import { formatDistanceToNow } from "date-fns";
-import type { GameWithTime } from "../../app/model";
+
 import { hide_text_on_overflow } from "../../styles";
 import { FocusableExt } from "../FocusableExt";
 import { GameCard, GameCoverStyle } from "../GameCard";

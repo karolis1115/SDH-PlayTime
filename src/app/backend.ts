@@ -1,7 +1,6 @@
 import { call } from "@decky/api";
 import logger from "../utils";
 import { toIsoDateOnly } from "./formatters";
-import type { DailyStatistics, Game, GameWithTime } from "./model";
 import type { EventBus } from "./system";
 
 export interface OverallPlayTimes {

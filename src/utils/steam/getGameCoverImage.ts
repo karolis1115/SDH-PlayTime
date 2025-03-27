@@ -1,5 +1,5 @@
-import { memo } from "@src/utils/memo";
-import { isNil } from "../isNil";
+import { isNil } from "@utils/isNil";
+import { memo } from "@utils/memo";
 
 function getGameCoverImage(gameId: string): string | undefined {
 	const gameOverview = appStore.GetAppOverviewByGameID(gameId);

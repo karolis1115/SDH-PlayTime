@@ -20,3 +20,26 @@ interface GameInformation {
 	name: string;
 	time: number;
 }
+
+interface Game {
+	id: string;
+	name: string;
+}
+
+interface SessionInformation {
+	date: string;
+	duration: number;
+}
+
+interface GameWithTime {
+	game: Game;
+	time: number;
+	sessions: Array<SessionInformation>;
+	last_session: SessionInformation;
+}
+
+interface DailyStatistics {
+	date: string;
+	games: GameWithTime[];
+	total: number;
+}

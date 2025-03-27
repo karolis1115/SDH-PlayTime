@@ -1,5 +1,4 @@
 import { Field, PanelSection, PanelSectionRow } from "@decky/ui";
-import type { DailyStatistics } from "@src/app/model";
 import { useLocator } from "@src/locator";
 import { format } from "date-fns";
 import { type FC, useMemo } from "react";

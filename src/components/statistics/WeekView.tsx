@@ -1,6 +1,5 @@
 import { toDate } from "date-fns";
 import type { FC } from "react";
-import type { DailyStatistics } from "../../app/model";
 import { FocusableExt } from "../FocusableExt";
 import { HorizontalContainer } from "../HorizontalContainer";
 import { Timebar } from "../Timebar";
