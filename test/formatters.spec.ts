@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { humanReadableTime } from "../src/app/formatters";
+import { humanReadableTime } from "@utils/formatters";
 
 describe("Should present play time as correct human readable text with time displayed using HOURS", () => {
 	test("when zero seconds with correct plural", () => {

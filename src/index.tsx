@@ -1,9 +1,11 @@
 import { routerHook, toaster } from "@decky/api";
-import { definePlugin, staticClasses } from "@decky/ui";
+import { definePlugin, staticClasses, useParams } from "@decky/ui";
+import { patchAppPage } from "@src/steam/ui/routePatches";
+import { SteamPatches } from "@src/steam/ui/steamPatches";
+import { getDurationInHours } from "@utils/formatters";
 import { FaClock } from "react-icons/fa";
 import { SessionPlayTime } from "./app/SessionPlayTime";
 import { Backend } from "./app/backend";
-import { getDurationInHours } from "./app/formatters";
 import { SteamEventMiddleware } from "./app/middleware";
 import { BreaksReminder } from "./app/notification";
 import { Reports } from "./app/reports";
@@ -15,26 +17,27 @@ import {
 	type Mountable,
 	systemClock,
 } from "./app/system";
-import { TimeManipulation } from "./app/time-manipulation";
+import { TimeManipulation } from "./app/timeManipulation";
 import {
 	createCachedLastTwoWeeksPlayTimes,
 	createCachedPlayTimes,
 } from "./cachables";
 import { LocatorProvider } from "./locator";
 import { DeckyPanelPage } from "./pages/DeckyPanelPage";
+import { GameActivity } from "./pages/GameActivity";
 import { ManuallyAdjustTimePage } from "./pages/ManuallyAdjustTimePage";
 import { DetailedPage } from "./pages/ReportPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import {
 	DETAILED_REPORT_ROUTE,
+	GAME_REPORT_ROUTE,
 	MANUALLY_ADJUST_TIME,
 	SETTINGS_ROUTE,
 } from "./pages/navigation";
-import { SteamPatches } from "./steam-ui/SteamPatches";
-import { patchAppPage } from "./steam-ui/patches";
+import { log } from "./utils/logger";
 
 export default definePlugin(() => {
-	console.log("PlayTime plugin loading...");
+	log("PlayTime plugin loading...");
 
 	const clock = systemClock;
 	const eventBus = new EventBus();
@@ -60,6 +63,7 @@ export default definePlugin(() => {
 	}
 
 	mountManager.mount();
+
 	return {
 		title: <div className={staticClasses.Title}>PlayTime</div>,
 		content: (
@@ -124,7 +128,6 @@ function createMountables(
 	const mounts: Mountable[] = [];
 
 	mounts.push(new BreaksReminder(eventBus, settings));
-
 	mounts.push(new SteamEventMiddleware(eventBus, clock));
 
 	mounts.push({
@@ -178,6 +181,28 @@ function createMountables(
 		},
 		unMount() {
 			routerHook.removeRoute(MANUALLY_ADJUST_TIME);
+		},
+	});
+
+	mounts.push({
+		mount() {
+			routerHook.addRoute(GAME_REPORT_ROUTE, () => {
+				const { gameId } = useParams<{ gameId: string }>();
+
+				return (
+					<LocatorProvider
+						reports={reports}
+						sessionPlayTime={sessionPlayTime}
+						settings={settings}
+						timeManipulation={timeMigration}
+					>
+						<GameActivity gameId={gameId} />
+					</LocatorProvider>
+				);
+			});
+		},
+		unMount() {
+			routerHook.removeRoute(GAME_REPORT_ROUTE);
 		},
 	});
 

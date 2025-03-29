@@ -38,6 +38,13 @@ class TestPlayTime(AbstractDatabaseTest):
                                 "name": "Zelda BOTW",
                             },
                             "time": 3600,
+                            "sessions": [
+                                {"date": "2022-01-01T09:00:00", "duration": 3600},
+                            ],
+                            "last_session": {
+                                "date": "2022-01-01T09:00:00",
+                                "duration": 3600,
+                            },
                         }
                     ],
                     "total": 3600,
@@ -75,6 +82,14 @@ class TestPlayTime(AbstractDatabaseTest):
                                 "name": "Zelda BOTW",
                             },
                             "time": 7200,
+                            "sessions": [
+                                {"date": "2022-01-01T09:00:00", "duration": 3600},
+                                {"date": "2022-01-01T10:00:00", "duration": 3600},
+                            ],
+                            "last_session": {
+                                "date": "2022-01-01T10:00:00",
+                                "duration": 3600,
+                            },
                         }
                     ],
                     "total": 7200,
@@ -104,6 +119,13 @@ class TestPlayTime(AbstractDatabaseTest):
                                 "name": "Zelda BOTW",
                             },
                             "time": 3600,
+                            "sessions": [
+                                {"date": "2022-01-01T23:00:00", "duration": 3600}
+                            ],
+                            "last_session": {
+                                "date": "2022-01-02T00:00:00",
+                                "duration": 3600,
+                            },
                         }
                     ],
                     "total": 3600,
@@ -117,6 +139,13 @@ class TestPlayTime(AbstractDatabaseTest):
                                 "name": "Zelda BOTW",
                             },
                             "time": 3600,
+                            "sessions": [
+                                {"date": "2022-01-02T00:00:00", "duration": 3600}
+                            ],
+                            "last_session": {
+                                "date": "2022-01-02T00:00:00",
+                                "duration": 3600,
+                            },
                         }
                     ],
                     "total": 3600,
@@ -151,6 +180,13 @@ class TestPlayTime(AbstractDatabaseTest):
                                 "name": "Zelda BOTW",
                             },
                             "time": 3600,
+                            "sessions": [
+                                {"date": "2022-01-01T09:00:00", "duration": 3600}
+                            ],
+                            "last_session": {
+                                "date": "2022-01-01T09:00:00",
+                                "duration": 3600,
+                            },
                         },
                         {
                             "game": {
@@ -158,6 +194,13 @@ class TestPlayTime(AbstractDatabaseTest):
                                 "name": "Doom",
                             },
                             "time": 1800,
+                            "sessions": [
+                                {"date": "2022-01-01T10:00:00", "duration": 1800}
+                            ],
+                            "last_session": {
+                                "date": "2022-01-01T10:00:00",
+                                "duration": 1800,
+                            },
                         },
                     ],
                     "total": 3600 + 1800,
@@ -217,6 +260,13 @@ class TestPlayTime(AbstractDatabaseTest):
                                 "name": "Doom",
                             },
                             "time": 3600,
+                            "sessions": [
+                                {"date": "2022-01-02T09:00:00", "duration": 3600}
+                            ],
+                            "last_session": {
+                                "date": "2022-01-02T09:00:00",
+                                "duration": 3600,
+                            },
                         }
                     ],
                     "total": 3600,
@@ -230,6 +280,13 @@ class TestPlayTime(AbstractDatabaseTest):
                                 "name": "Zelda Minish Cap",
                             },
                             "time": 1800,
+                            "sessions": [
+                                {"date": "2022-01-03T09:00:00", "duration": 1800}
+                            ],
+                            "last_session": {
+                                "date": "2022-01-03T09:00:00",
+                                "duration": 1800,
+                            },
                         }
                     ],
                     "total": 1800,
@@ -243,6 +300,13 @@ class TestPlayTime(AbstractDatabaseTest):
                                 "name": "Zelda BOTW",
                             },
                             "time": 1800,
+                            "sessions": [
+                                {"date": "2022-01-04T09:00:00", "duration": 1800}
+                            ],
+                            "last_session": {
+                                "date": "2022-01-04T09:00:00",
+                                "duration": 1800,
+                            },
                         }
                     ],
                     "total": 1800,

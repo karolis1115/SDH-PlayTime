@@ -1,7 +1,6 @@
 import { call } from "@decky/api";
-import logger from "../utils";
-import { toIsoDateOnly } from "./formatters";
-import type { DailyStatistics, Game, GameWithTime } from "./model";
+import logger from "@src/utils/logger";
+import { toIsoDateOnly } from "@utils/formatters";
 import type { EventBus } from "./system";
 
 export interface OverallPlayTimes {
@@ -17,6 +16,8 @@ export interface StatisticForIntervalResponse {
 export class Backend {
 	private eventBus: EventBus;
 
+	public static dataDirectoryPath: Nullable<string> = undefined;
+
 	constructor(eventBus: EventBus) {
 		this.eventBus = eventBus;
 
@@ -30,6 +31,12 @@ export class Backend {
 					break;
 			}
 		});
+
+		Backend.getDataDirectory()
+			.then((response) => {
+				Backend.dataDirectoryPath = response;
+			})
+			.catch((error) => logger.error(error));
 	}
 
 	private async addTime(startedAt: number, endedAt: number, game: Game) {
@@ -64,16 +71,23 @@ export class Backend {
 	async fetchDailyStatisticForInterval(
 		start: Date,
 		end: Date,
+		gameId?: string,
 	): Promise<StatisticForIntervalResponse> {
 		return await call<
-			[start_date: string, end_date: string],
+			[start_date: string, end_date: string, gameId?: string],
 			StatisticForIntervalResponse
-		>("daily_statistics_for_period", toIsoDateOnly(start), toIsoDateOnly(end))
+		>(
+			"daily_statistics_for_period",
+			toIsoDateOnly(start),
+			toIsoDateOnly(end),
+			gameId,
+		)
 			.then((response) => {
 				return response;
 			})
 			.catch((error) => {
 				logger.error(error);
+
 				return {
 					hasNext: false,
 					hasPrev: false,
@@ -108,6 +122,7 @@ export class Backend {
 			})
 			.catch((error) => {
 				logger.error(error);
+
 				return false;
 			});
 	}
@@ -119,5 +134,56 @@ export class Backend {
 			type: "NotifyAboutError",
 			message: message,
 		});
+	}
+
+	async getGame(gameId: string): Promise<Nullable<GameInformation>> {
+		return await call<[gameId: string], Nullable<GameInformation>>(
+			"get_game",
+			gameId,
+		)
+			.then((response) => {
+				return response;
+			})
+			.catch((error) => {
+				logger.error(error);
+
+				return null;
+			});
+	}
+
+	public static async getFileSHA256(path: string): Promise<Nullable<string>> {
+		return await call<[path: string], Nullable<string>>("get_file_sha256", path)
+			.then((response) => {
+				return response;
+			})
+			.catch((error) => {
+				logger.error(error);
+
+				return undefined;
+			});
+	}
+
+	public static async getHasMinRequiredPythonVersion(): Promise<boolean> {
+		return await call<[], boolean>("has_min_required_python_version")
+			.then((response) => {
+				return response;
+			})
+			.catch((error) => {
+				logger.error(error);
+
+				return false;
+			});
+	}
+
+	public static async getDataDirectory(): Promise<Nullable<string>> {
+		return await call<[], string>("get_data_directory")
+			.then((response) => {
+				return response;
+			})
+			.catch((error) => {
+				logger.error(error);
+
+				return undefined;
+			});
 	}
 }

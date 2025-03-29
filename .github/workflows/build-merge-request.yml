@@ -5,8 +5,43 @@ on:
     types: [opened, synchronize, reopened, closed]
 
 jobs:
-  check:
-    runs-on: ubuntu-20.04
+  back_end_unit_tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Test with pytest
+        run: |
+          pip install pytest
+          pytest
+
+  front_end_unit_tests:
+    needs: back_end_unit_tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun i
+
+      - name: Testing
+        run: bun test
+
+  check_linting_types_and_formating:
+    needs: front_end_unit_tests
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
@@ -34,15 +69,9 @@ jobs:
       - name: Check linting
         run: pnpm biome lint
 
-      - name: Setup bun
-        uses: oven-sh/setup-bun@v2
-
-      - name: Testing
-        run: bun test
-
   create_merge_request_artifact:
-    needs: check
-    runs-on: ubuntu-20.04
+    needs: check_linting_types_and_formating
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
@@ -100,7 +129,11 @@ jobs:
                 const dirContents = fs.readdirSync(srcPath, { withFileTypes: true });
                 const dirDestPath = path.join(dest, fileName);
                 fs.mkdirSync(dirDestPath, { recursive: true });
-                copyDirRecursive(path.join(parentPath, fileName), dirContents, dirDestPath);
+                copyDirRecursive(
+                  path.join(parentPath, fileName),
+                  dirContents,
+                  dirDestPath,
+                );
               } else {
                 fs.copyFileSync(srcPath, destPath);
               }
@@ -118,29 +151,38 @@ jobs:
 
           fs.mkdirSync(bundlePath, { recursive: true });
           fs.mkdirSync(path.join(bundlePath, "dist"));
+          fs.mkdirSync(path.join(bundlePath, "python"));
 
           for (const fileToInclude of includeInBuild) {
-              const srcPath = path.join(cwdPath, fileToInclude);
-              const destPath = path.join(bundlePath, fileToInclude);
+            const srcPath = path.join(cwdPath, fileToInclude);
+            const destPath = path.join(bundlePath, fileToInclude);
 
-              fs.copyFileSync(srcPath, destPath);
-            }
+            fs.copyFileSync(srcPath, destPath);
+          }
 
-            // * check contents of defaults
-            const defaultsPath = path.join(cwdPath, "defaults");
+          // * check contents of defaults
+          const defaultsPath = path.join(cwdPath, "python");
 
-            if (fs.existsSync(defaultsPath)) {
-              const defaultContents = fs.readdirSync(defaultsPath, { withFileTypes: true });
-              copyDirRecursive("defaults", defaultContents, `bundle${path.sep}SDH-PlayTime`);
-            }
+          if (fs.existsSync(defaultsPath)) {
+            const defaultContents = fs.readdirSync(defaultsPath, { withFileTypes: true });
+            copyDirRecursive(
+              "python",
+              defaultContents,
+              `bundle${path.sep}SDH-PlayTime${path.sep}/python`,
+            );
+          }
 
-            // * check contents of dist
-            const distPath = path.join(cwdPath, "dist");
+          // * check contents of dist
+          const distPath = path.join(cwdPath, "dist");
 
-            if (fs.existsSync(distPath)) {
-              const distContents = fs.readdirSync(distPath, { withFileTypes: true });
-              copyDirRecursive("dist", distContents, `bundle${path.sep}SDH-PlayTime${path.sep}/dist`);
-            }
+          if (fs.existsSync(distPath)) {
+            const distContents = fs.readdirSync(distPath, { withFileTypes: true });
+            copyDirRecursive(
+              "dist",
+              distContents,
+              `bundle${path.sep}SDH-PlayTime${path.sep}/dist`,
+            );
+          }
 
     - name: Upload plugin build as artifact
       uses: actions/upload-artifact@v4

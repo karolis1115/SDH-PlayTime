@@ -1,11 +1,10 @@
 import { PanelSection, PanelSectionRow } from "@decky/ui";
-import { registerForInputEvent } from "@src/steam/registerForInputEvent";
-import { useEffect, useState } from "react";
-import { formatMonthInterval } from "../app/formatters";
-import {
-	type DailyStatistics,
-	convertDailyStatisticsToGameWithTime,
-} from "../app/model";
+import { sortPlayedTime } from "@src/app/sortPlayTime";
+import { SortBy, getSelectedSortOptionByKey } from "@src/app/sortPlayTime";
+import { showSortTitlesContextMenu } from "@src/components/showSortTitlesContextMenu";
+import { formatMonthInterval } from "@utils/formatters";
+import { useEffect, useMemo, useState } from "react";
+import { convertDailyStatisticsToGameWithTime } from "../app/model";
 import { type Paginated, empty } from "../app/reports";
 import { ChartStyle } from "../app/settings";
 import { Pager } from "../components/Pager";
@@ -16,12 +15,28 @@ import { PieView } from "../components/statistics/PieView";
 import { useLocator } from "../locator";
 
 export const ReportMonthly = () => {
-	const { reports, currentSettings: settings } = useLocator();
-	const [lastChangedPageTimeStamp, setLastChangedPageTimeStamp] =
-		useState<number>(0);
+	const { reports, currentSettings, settings, setCurrentSettings } =
+		useLocator();
 	const [isLoading, setLoading] = useState<boolean>(false);
 	const [currentPage, setCurrentPage] = useState<Paginated<DailyStatistics>>(
 		empty(),
+	);
+	const sortType = currentSettings.selectedSortByOption || "mostPlayed";
+	const { interval } = currentPage.current();
+	const { start, end } = interval;
+
+	const selectedSortOptionByKey =
+		getSelectedSortOptionByKey(currentSettings.selectedSortByOption) ||
+		"MOST_PLAYED";
+	const sortOptionName = SortBy[selectedSortOptionByKey].name;
+
+	const sortedData = useMemo(
+		() =>
+			sortPlayedTime(
+				convertDailyStatisticsToGameWithTime(currentPage.current().data),
+				currentSettings.selectedSortByOption,
+			),
+		[sortType, `${start} - ${end}`],
 	);
 
 	useEffect(() => {
@@ -32,47 +47,6 @@ export const ReportMonthly = () => {
 			setLoading(false);
 		});
 	}, []);
-
-	useEffect(() => {
-		const { unregister } = registerForInputEvent((_buttons, rawEvent) => {
-			if (rawEvent.length === 0) {
-				return;
-			}
-
-			const DELAY = 500;
-
-			if (new Date().getTime() - lastChangedPageTimeStamp <= DELAY) {
-				return;
-			}
-
-			// NOTE(ynhhoJ): Aproximative value
-			const TRIGGER_PUSH_FORCE_UNTIL_VIBRATION = 12000;
-			const isLeftTriggerPressed =
-				rawEvent[0].sTriggerL >= TRIGGER_PUSH_FORCE_UNTIL_VIBRATION;
-
-			if (isLeftTriggerPressed && currentPage.hasPrev()) {
-				setLastChangedPageTimeStamp(new Date().getTime());
-
-				onPrevWeek();
-			}
-
-			const isRightTriggerPressed =
-				rawEvent[0].sTriggerR >= TRIGGER_PUSH_FORCE_UNTIL_VIBRATION;
-
-			if (isRightTriggerPressed && currentPage.hasNext()) {
-				setLastChangedPageTimeStamp(new Date().getTime());
-
-				onNextWeek();
-			}
-		});
-
-		return () => {
-			unregister();
-		};
-	}, [
-		currentPage.current().interval.start.getTime(),
-		currentPage.current().interval.end.getTime(),
-	]);
 
 	const onNextWeek = () => {
 		setLoading(true);
@@ -92,6 +66,14 @@ export const ReportMonthly = () => {
 		});
 	};
 
+	const onOptionsPress = () => {
+		showSortTitlesContextMenu({
+			currentSettings,
+			settings,
+			setCurrentSettings,
+		})();
+	};
+
 	return (
 		<div>
 			<PanelSection>
@@ -102,8 +84,7 @@ export const ReportMonthly = () => {
 						currentText={formatMonthInterval(currentPage.current().interval)}
 						hasNext={currentPage.hasNext()}
 						hasPrev={currentPage.hasPrev()}
-						prevKey="l2"
-						nextKey="r2"
+						isEnabledChangePagesWithTriggers={true}
 					/>
 				</PanelSectionRow>
 			</PanelSection>
@@ -115,16 +96,20 @@ export const ReportMonthly = () => {
 			{!isLoading && currentPage && (
 				<div>
 					<AverageAndOverall statistics={currentPage.current().data} />
-					<MonthView statistics={currentPage.current().data} />
-					<GamesTimeBarView
-						data={convertDailyStatisticsToGameWithTime(
-							currentPage.current().data,
-						)}
-					/>
 
-					{settings.gameChartStyle === ChartStyle.PIE_AND_BARS && (
-						<PieView statistics={currentPage.current().data} />
-					)}
+					<MonthView statistics={currentPage.current().data} />
+
+					<PanelSection title={`Sort ${sortOptionName}`}>
+						<GamesTimeBarView
+							data={sortedData}
+							showCovers={true}
+							onOptionsPress={onOptionsPress}
+						/>
+
+						{currentSettings.gameChartStyle === ChartStyle.PIE_AND_BARS && (
+							<PieView statistics={currentPage.current().data} />
+						)}
+					</PanelSection>
 				</div>
 			)}
 		</div>

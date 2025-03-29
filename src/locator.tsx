@@ -27,6 +27,7 @@ export const LocatorProvider: React.FC<
 	const locator: Locator = {
 		...deps,
 		currentSettings: currentSettings,
+		setCurrentSettings,
 	};
 
 	if (!isLoaded) {

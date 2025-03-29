@@ -1,6 +1,5 @@
 import type { FC } from "react";
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer } from "recharts";
-import type { DailyStatistics } from "../../app/model";
 import { FocusableExt } from "../FocusableExt";
 
 interface TimeByGame {

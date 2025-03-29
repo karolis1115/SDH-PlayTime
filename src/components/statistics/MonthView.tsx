@@ -1,5 +1,6 @@
 import { useLocator } from "@src/locator";
-import moment from "moment";
+import { humanReadableTime } from "@utils/formatters";
+import { toDate } from "date-fns";
 import type { FC } from "react";
 import {
 	Bar,
@@ -9,8 +10,6 @@ import {
 	XAxis,
 	YAxis,
 } from "recharts";
-import { humanReadableTime } from "../../app/formatters";
-import type { DailyStatistics } from "../../app/model";
 import { FocusableExt } from "../FocusableExt";
 
 interface DayTime {
@@ -21,9 +20,11 @@ interface DayTime {
 export const MonthView: FC<{ statistics: DailyStatistics[] }> = (props) => {
 	const { currentSettings: settings } = useLocator();
 	const dayTimes = props.statistics.map((it) => {
+		const date = toDate(it.date);
+
 		return {
 			time: it.total,
-			date: moment(it.date).toDate(),
+			date,
 		} as DayTime;
 	});
 

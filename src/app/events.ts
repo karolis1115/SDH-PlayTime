@@ -1,4 +1,3 @@
-import type { Game } from "./model";
 import type { Mountable } from "./system";
 
 export type Events =

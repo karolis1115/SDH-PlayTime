@@ -9,9 +9,17 @@ class Game:
 
 
 @dataclass
+class SessionInformation:
+    date: str
+    duration: float
+
+
+@dataclass
 class GameWithTime:
     game: Game
     time: int
+    sessions: List[SessionInformation]
+    last_session: SessionInformation
 
 
 @dataclass
@@ -26,3 +34,10 @@ class PagedDayStatistics:
     data: List[DayStatistics]
     hasPrev: bool
     hasNext: bool
+
+
+@dataclass
+class GameInformationDto:
+    id: str
+    name: str
+    time: float

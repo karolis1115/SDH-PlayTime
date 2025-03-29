@@ -1,7 +1,7 @@
+import { endOfWeek, startOfWeek, subDays } from "date-fns";
 import type { Backend } from "./app/backend";
 import { UpdatableCache, UpdateOnEventCache } from "./app/cache";
 import type { EventBus } from "./app/system";
-import { endOfWeek, minusDays, startOfWeek } from "./utils";
 import { isNil } from "./utils/isNil";
 
 export const createCachedPlayTimes = (backend: Backend, eventBus: EventBus) =>
@@ -28,7 +28,7 @@ export const createCachedLastTwoWeeksPlayTimes = (
 	new UpdateOnEventCache(
 		new UpdatableCache(() => {
 			const now = new Date();
-			const twoWeeksAgoStart = minusDays(startOfWeek(now), 7);
+			const twoWeeksAgoStart = subDays(startOfWeek(now), 7);
 			const twoWeeksAgoEnd = endOfWeek(now);
 
 			return backend

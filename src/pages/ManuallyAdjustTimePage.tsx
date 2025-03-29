@@ -6,15 +6,15 @@ import {
 	PanelSection,
 	TextField,
 } from "@decky/ui";
+import { ifNull } from "@src/utils/ifNull";
+import { map } from "@src/utils/map";
+import { humanReadableTime } from "@utils/formatters";
 import { useEffect, useState } from "react";
 import type { DeepNonNullable } from "ts-essentials";
-import { humanReadableTime } from "../app/formatters";
-import type { GameWithTime } from "../app/model";
-import { excludeApps } from "../app/time-manipulation";
+import { excludeApps } from "../app/timeManipulation";
 import { PageWrapper } from "../components/PageWrapper";
 import { useLocator } from "../locator";
 import { TableCSS } from "../styles";
-import { ifNull, map } from "../utils";
 import { navigateBack } from "./navigation";
 
 interface TableRowsProps {
