@@ -37,7 +37,14 @@ class PagedDayStatistics:
 
 
 @dataclass
-class GameInformationDto:
+class GameInformation:
     id: str
     name: str
     time: float
+
+
+@dataclass
+class GameDictionary:
+    id: str
+    name: str
+    checksum: None | str
