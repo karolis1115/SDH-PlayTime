@@ -8,7 +8,7 @@ interface GameCardProperties {
 }
 
 function getGameCoverFromPluginDataFolder(gameId: string): string {
-	const coversPath = "http://127.0.0.1:1337/plugins/PlayTime/assets";
+	const coversPath = "http://127.0.0.1:1337/plugins/PlayTime/data/assets";
 
 	return `url(${coversPath}/${gameId}.png), url(${coversPath}/${gameId}.jpg), url(/images/defaultappimage.png)`;
 }

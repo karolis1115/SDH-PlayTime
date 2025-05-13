@@ -3,23 +3,27 @@ import type { CSSProperties } from "react";
 import { focus_panel_no_padding } from "../styles";
 
 interface FocusableExtProperties {
+	autoFocus?: boolean;
 	children: JSX.Element | Array<JSX.Element>;
 	focusWithinClassName?: string;
 	onActivate?: () => void;
+	onMenuActionDescription?: JSX.Element;
+	onMenuButton?: () => void;
 	onOptionsActionDescription?: JSX.Element;
 	onOptionsButton?: () => void;
 	style?: CSSProperties;
-	autoFocus?: boolean;
 }
 
 export const FocusableExt: React.FC<FocusableExtProperties> = ({
+	autoFocus = undefined,
 	children,
 	focusWithinClassName,
 	onActivate = () => {},
+	onMenuActionDescription,
+	onMenuButton,
 	onOptionsActionDescription,
 	onOptionsButton,
 	style = {},
-	autoFocus = undefined,
 }) => {
 	return (
 		<Focusable
@@ -29,6 +33,8 @@ export const FocusableExt: React.FC<FocusableExtProperties> = ({
 			onOptionsButton={onOptionsButton}
 			style={{ ...focus_panel_no_padding, ...style }}
 			autoFocus={autoFocus}
+			onMenuActionDescription={onMenuActionDescription}
+			onMenuButton={onMenuButton}
 		>
 			{children}
 		</Focusable>

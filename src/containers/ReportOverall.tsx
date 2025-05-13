@@ -1,6 +1,7 @@
 import { PanelSection } from "@decky/ui";
 import { sortPlayedTime } from "@src/app/sortPlayTime";
 import { SortBy, getSelectedSortOptionByKey } from "@src/app/sortPlayTime";
+import { showGameOptionsContextMenu } from "@src/components/showOptionsMenu";
 import { showSortTitlesContextMenu } from "@src/components/showSortTitlesContextMenu";
 import { useEffect, useMemo, useState } from "react";
 import { GamesTimeBarView } from "../components/statistics/GamesTimeBarView";
@@ -49,6 +50,10 @@ export const ReportOverall = () => {
 		})();
 	};
 
+	const onMenuPress = (gameName: string, gameId: string) => {
+		showGameOptionsContextMenu({ gameName, gameId })();
+	};
+
 	return (
 		<div>
 			<PanelSection title={sectionTitle}>
@@ -56,6 +61,7 @@ export const ReportOverall = () => {
 					data={sortedData}
 					showCovers={true}
 					onOptionsPress={onOptionsPress}
+					onMenuPress={onMenuPress}
 				/>
 			</PanelSection>
 		</div>

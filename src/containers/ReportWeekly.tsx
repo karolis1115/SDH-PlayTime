@@ -1,6 +1,7 @@
 import { PanelSection } from "@decky/ui";
 import { sortPlayedTime } from "@src/app/sortPlayTime";
 import { SortBy, getSelectedSortOptionByKey } from "@src/app/sortPlayTime";
+import { showGameOptionsContextMenu } from "@src/components/showOptionsMenu";
 import { showSortTitlesContextMenu } from "@src/components/showSortTitlesContextMenu";
 import { formatWeekInterval } from "@utils/formatters";
 import { useEffect, useMemo, useState } from "react";
@@ -88,6 +89,10 @@ export const ReportWeekly = ({ slim = false }: ReportWeeklyProperties) => {
 		})();
 	};
 
+	const onMenuPress = (gameName: string, gameId: string) => {
+		showGameOptionsContextMenu({ gameName, gameId })();
+	};
+
 	return (
 		<div>
 			<Pager
@@ -119,6 +124,7 @@ export const ReportWeekly = ({ slim = false }: ReportWeeklyProperties) => {
 								data={sortedData}
 								showCovers={!slim}
 								onOptionsPress={onOptionsPress}
+								onMenuPress={onMenuPress}
 							/>
 
 							{currentSettings.gameChartStyle === ChartStyle.PIE_AND_BARS && (
