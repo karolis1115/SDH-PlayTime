@@ -10,13 +10,17 @@ import { useEffect, useState } from "react";
 import { ChartStyle, DEFAULTS, type PlayTimeSettings } from "../app/settings";
 import { Tab } from "../components/Tab";
 import { useLocator } from "../locator";
-import { MANUALLY_ADJUST_TIME, navigateToPage } from "./navigation";
+import {
+	FILE_CHECKSUM_ROUTE,
+	MANUALLY_ADJUST_TIME,
+	navigateToPage,
+} from "./navigation";
 
 const SCALE_OPTIONS = [
 	0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2,
 ];
 
-export const GeneralSettings = () => {
+const GeneralSettings = () => {
 	const { settings } = useLocator();
 	const [current, setCurrent] = useState<PlayTimeSettings>(DEFAULTS);
 	const [loaded, setLoaded] = useState<boolean>(false);
@@ -148,7 +152,7 @@ export const GeneralSettings = () => {
 	);
 };
 
-export const TimeManipulation = () => {
+const TimeManipulation = () => {
 	return (
 		<div>
 			<PanelSection title="Change overall play time">
@@ -161,6 +165,20 @@ export const TimeManipulation = () => {
 		</div>
 	);
 };
+
+function FileChecksum() {
+	return (
+		<div>
+			<PanelSection title="Change overall play time">
+				<PanelSectionRow>
+					<ButtonItem onClick={() => navigateToPage(FILE_CHECKSUM_ROUTE)}>
+						Change
+					</ButtonItem>
+				</PanelSectionRow>
+			</PanelSection>
+		</div>
+	);
+}
 
 export const SettingsPage = () => {
 	return (
@@ -179,6 +197,14 @@ export const SettingsPage = () => {
 					content: (
 						<Tab>
 							<TimeManipulation />
+						</Tab>
+					),
+				},
+				{
+					title: "File checksum",
+					content: (
+						<Tab>
+							<FileChecksum />
 						</Tab>
 					),
 				},
