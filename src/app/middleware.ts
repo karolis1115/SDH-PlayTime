@@ -1,9 +1,10 @@
 import { diffArray } from "@src/utils/diff";
+import logger from "@src/utils/logger";
 import { reaction } from "mobx";
 import { isNil } from "../utils/isNil";
 import type { Clock, EventBus, Mountable } from "./system";
 
-export { SteamEventMiddleware, type SteamHook };
+export { SteamEventMiddleware };
 
 class SteamEventMiddleware implements Mountable {
 	private clock: Clock;
@@ -14,7 +15,7 @@ class SteamEventMiddleware implements Mountable {
 		this.clock = clock;
 	}
 
-	private activeHooks: Array<SteamHook> = [];
+	private activeHooks: Array<Unregisterable> = [];
 
 	public mount() {
 		for (const app of SteamUIStore.RunningApps) {
@@ -30,20 +31,26 @@ class SteamEventMiddleware implements Mountable {
 
 		// hook login state (user login/logout)
 		this.activeHooks.push(
-			SteamClient.User.RegisterForLoginStateChange((username: string) => {
-				if (username) {
-					this.eventBus.emit({
-						type: "UserLoggedIn",
-						createdAt: this.clock.getTimeMs(),
-						username: username,
-					});
-				} else {
+			SteamClient.User.RegisterForLoginStateChange(
+				(username: string, ...rest) => {
+					logger.debug("RegisterForLoginStateChange -> ", username, rest);
+
+					if (username) {
+						this.eventBus.emit({
+							type: "UserLoggedIn",
+							createdAt: this.clock.getTimeMs(),
+							username: username,
+						});
+
+						return;
+					}
+
 					this.eventBus.emit({
 						type: "UserLoggedOut",
 						createdAt: this.clock.getTimeMs(),
 					});
-				}
-			}),
+				},
+			),
 		);
 
 		this.activeHooks.push({
@@ -168,8 +175,4 @@ class SteamEventMiddleware implements Mountable {
 			it.unregister();
 		}
 	}
-}
-
-interface SteamHook {
-	unregister: () => void;
 }
