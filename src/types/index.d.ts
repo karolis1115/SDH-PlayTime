@@ -43,3 +43,9 @@ interface DailyStatistics {
 	games: GameWithTime[];
 	total: number;
 }
+
+interface GameDictionary {
+	id: string;
+	name: string;
+	sha256: Nullable<string>;
+}
