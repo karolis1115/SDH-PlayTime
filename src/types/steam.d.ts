@@ -7,4 +7,5 @@ declare global {
 	let SteamUIStore: SteamUIStore;
 	let SteamClient: SteamClient;
 	let SuspendResumeStore: SuspendResumeStoreTypes;
+	let collectionStore: CollectionStore;
 }
