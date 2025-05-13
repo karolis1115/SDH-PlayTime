@@ -16,8 +16,6 @@ export interface StatisticForIntervalResponse {
 export class Backend {
 	private eventBus: EventBus;
 
-	public static dataDirectoryPath: Nullable<string> = undefined;
-
 	constructor(eventBus: EventBus) {
 		this.eventBus = eventBus;
 
@@ -31,12 +29,6 @@ export class Backend {
 					break;
 			}
 		});
-
-		Backend.getDataDirectory()
-			.then((response) => {
-				Backend.dataDirectoryPath = response;
-			})
-			.catch((error) => logger.error(error));
 	}
 
 	private async addTime(startedAt: number, endedAt: number, game: Game) {
@@ -175,15 +167,15 @@ export class Backend {
 			});
 	}
 
-	public static async getDataDirectory(): Promise<Nullable<string>> {
-		return await call<[], string>("get_data_directory")
+	public static async getGamesDictionary(): Promise<Array<GameDictionary>> {
+		return await call<[], Array<GameDictionary>>("get_games_dictionary")
 			.then((response) => {
 				return response;
 			})
 			.catch((error) => {
 				logger.error(error);
 
-				return undefined;
+				return [];
 			});
 	}
 }
