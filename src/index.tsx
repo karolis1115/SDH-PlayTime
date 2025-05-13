@@ -24,12 +24,14 @@ import {
 } from "./cachables";
 import { LocatorProvider } from "./locator";
 import { DeckyPanelPage } from "./pages/DeckyPanelPage";
+import { FileChecksum } from "./pages/FileChecksum";
 import { GameActivity } from "./pages/GameActivity";
 import { ManuallyAdjustTimePage } from "./pages/ManuallyAdjustTimePage";
 import { DetailedPage } from "./pages/ReportPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import {
 	DETAILED_REPORT_ROUTE,
+	FILE_CHECKSUM_ROUTE,
 	GAME_REPORT_ROUTE,
 	MANUALLY_ADJUST_TIME,
 	SETTINGS_ROUTE,
@@ -203,6 +205,24 @@ function createMountables(
 		},
 		unMount() {
 			routerHook.removeRoute(GAME_REPORT_ROUTE);
+		},
+	});
+
+	mounts.push({
+		mount() {
+			routerHook.addRoute(FILE_CHECKSUM_ROUTE, () => (
+				<LocatorProvider
+					reports={reports}
+					sessionPlayTime={sessionPlayTime}
+					settings={settings}
+					timeManipulation={timeMigration}
+				>
+					<FileChecksum />
+				</LocatorProvider>
+			));
+		},
+		unMount() {
+			routerHook.removeRoute(FILE_CHECKSUM_ROUTE);
 		},
 	});
 
