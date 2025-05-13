@@ -1,6 +1,7 @@
 import { PanelSection, PanelSectionRow } from "@decky/ui";
 import { sortPlayedTime } from "@src/app/sortPlayTime";
 import { SortBy, getSelectedSortOptionByKey } from "@src/app/sortPlayTime";
+import { showGameOptionsContextMenu } from "@src/components/showOptionsMenu";
 import { showSortTitlesContextMenu } from "@src/components/showSortTitlesContextMenu";
 import { formatMonthInterval } from "@utils/formatters";
 import { useEffect, useMemo, useState } from "react";
@@ -74,6 +75,10 @@ export const ReportMonthly = () => {
 		})();
 	};
 
+	const onMenuPress = (gameName: string, gameId: string) => {
+		showGameOptionsContextMenu({ gameName, gameId })();
+	};
+
 	return (
 		<div>
 			<PanelSection>
@@ -104,6 +109,7 @@ export const ReportMonthly = () => {
 							data={sortedData}
 							showCovers={true}
 							onOptionsPress={onOptionsPress}
+							onMenuPress={onMenuPress}
 						/>
 
 						{currentSettings.gameChartStyle === ChartStyle.PIE_AND_BARS && (

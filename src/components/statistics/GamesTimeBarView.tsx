@@ -13,7 +13,8 @@ import { VerticalContainer } from "../VerticalContainer";
 type GamesTimeBarViewProperties = {
 	data: Array<GameWithTime>;
 	showCovers?: boolean;
-	onOptionsPress?: () => void;
+	onOptionsPress: () => void;
+	onMenuPress: (gameName: string, gameId: string) => void;
 };
 
 type GamesTimeBarViewCoversProperties = Omit<
@@ -72,6 +73,7 @@ function PlayedSessionsInformation({ game }: PlayedSessionsInformation) {
 function GamesTimeBarViewWithCovers({
 	data,
 	onOptionsPress,
+	onMenuPress,
 }: GamesTimeBarViewCoversProperties) {
 	const { currentSettings: settings } = useLocator();
 	const allTime = data.reduce((acc, it) => acc + it.time, 0);
@@ -98,6 +100,8 @@ function GamesTimeBarViewWithCovers({
 								GAME_REPORT_ROUTE.replace(":gameId", `${it.game.id}`),
 							);
 						}}
+						onMenuActionDescription={<span>Options</span>}
+						onMenuButton={() => onMenuPress(it.game.name, it.game.id)}
 					>
 						<VerticalContainer>
 							<div
@@ -162,10 +166,15 @@ export const GamesTimeBarView: React.FC<GamesTimeBarViewProperties> = ({
 	data,
 	showCovers = false,
 	onOptionsPress,
+	onMenuPress,
 }) => {
 	if (showCovers) {
 		return (
-			<GamesTimeBarViewWithCovers data={data} onOptionsPress={onOptionsPress} />
+			<GamesTimeBarViewWithCovers
+				data={data}
+				onOptionsPress={onOptionsPress}
+				onMenuPress={onMenuPress}
+			/>
 		);
 	}
 
