@@ -48,6 +48,13 @@ class GameInformationDto:
     time: float
 
 
+@dataclass
+class GameDictionary:
+    id: str
+    name: str
+    checksum: None | str
+
+
 class Dao:
     def __init__(self, db: SqlLiteDb):
         self._db = db
@@ -411,3 +418,31 @@ class Dao:
             """,
             (game_id,),
         ).fetchone()
+
+    def get_games_dictionary(self) -> List[GameDictionary]:
+        with self._db.transactional() as connection:
+            return self._get_games_dictionary(connection)
+
+    def _get_games_dictionary(
+        self, connection: sqlite3.Connection
+    ) -> List[GameDictionary]:
+        connection.row_factory = lambda c, row: GameDictionary(
+            id=row[0],
+            name=row[1],
+            checksum=row[2],
+        )
+
+        return connection.execute(
+            """
+            SELECT
+                gd.game_id,
+                gd.name,
+                gfc.checksum
+            FROM
+                game_dict gd
+            LEFT JOIN
+                game_file_checksum gfc
+            ON
+                gd.game_id = gfc.game_id;
+            """,
+        ).fetchall()
