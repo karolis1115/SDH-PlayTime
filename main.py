@@ -3,8 +3,9 @@ import dataclasses
 import logging
 import os
 import sys
+import asyncio
 from pathlib import Path
-from typing import Any, List
+from typing import Any, List, Optional
 
 
 decky_home = os.environ["DECKY_HOME"]
@@ -30,22 +31,24 @@ def add_plugin_to_path():
 
 add_plugin_to_path()
 # pylint: disable=wrong-import-position
-from python.db.sqlite_db import SqlLiteDb
 from python.db.dao import Dao
 from python.db.migration import DbMigration
+from python.db.sqlite_db import SqlLiteDb
+from python.files import Files
+from python.games import Games
+from python.helpers import parse_date
 from python.statistics import Statistics
 from python.time_tracking import TimeTracking
-from python.helpers import parse_date
-from python.files import Files
 # pylint: enable=wrong-import-position
 
 # autopep8: on
 
 
 class Plugin:
-    time_tracking = None
-    statistics = None
     files: Files = Files()
+    games: Games
+    statistics: Statistics
+    time_tracking: TimeTracking
 
     async def _main(self):
         try:
@@ -54,8 +57,10 @@ class Plugin:
             migration.migrate()
 
             dao = Dao(db)
-            self.time_tracking = TimeTracking(dao)
+
+            self.games = Games(dao)
             self.statistics = Statistics(dao)
+            self.time_tracking = TimeTracking(dao)
         except Exception as e:
             logger.exception("Unhandled exception: ", str(e))
 
@@ -102,7 +107,7 @@ class Plugin:
 
     async def get_game(self, game_id: str):
         try:
-            return dataclasses.asdict(self.statistics.get_game(game_id))
+            return dataclasses.asdict(self.games.get_by_id(game_id))
         except Exception as e:
             logger.exception("Unhandled exception: ", str(e))
 
@@ -114,18 +119,22 @@ class Plugin:
 
     async def get_file_sha256(self, path: str):
         try:
-            return self.files.get_file_sha256(path)
+            return await asyncio.to_thread(self.files.get_file_sha256, path)
         except Exception as e:
             logger.exception("Unhandled exception: ", str(e))
 
-    async def get_game_cover_base64_by_id(self, game_id: str):
+    async def get_games_dictionary(self):
         try:
-            return self.files.get_game_cover_base64_by_id(game_id)
+            return self.games.get_dictionary()
         except Exception as e:
             logger.exception("Unhandled exception: ", str(e))
 
-    async def get_data_directory(self) -> str:
-        try:
-            return data_dir
-        except Exception as e:
-            logger.exception("Unhandled exception: ", str(e))
+    async def _unload(self):
+        logger.info("Goodnight, World!")
+
+        pass
+
+    async def _uninstall(self):
+        logger.info("Goodbye, World!")
+
+        pass
