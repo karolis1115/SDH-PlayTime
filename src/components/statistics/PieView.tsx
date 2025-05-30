@@ -1,3 +1,4 @@
+import { isNil } from "@src/utils/isNil";
 import type { FC } from "react";
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer } from "recharts";
 import { FocusableExt } from "../FocusableExt";
@@ -16,15 +17,38 @@ const colors = [
 	"#ca472f", // Color for "Other"
 ];
 
-export const PieView: FC<{ statistics: DailyStatistics[] }> = (props) => {
-	const raw_data = sumTimeAndGroupByGame(props.statistics)
-		.map((value) => {
-			return {
-				name: value.gameName,
-				value: value.time / 60.0,
-			};
-		})
-		.sort((a, b) => b.value - a.value);
+function isDailyStatistics(
+	statistics: Array<DailyStatistics | GameWithTime>,
+): statistics is Array<DailyStatistics> {
+	return (statistics[0] as DailyStatistics)?.games !== undefined;
+}
+
+export const PieView: FC<{
+	statistics: Array<DailyStatistics> | Array<GameWithTime>;
+}> = ({ statistics }) => {
+	if (isNil(statistics) || statistics.length === 0) {
+		return undefined;
+	}
+
+	let raw_data: Array<{ name: string; value: number }>;
+
+	if (isDailyStatistics(statistics)) {
+		raw_data = sumTimeAndGroupByGame(statistics)
+			.map((value) => {
+				return {
+					name: value.gameName,
+					value: value.time / 60.0,
+				};
+			})
+			.sort((a, b) => b.value - a.value);
+	} else {
+		raw_data = statistics
+			.sort((a, b) => b.time - a.time)
+			.map((item) => ({
+				name: item.game.name,
+				value: item.time / 60.0,
+			}));
+	}
 
 	const MAX_ELEMENTS = colors.length - 1;
 
