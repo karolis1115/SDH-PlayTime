@@ -4,7 +4,9 @@ import { SortBy, getSelectedSortOptionByKey } from "@src/app/sortPlayTime";
 import { showGameOptionsContextMenu } from "@src/components/showOptionsMenu";
 import { showSortTitlesContextMenu } from "@src/components/showSortTitlesContextMenu";
 import { useEffect, useMemo, useState } from "react";
+import { ChartStyle } from "../app/settings";
 import { GamesTimeBarView } from "../components/statistics/GamesTimeBarView";
+import { PieView } from "../components/statistics/PieView";
 import { useLocator } from "../locator";
 
 export const ReportOverall = () => {
@@ -63,6 +65,10 @@ export const ReportOverall = () => {
 					onOptionsPress={onOptionsPress}
 					onMenuPress={onMenuPress}
 				/>
+
+				{currentSettings.gameChartStyle === ChartStyle.PIE_AND_BARS && (
+					<PieView statistics={data} />
+				)}
 			</PanelSection>
 		</div>
 	);
