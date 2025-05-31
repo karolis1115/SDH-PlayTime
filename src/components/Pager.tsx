@@ -1,7 +1,28 @@
-import { DialogButton, Focusable } from "@decky/ui";
+import { DialogButton, Focusable, findClass, findSP } from "@decky/ui";
 import { registerForInputEvent } from "@src/steam/registerForInputEvent";
+import { isNil } from "@src/utils/isNil";
 import { useEffect, useState } from "react";
 import { focus_panel_no_padding, pager_container } from "../styles";
+
+async function focusOnCurrentActiveTab(): Promise<boolean> {
+	return new Promise((resolve) => {
+		const selectedTab = findSP().document.querySelector(
+			`.${findClass("62645", "Selected")}`,
+		);
+
+		if (isNil(selectedTab)) {
+			resolve(false);
+
+			return;
+		}
+
+		(selectedTab as HTMLElement).focus();
+
+		queueMicrotask(() => {
+			resolve(true);
+		});
+	});
+}
 
 export const Pager: React.FC<{
 	currentText: string;
@@ -26,7 +47,7 @@ export const Pager: React.FC<{
 		useState<number>(0);
 
 	useEffect(() => {
-		const { unregister } = registerForInputEvent((_buttons, rawEvent) => {
+		const { unregister } = registerForInputEvent(async (_buttons, rawEvent) => {
 			if (!isEnabledChangePagesWithTriggers) {
 				return;
 			}
@@ -41,12 +62,20 @@ export const Pager: React.FC<{
 				return;
 			}
 
+			const { sTriggerL, sTriggerR } = rawEvent[0];
+
+			if (sTriggerL === 0 && sTriggerR === 0) {
+				return;
+			}
+
 			// NOTE(ynhhoJ): Aproximative value
 			const TRIGGER_PUSH_FORCE_UNTIL_VIBRATION = 12000;
 			const isLeftTriggerPressed =
 				rawEvent[0].sTriggerL >= TRIGGER_PUSH_FORCE_UNTIL_VIBRATION;
 
 			if (isLeftTriggerPressed && hasPrev) {
+				await focusOnCurrentActiveTab();
+
 				setLastChangedPageTimeStamp(new Date().getTime());
 
 				onPrev();
@@ -56,6 +85,8 @@ export const Pager: React.FC<{
 				rawEvent[0].sTriggerR >= TRIGGER_PUSH_FORCE_UNTIL_VIBRATION;
 
 			if (isRightTriggerPressed && hasNext) {
+				await focusOnCurrentActiveTab();
+
 				setLastChangedPageTimeStamp(new Date().getTime());
 
 				onNext();
