@@ -11,7 +11,9 @@ CHUNK_SIZE = 16 * 1024 * 1024
 
 class Files:
     # NOTE(ynhhoJ): https://stackoverflow.com/a/44873382
-    def get_file_sha256(self, file_path: str, chunk_size: int = CHUNK_SIZE) -> str:
+    def get_file_sha256(
+        self, file_path: str, chunk_size: int = CHUNK_SIZE
+    ) -> None | str:
         """
         Compute a SHA256 hash of the first and last `chunk` of a file.
         If the file is smaller than `chunk_size`, hash the entire file.
@@ -27,6 +29,9 @@ class Files:
             raise RuntimeError(
                 "Minimum required version of Python is 3.11.0 which supports: hashlib.file_digest"
             )
+
+        if not os.path.isfile(file_path):
+            return None
 
         file_size = os.path.getsize(file_path)
         hasher = hashlib.sha256()
