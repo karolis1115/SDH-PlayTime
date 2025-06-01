@@ -6,6 +6,7 @@ import { getDurationInHours } from "@utils/formatters";
 import { FaClock } from "react-icons/fa";
 import { SessionPlayTime } from "./app/SessionPlayTime";
 import { Backend } from "./app/backend";
+import { getCurrentNonSteamGamesChecksum } from "./app/games";
 import { SteamEventMiddleware } from "./app/middleware";
 import { BreaksReminder } from "./app/notification";
 import { Reports } from "./app/reports";
@@ -102,6 +103,12 @@ function createMountables(
 
 	eventBus.addSubscriber((event) => {
 		switch (event.type) {
+			case "UserLoggedIn": {
+				getCurrentNonSteamGamesChecksum();
+
+				break;
+			}
+
 			case "NotifyToTakeBreak":
 				toaster.toast({
 					body: (
@@ -127,6 +134,7 @@ function createMountables(
 				break;
 		}
 	});
+
 	const mounts: Mountable[] = [];
 
 	mounts.push(new BreaksReminder(eventBus, settings));

@@ -1,6 +1,6 @@
 // NOTE(ynhhoJ): https://github.com/0u73r-h34v3n/chrono-deck/blob/master/tests/utils/steam/getPathToGameFileByLaunchCommand.test.ts
 import { describe, expect, it } from "bun:test";
-import getPathToGameFileByLaunchCommand from "@src/utils/steam/getPathToGameFileByLaunchCommand";
+import getPathToGameFileByLaunchCommand from "@src/steam/utils/getPathToGameFileByLaunchCommand";
 
 describe("getPathToGameFileByLaunchCommand", () => {
 	it('should return "/home/deck/EmuDeckROM/Emulation/roms/gc/The Legend of Zelda - Twilight Princess.iso"', () => {

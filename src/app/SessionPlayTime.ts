@@ -1,7 +1,6 @@
 import { isNil } from "@src/utils/isNil";
 import logger from "@src/utils/logger";
 
-import { getCurrentNonSteamGamesChecksum } from "./games";
 import type { EventBus } from "./system";
 
 export { SessionPlayTime, type PlayTime };
@@ -25,12 +24,6 @@ class SessionPlayTime {
 
 		eventBus.addSubscriber(async (event) => {
 			switch (event.type) {
-				case "UserLoggedIn": {
-					getCurrentNonSteamGamesChecksum();
-
-					break;
-				}
-
 				case "GameWasRunningBefore":
 					this.startInterval(event.createdAt, event.game);
 					break;
