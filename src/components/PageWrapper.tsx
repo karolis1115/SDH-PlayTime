@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 
 interface PageWrapperProperties {
-	children: JSX.Element;
+	children: React.ReactNode;
 	style?: CSSProperties;
 }
 
