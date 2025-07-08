@@ -1,3 +1,4 @@
+import { APP_TYPE } from "@src/constants";
 import { isNil } from "@utils/isNil";
 import { memo } from "@utils/memo";
 
@@ -8,7 +9,7 @@ function getGameCoverImage(gameId: string): string | undefined {
 		return undefined;
 	}
 
-	if (gameOverview?.app_type === 1073741824) {
+	if (gameOverview?.app_type === APP_TYPE.THIRD_PARTY) {
 		const images = appStore.GetCustomImageURLs(gameOverview);
 
 		if (isNil(images) || images.length === 0) {

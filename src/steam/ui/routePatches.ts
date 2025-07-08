@@ -3,6 +3,7 @@ import { afterPatch } from "@decky/ui";
 import type { Cache } from "@src/app/cache";
 import type { Mountable } from "@src/app/system";
 import { runInAction } from "mobx";
+import { APP_TYPE } from "@src/constants";
 import type { ReactElement } from "react";
 
 function routePatch(path: string, patch: RoutePatch): Mountable {
@@ -28,7 +29,7 @@ export function patchAppPage(timeCache: Cache<Map<string, number>>): Mountable {
 				// just getting value - it fixes blinking issue
 				details.nPlaytimeForever;
 
-				if (overview.app_type === 1073741824) {
+				if (overview.app_type === APP_TYPE.THIRD_PARTY) {
 					if (details && timeCache.isReady()) {
 						runInAction(() => {
 							const time = timeCache.get()?.get(app_id.toString()) || 0;

@@ -1,7 +1,8 @@
+import { APP_TYPE } from "@src/constants";
 import type { Backend } from "./backend";
 
 export const nonSteamGamesPredicate = (app: AppOverview) =>
-	app.app_type === 1073741824;
+	app.app_type === APP_TYPE.THIRD_PARTY;
 
 export const excludeApps = (app: AppOverview) => app.app_type !== 4;
 

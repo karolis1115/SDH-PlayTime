@@ -1,5 +1,6 @@
 import type { Cache } from "@src/app/cache";
 import type { Mountable } from "@src/app/system";
+import { APP_TYPE } from "@src/constants";
 import { isNil } from "@src/utils/isNil";
 import logger from "@utils/logger";
 
@@ -28,7 +29,7 @@ class SteamPatches implements Mountable {
 					const appOverview = appStore.GetAppOverviewByAppID(
 						Number.parseInt(appId),
 					);
-					if (appOverview?.app_type === 1073741824) {
+					if (appOverview?.app_type === APP_TYPE.THIRD_PARTY) {
 						this.patchOverviewWithValues(
 							appOverview,
 							time,
@@ -146,7 +147,7 @@ class SteamPatches implements Mountable {
 		for (const appId of appIds) {
 			const appOverview = appStore.GetAppOverviewByAppID(appId);
 
-			if (appOverview?.app_type === 1073741824) {
+			if (appOverview?.app_type === APP_TYPE.THIRD_PARTY) {
 				appOverview.OriginalInitFromProto = appOverview.InitFromProto;
 
 				appOverview.InitFromProto = (proto: unknown) => {
@@ -170,7 +171,7 @@ class SteamPatches implements Mountable {
 
 	private patchAppOverviewFromCache(appOverview: AppOverview): AppOverview {
 		if (
-			appOverview?.app_type === 1073741824 &&
+			appOverview?.app_type === APP_TYPE.THIRD_PARTY &&
 			this.cachedOverallTime.isReady() &&
 			this.cachedLastTwoWeeksTimes.isReady()
 		) {
@@ -188,7 +189,7 @@ class SteamPatches implements Mountable {
 		overallTime: number,
 		lastTwoWeeksTime: number,
 	): AppOverview {
-		if (appOverview?.app_type === 1073741824) {
+		if (appOverview?.app_type === APP_TYPE.THIRD_PARTY) {
 			appOverview.minutes_playtime_forever = (overallTime / 60.0).toFixed(1);
 			appOverview.minutes_playtime_last_two_weeks = Number.parseFloat(
 				(lastTwoWeeksTime / 60.0).toFixed(1),
