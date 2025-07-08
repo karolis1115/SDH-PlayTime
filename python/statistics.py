@@ -1,6 +1,6 @@
 import dataclasses
 from datetime import datetime, date, time, timedelta
-from typing import Dict, List
+from typing import Dict, List, Any
 from python.db.dao import DailyGameTimeDto, Dao
 from python.helpers import format_date
 from python.models import (
@@ -19,7 +19,7 @@ class Statistics:
         self.dao = dao
 
     def daily_statistics_for_period(
-        self, start: date, end: date, game_id: str = None
+        self, start: date, end: date, game_id: str | None = None
     ) -> PagedDayStatistics:
         start_time = datetime.combine(start, time(00, 00, 00))
         end_time = datetime.combine(end, time(23, 59, 59, 999999))
@@ -41,18 +41,21 @@ class Statistics:
             date_str = format_date(day)
 
             if date_str in data_as_dict:
-                games: List[Game] = []
+                games: List[GameWithTime] = []
                 total_time = 0
 
                 for el in data_as_dict[date_str]:
                     last_playtime_session_information = (
                         self.dao.fetch_last_playtime_session_information(el.game_id)
                     )
-                    per_day_game_sessions_report = (
-                        self.dao.fetch_per_day_game_sessions_report(
-                            date_str, el.game_id
+                    per_day_game_sessions_report: List[SessionInformation] = []
+
+                    for session in self.dao.fetch_per_day_game_sessions_report(
+                        date_str, el.game_id
+                    ):
+                        per_day_game_sessions_report.append(
+                            SessionInformation(session.date, session.duration)
                         )
-                    )
 
                     games.append(
                         GameWithTime(
@@ -76,36 +79,37 @@ class Statistics:
 
         return PagedDayStatistics(
             data=result,
-            hasPrev=self.dao.is_there_is_data_before(start_time, game_id),
-            hasNext=self.dao.is_there_is_data_after(end_time, game_id),
+            has_prev=self.dao.is_there_is_data_before(start_time, game_id),
+            has_next=self.dao.is_there_is_data_after(end_time, game_id),
         )
 
-    def per_game_overall_statistic(self) -> List[GameWithTime]:
+    def per_game_overall_statistic(self) -> List[dict[str, Any]]:
         data = self.dao.fetch_overall_playtime()
-        result: List[GameWithTime] = []
+        result: List[dict[str, Any]] = []
 
         for g in data:
             last_playtime_session_information = (
                 self.dao.fetch_last_playtime_session_information(g.game_id)
             )
 
-            per_day_game_sessions_report = self.dao.fetch_game_sessions_report(
-                g.game_id
+            per_day_game_sessions_report: List[SessionInformation] = []
+
+            for session in self.dao.fetch_game_sessions_report(g.game_id):
+                per_day_game_sessions_report.append(
+                    SessionInformation(session.date, session.duration)
+                )
+
+            game_with_time: GameWithTime = GameWithTime(
+                Game(g.game_id, g.game_name),
+                g.time,
+                per_day_game_sessions_report,
+                SessionInformation(
+                    date=last_playtime_session_information.date,
+                    duration=last_playtime_session_information.duration,
+                ),
             )
 
-            result.append(
-                dataclasses.asdict(
-                    GameWithTime(
-                        Game(g.game_id, g.game_name),
-                        g.time,
-                        per_day_game_sessions_report,
-                        SessionInformation(
-                            date=last_playtime_session_information.date,
-                            duration=last_playtime_session_information.duration,
-                        ),
-                    )
-                )
-            )
+            result.append(dataclasses.asdict(game_with_time))
 
         return result
 

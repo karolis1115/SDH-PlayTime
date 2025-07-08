@@ -1,6 +1,6 @@
 import contextlib
 import sqlite3
-from typing import ContextManager
+from typing import Generator
 
 
 class SqlLiteDb:
@@ -8,7 +8,7 @@ class SqlLiteDb:
         self._database_path = database_path
 
     @contextlib.contextmanager
-    def transactional(self) -> ContextManager[sqlite3.Connection]:
+    def transactional(self) -> Generator[sqlite3.Connection, None, None]:
         with sqlite3.connect(self._database_path) as connection:
             try:
                 yield connection

@@ -32,8 +32,8 @@ class DayStatistics:
 @dataclass
 class PagedDayStatistics:
     data: List[DayStatistics]
-    hasPrev: bool
-    hasNext: bool
+    has_prev: bool
+    has_next: bool
 
 
 @dataclass
@@ -47,4 +47,8 @@ class GameInformation:
 class GameDictionary:
     id: str
     name: str
-    checksum: None | str
+    hash_checksum: None | str
+    hash_algorithm: None | str
+    hash_chunk_size: None | int
+    hash_created_at: None | str
+    hash_updated_at: None | str

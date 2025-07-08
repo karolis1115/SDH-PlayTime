@@ -68,11 +68,22 @@ _migrations = [
         5,
         [
             """
-        CREATE TABLE game_file_checksum(
+        CREATE TABLE game_file_hash(
             game_id TEXT PRIMARY KEY,
-            checksum TEXT
-        )
-        """
+            checksum TEXT,
+            algorithm TEXT NOT NULL CHECK(algorithm IN (
+                'SHA224', 'SHA256', 'SHA384', 'SHA512',
+                'SHA3_224', 'SHA3_256', 'SHA3_384', 'SHA3_512'
+            )),
+            chunk_size INTEGER NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+        """,
+            """
+        CREATE INDEX idx_game_file_hash_checksum_algo
+            ON game_file_hash (checksum, algorithm);
+            """,
         ],
     ),
 ]
@@ -99,10 +110,11 @@ class DbMigration:
             )
 
         if migration.version > version:
-            with self.db.transactional() as con:
+            with self.db.transactional() as connection:
                 for stm in migration.statements:
-                    con.execute(stm)
-                con.execute(
+                    connection.execute(stm)
+
+                connection.execute(
                     "INSERT INTO migration (id) VALUES (?)", [migration.version]
                 )
 

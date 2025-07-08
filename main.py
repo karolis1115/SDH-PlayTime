@@ -4,7 +4,7 @@ import os
 import sys
 import asyncio
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, List
 
 
 decky_home = os.environ["DECKY_HOME"]
@@ -31,6 +31,7 @@ from python.games import Games
 from python.helpers import parse_date
 from python.statistics import Statistics
 from python.time_tracking import TimeTracking
+
 # pylint: enable=wrong-import-position
 
 # autopep8: on
@@ -130,9 +131,5 @@ class Plugin:
     async def _unload(self):
         decky.logger.info("Goodnight, World!")
 
-        pass
-
     async def _uninstall(self):
         decky.logger.info("Goodbye, World!")
-
-        pass

@@ -52,7 +52,11 @@ class GameInformationDto:
 class GameDictionary:
     id: str
     name: str
-    checksum: None | str
+    hash_checksum: None | str
+    hash_algorithm: None | str
+    hash_chunk_size: None | int
+    hash_created_at: None | str
+    hash_updated_at: None | str
 
 
 class Dao:
@@ -60,11 +64,17 @@ class Dao:
         self._db = db
 
     def save_game_dict(self, game_id: str, game_name: str) -> None:
+        connection: sqlite3.Connection
+
         with self._db.transactional() as connection:
             self._save_game_dict(connection, game_id, game_name)
 
     def save_play_time(
-        self, start: datetime.datetime, time_s: int, game_id: str, source: str = None
+        self,
+        start: datetime.datetime,
+        time_s: int,
+        game_id: str,
+        source: str | None = None,
     ) -> None:
         with self._db.transactional() as connection:
             self._save_play_time(connection, start, time_s, game_id, source)
@@ -90,21 +100,21 @@ class Dao:
 
     def fetch_per_day_time_report(
         self,
-        begin: type[datetime.datetime],
-        end: type[datetime.datetime],
-        game_id: str = None,
+        begin: datetime.datetime,
+        end: datetime.datetime,
+        game_id: str | None = None,
     ) -> List[DailyGameTimeDto]:
         with self._db.transactional() as connection:
             return self._fetch_per_day_time_report(connection, begin, end, game_id)
 
     def is_there_is_data_before(
-        self, date: type[datetime.datetime], game_id: str = None
+        self, date: datetime.datetime, game_id: str | None = None
     ) -> bool:
         with self._db.transactional() as connection:
             return self._is_there_is_data_before(connection, date, game_id)
 
     def is_there_is_data_after(
-        self, date: type[datetime.datetime], game_id: str = None
+        self, date: datetime.datetime, game_id: str | None = None
     ) -> bool:
         with self._db.transactional() as connection:
             return self._is_there_is_data_after(connection, date, game_id)
@@ -112,8 +122,8 @@ class Dao:
     def _is_there_is_data_before(
         self,
         connection: sqlite3.Connection,
-        date: type[datetime.datetime],
-        game_id: str = None,
+        date: datetime.datetime,
+        game_id: str | None = None,
     ) -> bool:
         if game_id:
             return (
@@ -144,8 +154,8 @@ class Dao:
     def _is_there_is_data_after(
         self,
         connection: sqlite3.Connection,
-        date: type[datetime.datetime],
-        game_id: str = None,
+        date: datetime.datetime,
+        game_id: str | None = None,
     ) -> bool:
         if game_id:
             return (
@@ -196,7 +206,7 @@ class Dao:
         start: datetime.datetime,
         time_s: int,
         game_id: str,
-        source: str = None,
+        source: str | None = None,
     ):
         connection.execute(
             """
@@ -248,9 +258,9 @@ class Dao:
     def _fetch_per_day_time_report(
         self,
         connection: sqlite3.Connection,
-        begin: type[datetime.datetime],
-        end: type[datetime.datetime],
-        game_id: str = None,
+        begin: datetime.datetime,
+        end: datetime.datetime,
+        game_id: str | None = None,
     ) -> List[DailyGameTimeDto]:
         connection.row_factory = lambda c, row: DailyGameTimeDto(
             date=row[0], game_id=row[1], game_name=row[2], time=row[3], sessions=row[4]
@@ -302,13 +312,13 @@ class Dao:
 
     def fetch_last_playtime_session_information(
         self, game_id: str
-    ) -> List[SessionInformation]:
+    ) -> SessionInformation:
         with self._db.transactional() as connection:
             return self._fetch_last_playtime_session_information(connection, game_id)
 
     def _fetch_last_playtime_session_information(
         self, connection: sqlite3.Connection, game_id: str
-    ) -> List[SessionInformation]:
+    ) -> SessionInformation:
         connection.row_factory = lambda c, row: SessionInformation(
             date=row[0],
             duration=row[1],
@@ -331,7 +341,7 @@ class Dao:
         ).fetchone()
 
     def fetch_per_day_game_sessions_report(
-        self, date: type[datetime.datetime], game_id: str
+        self, date: str, game_id: str
     ) -> List[SessionInformation]:
         with self._db.transactional() as connection:
             return self._fetch_per_day_game_sessions_report(connection, date, game_id)
@@ -339,7 +349,7 @@ class Dao:
     def _fetch_per_day_game_sessions_report(
         self,
         connection: sqlite3.Connection,
-        date: type[datetime.datetime],
+        date: str,
         game_id: str,
     ) -> List[SessionInformation]:
         connection.row_factory = lambda c, row: SessionInformation(
@@ -429,7 +439,11 @@ class Dao:
         connection.row_factory = lambda c, row: GameDictionary(
             id=row[0],
             name=row[1],
-            checksum=row[2],
+            hash_checksum=row[2],
+            hash_algorithm=row[3],
+            hash_chunk_size=row[4],
+            hash_created_at=row[5],
+            hash_updated_at=row[6],
         )
 
         return connection.execute(
@@ -437,12 +451,16 @@ class Dao:
             SELECT
                 gd.game_id,
                 gd.name,
-                gfc.checksum
+                gfh.checksum as hash_checksum,
+                gfh.algorithm as hash_algorithm,
+                gfh.chunk_size as hash_chunk_size,
+                gfh.created_at as hash_created_at,
+                gfh.updated_at as hash_updated_at
             FROM
                 game_dict gd
             LEFT JOIN
-                game_file_checksum gfc
+                game_file_hash gfh
             ON
-                gd.game_id = gfc.game_id;
+                gd.game_id = gfh.game_id;
             """,
         ).fetchall()
