@@ -64,7 +64,7 @@ describe("SessionPlayTime should send commit interval", () => {
 	test("when we received games start and game end events sequentially", () => {
 		const eventBus = new EventBus();
 		// @ts-ignore
-		const sessionPlayTime = new SessionPlayTime(eventBus);
+		const _sessionPlayTime = new SessionPlayTime(eventBus);
 
 		let committedInterval: unknown;
 
