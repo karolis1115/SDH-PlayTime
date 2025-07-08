@@ -1,7 +1,7 @@
 import { routerHook, toaster } from "@decky/api";
 import { definePlugin, staticClasses, useParams } from "@decky/ui";
 import { patchAppPage } from "@src/steam/ui/routePatches";
-import { SteamPatches } from "@src/steam/ui/steamPatches";
+import { SteamPlayTimePatches } from "@src/steam/ui/SteamPlayTimePatches";
 import { getDurationInHours } from "@utils/formatters";
 import { FaClock } from "react-icons/fa";
 import { SessionPlayTime } from "./app/SessionPlayTime";
@@ -235,7 +235,9 @@ function createMountables(
 	});
 
 	mounts.push(patchAppPage(cachedPlayTimes));
-	mounts.push(new SteamPatches(cachedPlayTimes, cachedLastTwoWeeksPlayTimes));
+	mounts.push(
+		new SteamPlayTimePatches(cachedPlayTimes, cachedLastTwoWeeksPlayTimes),
+	);
 
 	return mounts;
 }

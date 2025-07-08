@@ -4,9 +4,7 @@ import { APP_TYPE } from "@src/constants";
 import { isNil } from "@src/utils/isNil";
 import logger from "@utils/logger";
 
-export { SteamPatches };
-
-class SteamPatches implements Mountable {
+export class SteamPlayTimePatches implements Mountable {
 	private cachedOverallTime: Cache<Map<string, number>>;
 	private cachedLastTwoWeeksTimes: Cache<Map<string, number>>;
 
@@ -25,10 +23,12 @@ class SteamPatches implements Mountable {
 		this.cachedOverallTime.subscribe((overallTimes) => {
 			this.cachedLastTwoWeeksTimes.subscribe((lastTwoWeeksTimes) => {
 				const changedApps = [];
+
 				for (const [appId, time] of overallTimes) {
 					const appOverview = appStore.GetAppOverviewByAppID(
 						Number.parseInt(appId),
 					);
+
 					if (appOverview?.app_type === APP_TYPE.THIRD_PARTY) {
 						this.patchOverviewWithValues(
 							appOverview,
@@ -42,10 +42,13 @@ class SteamPatches implements Mountable {
 				// NOTE: Fix from: https://github.com/ma3a/SDH-PlayTime/pull/71
 				// appInfoStore.OnAppOverviewChange(changedApps);
 
-				appStore.m_mapApps.set(
-					changedApps.map((app) => app.appid),
-					changedApps,
-				);
+				for (const app of changedApps) {
+					if (app.app_type === APP_TYPE.THIRD_PARTY) {
+						continue;
+					}
+
+					appStore.m_mapApps.set(app.appid, app);
+				}
 			});
 		});
 	}
@@ -195,6 +198,7 @@ class SteamPatches implements Mountable {
 				(lastTwoWeeksTime / 60.0).toFixed(1),
 			);
 		}
+
 		return appOverview;
 	}
 }
