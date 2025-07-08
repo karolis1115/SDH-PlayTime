@@ -27,8 +27,8 @@ type PlayedSessionsInformation = {
 };
 
 function getLastPlayedTime(game: GameWithTime) {
-	const { last_session } = game;
-	const { date, duration } = last_session;
+	const { lastSession } = game;
+	const { date, duration } = lastSession;
 
 	if (isNil(date) || isNil(duration)) {
 		return undefined;

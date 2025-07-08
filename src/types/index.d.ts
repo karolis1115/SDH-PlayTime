@@ -2,50 +2,36 @@ declare module "*.css";
 
 type Nullable<T> = T | null | undefined;
 
-interface Unregisterable {
-	/**
-	 * Unregister the callback.
-	 */
-	unregister(): void;
-}
-
-interface Session {
-	date: string;
-	duration: number;
+type Session = SessionInformation & {
 	migrated?: string;
-}
+};
+type DailyStatistics = DayStatistics;
 
-interface GameInformation {
-	id: string;
-	name: string;
-	time: number;
-}
+type GameWithTime = Omit<GameWithTimeResponse, "last_session"> & {
+	lastSession: SessionInformation;
+};
 
-interface Game {
-	id: string;
-	name: string;
-}
+type GameDictionary = Omit<
+	GameDictionaryResponse,
+	| "hash_checksum"
+	| "hash_algorithm"
+	| "hash_chunk_size"
+	| "hash_created_at"
+	| "hash_updated_at"
+> & {
+	hashChecksum?: string;
+	hashAlgorithm?: string;
+	hashChunkSize?: number;
+	hashCreatedAt?: string;
+	hashUpdatedAt?: string;
+};
 
-interface SessionInformation {
-	date: string;
-	duration: number;
-}
+type GameInformation = GameInformationResponse;
 
-interface GameWithTime {
-	game: Game;
-	time: number;
-	sessions: Array<SessionInformation>;
-	last_session: SessionInformation;
-}
-
-interface DailyStatistics {
-	date: string;
-	games: GameWithTime[];
-	total: number;
-}
-
-interface GameDictionary {
-	id: string;
-	name: string;
-	sha256: Nullable<string>;
-}
+type PagedDayStatistics = Omit<
+	PagedDayStatisticsResponse,
+	"has_prev" | "has_next"
+> & {
+	hasPrev: boolean;
+	hasNext: boolean;
+};

@@ -1,6 +1,6 @@
-import type { set as MobXSet } from "mobx";
+import type { ObservableMap } from "mobx";
 
-interface AppStore {
+export interface AppStore {
 	UpdateAppOverview: unknown;
 	GetAppOverviewByAppID: (id: number) => AppOverview;
 	GetAppOverviewByGameID: (id: string) => AppOverview;
@@ -28,10 +28,7 @@ interface AppStore {
 	GetCustomHeroImageURLs: unknown;
 	GetCustomLogoImageURLs: unknown;
 	GetStorePageURLForApp: unknown;
-	m_mapApps: {
-		// set: (appId: number, appOverview: AppOverview) => void;
-		set: typeof MobXSet;
-		// NOTE(ynhhoJ): Custom added type
-		originalSet: Nullable<typeof MobXSet>;
+	m_mapApps: ObservableMap<number, AppOverview> & {
+		originalSet?: Nullable<ObservableMap<number, AppOverview>["set"]>;
 	};
 }

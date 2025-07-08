@@ -7,12 +7,6 @@ export interface OverallPlayTimes {
 	[gameId: string]: number;
 }
 
-export interface StatisticForIntervalResponse {
-	data: DailyStatistics[];
-	hasPrev: boolean;
-	hasNext: boolean;
-}
-
 export class Backend {
 	private eventBus: EventBus;
 
@@ -64,10 +58,10 @@ export class Backend {
 		start: Date,
 		end: Date,
 		gameId?: string,
-	): Promise<StatisticForIntervalResponse> {
+	): Promise<PagedDayStatistics> {
 		return await call<
 			[start_date: string, end_date: string, gameId?: string],
-			StatisticForIntervalResponse
+			PagedDayStatisticsResponse
 		>(
 			"daily_statistics_for_period",
 			toIsoDateOnly(start),
@@ -75,7 +69,11 @@ export class Backend {
 			gameId,
 		)
 			.then((response) => {
-				return response;
+				return {
+					...response,
+					hasNext: response.has_next,
+					hasPrev: response.has_prev,
+				};
 			})
 			.catch((error) => {
 				logger.error(error);
@@ -84,14 +82,19 @@ export class Backend {
 					hasNext: false,
 					hasPrev: false,
 					data: [],
-				} as StatisticForIntervalResponse;
+				} as PagedDayStatistics;
 			});
 	}
 
 	async fetchPerGameOverallStatistics(): Promise<GameWithTime[]> {
-		return await call<[], GameWithTime[]>("per_game_overall_statistics")
+		return await call<[], Array<GameWithTimeResponse>>(
+			"per_game_overall_statistics",
+		)
 			.then((response) => {
-				return response;
+				return response.map((item) => ({
+					...item,
+					lastSession: item.last_session,
+				}));
 			})
 			.catch((error) => {
 				logger.error(error);
@@ -103,7 +106,7 @@ export class Backend {
 	async applyManualOverallTimeCorrection(
 		games: GameWithTime[],
 	): Promise<boolean> {
-		return await call<[list_of_game_stats: GameWithTime[]], void>(
+		return await call<[list_of_game_stats: Array<GameWithTimeResponse>], void>(
 			"apply_manual_time_correction",
 			games,
 		)
@@ -129,7 +132,7 @@ export class Backend {
 	}
 
 	async getGame(gameId: string): Promise<Nullable<GameInformation>> {
-		return await call<[gameId: string], Nullable<GameInformation>>(
+		return await call<[gameId: string], Nullable<GameInformationResponse>>(
 			"get_game",
 			gameId,
 		)
@@ -168,7 +171,7 @@ export class Backend {
 	}
 
 	public static async getGamesDictionary(): Promise<Array<GameDictionary>> {
-		return await call<[], Array<GameDictionary>>("get_games_dictionary")
+		return await call<[], Array<GameDictionaryResponse>>("get_games_dictionary")
 			.then((response) => {
 				return response;
 			})
