@@ -58,7 +58,7 @@ export const Pager: React.FC<{
 
 			const DELAY = 500;
 
-			if (new Date().getTime() - lastChangedPageTimeStamp <= DELAY) {
+			if (Date.now() - lastChangedPageTimeStamp <= DELAY) {
 				return;
 			}
 
@@ -76,7 +76,7 @@ export const Pager: React.FC<{
 			if (isLeftTriggerPressed && hasPrev) {
 				await focusOnCurrentActiveTab();
 
-				setLastChangedPageTimeStamp(new Date().getTime());
+				setLastChangedPageTimeStamp(Date.now());
 
 				onPrev();
 			}
@@ -87,7 +87,7 @@ export const Pager: React.FC<{
 			if (isRightTriggerPressed && hasNext) {
 				await focusOnCurrentActiveTab();
 
-				setLastChangedPageTimeStamp(new Date().getTime());
+				setLastChangedPageTimeStamp(Date.now());
 
 				onNext();
 			}

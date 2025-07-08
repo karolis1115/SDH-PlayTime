@@ -61,7 +61,7 @@ function getDurationInDays(
 	} else {
 		duration = intervalToDuration({
 			start: new Date(),
-			end: new Date().getTime() + durationInSeconds * 1000,
+			end: Date.now() + durationInSeconds * 1000,
 		});
 	}
 
