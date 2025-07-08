@@ -29,7 +29,7 @@ export function DeckyPanelPage() {
 						layout="below"
 						onClick={() => navigateToPage(SETTINGS_ROUTE)}
 					>
-						Open settings
+						Settings
 					</ButtonItem>
 				</PanelSectionRow>
 			</PanelSection>

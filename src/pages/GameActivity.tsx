@@ -278,40 +278,38 @@ export function GameActivity({ gameId }: GameActivityProperties) {
 				position: "relative",
 			}}
 		>
-			<>
-				<Header gameId={gameId} />
+			<Header gameId={gameId} />
 
-				<PanelSection>
-					<PanelSectionRow>
-						<Pager
-							onNext={onNextYear}
-							onPrev={onPrevYear}
-							currentText={formatYearInterval(currentPage.current().interval)}
-							hasNext={currentPage.hasNext()}
-							hasPrev={currentPage.hasPrev()}
-							isEnabledChangePagesWithTriggers={true}
-						/>
-					</PanelSectionRow>
-				</PanelSection>
+			<PanelSection>
+				<PanelSectionRow>
+					<Pager
+						onNext={onNextYear}
+						onPrev={onPrevYear}
+						currentText={formatYearInterval(currentPage.current().interval)}
+						hasNext={currentPage.hasNext()}
+						hasPrev={currentPage.hasPrev()}
+						isEnabledChangePagesWithTriggers={true}
+					/>
+				</PanelSectionRow>
+			</PanelSection>
 
-				{isLoading && <div>Loading...</div>}
+			{isLoading && <div>Loading...</div>}
 
-				{!isLoading && !currentPage && <div>Error while loading data</div>}
+			{!isLoading && !currentPage && <div>Error while loading data</div>}
 
-				{!isLoading && currentPage && (
-					<>
-						<YearlyAverageAndOverall statistics={currentPage.current().data} />
+			{!isLoading && currentPage && (
+				<>
+					<YearlyAverageAndOverall statistics={currentPage.current().data} />
 
-						<YearView statistics={currentPage.current().data} />
+					<YearView statistics={currentPage.current().data} />
 
-						<Sessions
-							sessionsList={sessionsList}
-							showTimeInHours={settings.displayTime.showTimeInHours}
-							showSeconds={settings.displayTime.showSeconds}
-						/>
-					</>
-				)}
-			</>
+					<Sessions
+						sessionsList={sessionsList}
+						showTimeInHours={settings.displayTime.showTimeInHours}
+						showSeconds={settings.displayTime.showSeconds}
+					/>
+				</>
+			)}
 		</PageWrapper>
 	);
 }

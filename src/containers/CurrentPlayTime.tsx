@@ -5,7 +5,9 @@ import { useLocator } from "../locator";
 
 function PlaySessionsInformation({
 	currentPlayTime,
-}: { currentPlayTime: Array<PlayTime> }) {
+}: {
+	currentPlayTime: Array<PlayTime>;
+}) {
 	const { currentSettings: settings } = useLocator();
 
 	if (currentPlayTime.length === 1) {
