@@ -413,12 +413,18 @@ class Dao:
     def _get_game(
         self, connection: sqlite3.Connection, game_id: str
     ) -> GameInformationDto:
+        connection.row_factory = lambda c, row: GameInformationDto(
+            id=row[0],
+            name=row[1],
+            time=row[2]
+        )
+
         return connection.execute(
             """
             SELECT
-                gd.game_id,
+                gd.game_id AS id,
                 gd.name,
-                ot.duration
+                ot.duration as time
             FROM
                 game_dict gd
             INNER JOIN overall_time ot
