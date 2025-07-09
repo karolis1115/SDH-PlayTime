@@ -1,8 +1,8 @@
 import { diffArray } from "@src/utils/diff";
 import logger from "@src/utils/logger";
-import { reaction } from "mobx";
 import { isNil } from "../utils/isNil";
 import type { Clock, EventBus, Mountable } from "./system";
+import { getRunningAppsObservableValue } from "@src/utils/mobx";
 
 export { SteamEventMiddleware };
 
@@ -18,6 +18,19 @@ class SteamEventMiddleware implements Mountable {
 	private activeHooks: Array<Unregisterable> = [];
 
 	public mount() {
+		// NOTE(ynhhoJ): Use already existent `mobx` observer instead of using dependency of the
+		// plugin
+		const runningAppsObservableValue =
+			getRunningAppsObservableValue<Array<AppOverview>>();
+
+		if (isNil(runningAppsObservableValue)) {
+			logger.error(
+				'Impossible to get "runningAppsObservableValue". Events will not be attached.',
+			);
+
+			return;
+		}
+
 		for (const app of SteamUIStore.RunningApps) {
 			this.eventBus.emit({
 				type: "GameWasRunningBefore",
@@ -53,60 +66,56 @@ class SteamEventMiddleware implements Mountable {
 			),
 		);
 
+		const unregister = runningAppsObservableValue.observe_((change) => {
+			const { newValue: currentRunningApps, oldValue: oldRunnedApps = [] } =
+				change;
+
+			const runnedApps = diffArray(currentRunningApps, oldRunnedApps, "appid");
+			const closedApps = diffArray(oldRunnedApps, currentRunningApps, "appid");
+
+			for (const runnedApp of runnedApps) {
+				const { appid, display_name } = runnedApp;
+
+				if (isNil(appid) || isNil(display_name)) {
+					continue;
+				}
+
+				this.eventBus.emit({
+					type: "GameStarted",
+					createdAt: this.clock.getTimeMs(),
+					game: {
+						id: `${appid}`,
+						name: display_name,
+					},
+				});
+			}
+
+			for (const closedApp of closedApps) {
+				const { appid, display_name } = closedApp;
+
+				if (isNil(appid) || isNil(display_name)) {
+					continue;
+				}
+
+				this.eventBus.emit({
+					type: "GameStopped",
+					createdAt: this.clock.getTimeMs(),
+					game: {
+						id: `${appid}`,
+						name: display_name,
+					},
+				});
+			}
+		});
+
 		this.activeHooks.push({
-			unregister: reaction(
-				() => SteamUIStore.RunningApps,
-				(
-					currentRunningApps: Array<AppOverview>,
-					oldRunnedApps: Array<AppOverview>,
-				) => {
-					const runnedApps = diffArray(
-						currentRunningApps,
-						oldRunnedApps,
-						"appid",
-					);
+			unregister: () => {
+				if (isNil(unregister)) {
+					return;
+				}
 
-					const closedApps = diffArray(
-						oldRunnedApps,
-						currentRunningApps,
-						"appid",
-					);
-
-					for (const runnedApp of runnedApps) {
-						const { appid, display_name } = runnedApp;
-
-						if (isNil(appid) || isNil(display_name)) {
-							continue;
-						}
-
-						this.eventBus.emit({
-							type: "GameStarted",
-							createdAt: this.clock.getTimeMs(),
-							game: {
-								id: `${appid}`,
-								name: display_name,
-							},
-						});
-					}
-
-					for (const closedApp of closedApps) {
-						const { appid, display_name } = closedApp;
-
-						if (isNil(appid) || isNil(display_name)) {
-							continue;
-						}
-
-						this.eventBus.emit({
-							type: "GameStopped",
-							createdAt: this.clock.getTimeMs(),
-							game: {
-								id: `${appid}`,
-								name: display_name,
-							},
-						});
-					}
-				},
-			),
+				return unregister();
+			},
 		});
 
 		this.activeHooks.push(

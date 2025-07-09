@@ -2,7 +2,6 @@ import { type RoutePatch, routerHook } from "@decky/api";
 import { afterPatch } from "@decky/ui";
 import type { Cache } from "@src/app/cache";
 import type { Mountable } from "@src/app/system";
-import { runInAction } from "mobx";
 import { APP_TYPE } from "@src/constants";
 import type { ReactElement } from "react";
 
@@ -31,11 +30,9 @@ export function patchAppPage(timeCache: Cache<Map<string, number>>): Mountable {
 
 				if (overview.app_type === APP_TYPE.THIRD_PARTY) {
 					if (details && timeCache.isReady()) {
-						runInAction(() => {
-							const time = timeCache.get()?.get(app_id.toString()) || 0;
+						const time = timeCache.get()?.get(app_id.toString()) || 0;
 
-							details.nPlaytimeForever = +(time / 60.0).toFixed(1);
-						});
+						details.nPlaytimeForever = +(time / 60.0).toFixed(1);
 					}
 				}
 
