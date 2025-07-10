@@ -54,7 +54,9 @@ class Statistics:
                         date_str, el.game_id
                     ):
                         per_day_game_sessions_report.append(
-                            SessionInformation(session.date, session.duration)
+                            SessionInformation(
+                                session.date, session.duration, session.migrated
+                            )
                         )
 
                     games.append(
@@ -65,6 +67,7 @@ class Statistics:
                             SessionInformation(
                                 date=last_playtime_session_information.date,
                                 duration=last_playtime_session_information.duration,
+                                migrated=last_playtime_session_information.migrated,
                             ),
                         )
                     )
@@ -96,7 +99,7 @@ class Statistics:
 
             for session in self.dao.fetch_game_sessions_report(g.game_id):
                 per_day_game_sessions_report.append(
-                    SessionInformation(session.date, session.duration)
+                    SessionInformation(session.date, session.duration, session.migrated)
                 )
 
             game_with_time: GameWithTime = GameWithTime(
@@ -106,6 +109,7 @@ class Statistics:
                 SessionInformation(
                     date=last_playtime_session_information.date,
                     duration=last_playtime_session_information.duration,
+                    migrated=last_playtime_session_information.migrated,
                 ),
             )
 

@@ -12,6 +12,7 @@ class Game:
 class SessionInformation:
     date: str
     duration: float
+    migrated: str | None
 
 
 @dataclass

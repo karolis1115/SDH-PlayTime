@@ -6,6 +6,9 @@ from python.db.migration import DbMigration
 from python.statistics import Statistics
 from python.tests.helpers import AbstractDatabaseTest
 from python.time_tracking import TimeTracking
+from python.dto import ApplyManualTimeCorrectionList
+from python.models import Game
+from pprint import pprint
 
 
 class TestPlayTime(AbstractDatabaseTest):
@@ -39,11 +42,16 @@ class TestPlayTime(AbstractDatabaseTest):
                             },
                             "time": 3600,
                             "sessions": [
-                                {"date": "2022-01-01T09:00:00", "duration": 3600},
+                                {
+                                    "date": "2022-01-01T09:00:00",
+                                    "duration": 3600,
+                                    "migrated": None,
+                                },
                             ],
                             "last_session": {
                                 "date": "2022-01-01T09:00:00",
                                 "duration": 3600,
+                                "migrated": None,
                             },
                         }
                     ],
@@ -83,12 +91,21 @@ class TestPlayTime(AbstractDatabaseTest):
                             },
                             "time": 7200,
                             "sessions": [
-                                {"date": "2022-01-01T09:00:00", "duration": 3600},
-                                {"date": "2022-01-01T10:00:00", "duration": 3600},
+                                {
+                                    "date": "2022-01-01T09:00:00",
+                                    "duration": 3600,
+                                    "migrated": None,
+                                },
+                                {
+                                    "date": "2022-01-01T10:00:00",
+                                    "duration": 3600,
+                                    "migrated": None,
+                                },
                             ],
                             "last_session": {
                                 "date": "2022-01-01T10:00:00",
                                 "duration": 3600,
+                                "migrated": None,
                             },
                         }
                     ],
@@ -120,11 +137,16 @@ class TestPlayTime(AbstractDatabaseTest):
                             },
                             "time": 3600,
                             "sessions": [
-                                {"date": "2022-01-01T23:00:00", "duration": 3600}
+                                {
+                                    "date": "2022-01-01T23:00:00",
+                                    "duration": 3600,
+                                    "migrated": None,
+                                }
                             ],
                             "last_session": {
                                 "date": "2022-01-02T00:00:00",
                                 "duration": 3600,
+                                "migrated": None,
                             },
                         }
                     ],
@@ -140,11 +162,16 @@ class TestPlayTime(AbstractDatabaseTest):
                             },
                             "time": 3600,
                             "sessions": [
-                                {"date": "2022-01-02T00:00:00", "duration": 3600}
+                                {
+                                    "date": "2022-01-02T00:00:00",
+                                    "duration": 3600,
+                                    "migrated": None,
+                                }
                             ],
                             "last_session": {
                                 "date": "2022-01-02T00:00:00",
                                 "duration": 3600,
+                                "migrated": None,
                             },
                         }
                     ],
@@ -181,11 +208,16 @@ class TestPlayTime(AbstractDatabaseTest):
                             },
                             "time": 3600,
                             "sessions": [
-                                {"date": "2022-01-01T09:00:00", "duration": 3600}
+                                {
+                                    "date": "2022-01-01T09:00:00",
+                                    "duration": 3600,
+                                    "migrated": None,
+                                }
                             ],
                             "last_session": {
                                 "date": "2022-01-01T09:00:00",
                                 "duration": 3600,
+                                "migrated": None,
                             },
                         },
                         {
@@ -195,11 +227,16 @@ class TestPlayTime(AbstractDatabaseTest):
                             },
                             "time": 1800,
                             "sessions": [
-                                {"date": "2022-01-01T10:00:00", "duration": 1800}
+                                {
+                                    "date": "2022-01-01T10:00:00",
+                                    "duration": 1800,
+                                    "migrated": None,
+                                }
                             ],
                             "last_session": {
                                 "date": "2022-01-01T10:00:00",
                                 "duration": 1800,
+                                "migrated": None,
                             },
                         },
                     ],
@@ -261,11 +298,16 @@ class TestPlayTime(AbstractDatabaseTest):
                             },
                             "time": 3600,
                             "sessions": [
-                                {"date": "2022-01-02T09:00:00", "duration": 3600}
+                                {
+                                    "date": "2022-01-02T09:00:00",
+                                    "duration": 3600,
+                                    "migrated": None,
+                                }
                             ],
                             "last_session": {
                                 "date": "2022-01-02T09:00:00",
                                 "duration": 3600,
+                                "migrated": None,
                             },
                         }
                     ],
@@ -281,11 +323,16 @@ class TestPlayTime(AbstractDatabaseTest):
                             },
                             "time": 1800,
                             "sessions": [
-                                {"date": "2022-01-03T09:00:00", "duration": 1800}
+                                {
+                                    "date": "2022-01-03T09:00:00",
+                                    "duration": 1800,
+                                    "migrated": None,
+                                }
                             ],
                             "last_session": {
                                 "date": "2022-01-03T09:00:00",
                                 "duration": 1800,
+                                "migrated": None,
                             },
                         }
                     ],
@@ -301,11 +348,16 @@ class TestPlayTime(AbstractDatabaseTest):
                             },
                             "time": 1800,
                             "sessions": [
-                                {"date": "2022-01-04T09:00:00", "duration": 1800}
+                                {
+                                    "date": "2022-01-04T09:00:00",
+                                    "duration": 1800,
+                                    "migrated": None,
+                                }
                             ],
                             "last_session": {
                                 "date": "2022-01-04T09:00:00",
                                 "duration": 1800,
+                                "migrated": None,
                             },
                         }
                     ],
@@ -332,6 +384,73 @@ class TestPlayTime(AbstractDatabaseTest):
 
         result = self.playtime_statistics.per_game_overall_statistic()
         self.assertEqual(result[0]["time"], 3600 + 1800)
+
+    def test_should_apply_manual_time_for_games(self):
+        now = datetime(2025, 1, 1, 9, 0)
+        five_hours_delay = now + timedelta(hours=5)
+
+        self.time_tracking.add_time(
+            now.timestamp(),
+            (now + timedelta(hours=1)).timestamp(),
+            "101",
+            "Zelda BOTW",
+        )
+        self.time_tracking.add_time(
+            five_hours_delay.timestamp(),
+            (five_hours_delay + timedelta(minutes=45)).timestamp(),
+            "101",
+            "Zelda BOTW",
+        )
+
+        apps = [
+            ApplyManualTimeCorrectionList(game=Game("101", "Zelda BOTW"), time=1800),
+        ]
+
+        self.time_tracking.apply_manual_time_for_games(apps, "manually-changed")
+        result = self.playtime_statistics.per_game_overall_statistic()
+
+        # NOTE(ynhhoJ): This function remove `date` field from `result`, because when is applied
+        # `apply_manual_time_for_games` it creates an internal `now` variable with current timestamp
+        def remove_date_fields(data):
+            if isinstance(data, list):
+                return [remove_date_fields(item) for item in data]
+
+            if isinstance(data, dict):
+                return {
+                    key: remove_date_fields(value)
+                    for key, value in data.items()
+                    if key != "date"
+                }
+
+            return data
+
+        self.assertEqual(
+            remove_date_fields(result),
+            [
+                {
+                    "game": {"id": "101", "name": "Zelda BOTW"},
+                    "last_session": {
+                        "duration": -4500,
+                        "migrated": "manually-changed",
+                    },
+                    "sessions": [
+                        {
+                            "duration": 3600,
+                            "migrated": None,
+                        },
+                        {
+                            "duration": 2700,
+                            "migrated": None,
+                        },
+                        {
+                            "duration": -4500,
+                            "migrated": "manually-changed",
+                        },
+                    ],
+                    "time": 1800,
+                }
+            ],
+        )
 
 
 if __name__ == "__main__":

@@ -29,6 +29,7 @@ class DailyGameTimeDto:
 class SessionInformation:
     date: str
     duration: float
+    migrated: str | None
 
 
 @dataclass
@@ -322,13 +323,15 @@ class Dao:
         connection.row_factory = lambda c, row: SessionInformation(
             date=row[0],
             duration=row[1],
+            migrated=row[2],
         )
 
         return connection.execute(
             """
             SELECT
                 pt.date_time,
-                pt.duration
+                pt.duration,
+                pt.migrated
             FROM
                 play_time pt
             WHERE
@@ -355,13 +358,15 @@ class Dao:
         connection.row_factory = lambda c, row: SessionInformation(
             date=row[0],
             duration=row[1],
+            migrated=row[2],
         )
 
         return connection.execute(
             """
                 SELECT
                     pt.date_time,
-                    pt.duration
+                    pt.duration,
+                    pt.migrated
                 FROM
                     play_time pt
                 WHERE
@@ -387,13 +392,15 @@ class Dao:
         connection.row_factory = lambda c, row: SessionInformation(
             date=row[0],
             duration=row[1],
+            migrated=row[2],
         )
 
         return connection.execute(
             """
                 SELECT
                     pt.date_time,
-                    pt.duration
+                    pt.duration,
+                    pt.migrated
                 FROM
                     play_time pt
                 WHERE
