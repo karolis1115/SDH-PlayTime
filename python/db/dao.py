@@ -44,7 +44,7 @@ class OverallGamesTimeDto:
 
 @dataclass
 class GameInformationDto:
-    id: str
+    game_id: str
     name: str
     time: float
 
@@ -85,7 +85,7 @@ class Dao:
         create_at: datetime.datetime,
         game_id: str,
         game_name: str,
-        new_overall_time: int,
+        new_overall_time: float,
         source: str,
     ) -> None:
         with self._db.transactional() as connection:
@@ -205,7 +205,7 @@ class Dao:
         self,
         connection: sqlite3.Connection,
         start: datetime.datetime,
-        time_s: int,
+        time_s: float,
         game_id: str,
         source: str | None = None,
     ):
@@ -219,7 +219,7 @@ class Dao:
         self._append_overall_time(connection, game_id, time_s)
 
     def _append_overall_time(
-        self, connection: sqlite3.Connection, game_id: str, delta_time_s: int
+        self, connection: sqlite3.Connection, game_id: str, delta_time_s: float
     ):
         connection.execute(
             """
@@ -421,15 +421,13 @@ class Dao:
         self, connection: sqlite3.Connection, game_id: str
     ) -> GameInformationDto:
         connection.row_factory = lambda c, row: GameInformationDto(
-            id=row[0],
-            name=row[1],
-            time=row[2]
+            game_id=row[0], name=row[1], time=row[2]
         )
 
         return connection.execute(
             """
             SELECT
-                gd.game_id AS id,
+                gd.game_id,
                 gd.name,
                 ot.duration as time
             FROM

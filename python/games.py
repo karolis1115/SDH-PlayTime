@@ -16,7 +16,9 @@ class Games:
     def get_by_id(self, game_id: str) -> GameInformation:
         response = self.dao.get_game(game_id)
 
-        return GameInformation(id=response.id, name=response.name, time=response.time)
+        return GameInformation(
+            id=response.game_id, name=response.name, time=response.time
+        )
 
     def get_dictionary(self) -> List[Dict[str, GameDictionary]]:
         data = self.dao.get_games_dictionary()

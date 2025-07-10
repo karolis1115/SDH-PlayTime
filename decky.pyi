@@ -1,3 +1,4 @@
+# pylint: skip-file
 """
 This module exposes various constants and helpers useful for decky plugins.
 

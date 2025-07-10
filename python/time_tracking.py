@@ -1,8 +1,8 @@
 from datetime import datetime
 import logging
-from typing import Dict, List
 from python.db.dao import Dao
 from python.helpers import end_of_day
+from python.dto import ApplyManualTimeCorrectionDTO
 
 
 DATE_FORMAT = "%Y-%m-%d"
@@ -40,9 +40,12 @@ class TimeTracking:
                 datetime.fromtimestamp(i_started_at), int(length), i_game_id
             )
 
-    def apply_manual_time_for_games(self, list_of_game_stats: List[Dict], source: str):
+    def apply_manual_time_for_games(
+        self, list_of_game_stats: ApplyManualTimeCorrectionDTO, source: str
+    ):
         now = datetime.now()
+
         for stat in list_of_game_stats:
             self.dao.apply_manual_time_for_game(
-                now, stat["game"]["id"], stat["game"]["name"], stat["time"], source
+                now, stat.game.id, stat.game.name, stat.time, source
             )
