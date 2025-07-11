@@ -45,11 +45,16 @@ class GameInformation:
 
 
 @dataclass
+class FileChecksum:
+    checksum: str
+    algorithm: str
+    chunk_size: int
+    created_at: None | str
+    updated_at: None | str
+
+
+@dataclass
 class GameDictionary:
     id: str
     name: str
-    hash_checksum: None | str
-    hash_algorithm: None | str
-    hash_chunk_size: None | int
-    hash_created_at: None | str
-    hash_updated_at: None | str
+    files_checksum: List[FileChecksum]

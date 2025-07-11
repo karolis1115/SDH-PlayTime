@@ -38,6 +38,7 @@ from python.dto import (
     GetFileSHA256DTO,
     AddGameChecksumDTO,
     RemoveGameChecksumDTO,
+    RemoveAllGameChecksumsDTO,
 )
 
 # pylint: enable=wrong-import-position
@@ -110,7 +111,12 @@ class Plugin:
 
     async def get_game(self, game_id: GetGameDTO):
         try:
-            return dataclasses.asdict(self.games.get_by_id(game_id))
+            game_by_id = self.games.get_by_id(game_id)
+
+            if game_by_id is None:
+                return None
+
+            return dataclasses.asdict(game_by_id)
         except Exception as e:
             decky.logger.exception("[get_game] Unhandled exception: %s", e)
 
@@ -132,11 +138,20 @@ class Plugin:
         except Exception as e:
             decky.logger.exception("[get_games_dictionary] Unhandled exception: %s", e)
 
-    async def add_game_checksum(self, dto: AddGameChecksumDTO):
+    async def save_game_checksum(self, dto: AddGameChecksumDTO):
         try:
-            return self.games.add_game_checksum(
+            exist_game_with_id = self.games.get_by_id(dto.game_id)
+
+            if exist_game_with_id is None:
+                decky.logger.warn(
+                    '[save_game_checksum] Can not set checksume for game that does not exist in "game_dict". Game ID: %s',
+                    dto.game_id,
+                )
+
+                return None
+
+            return self.games.save_game_checksum(
                 dto.game_id,
-                dto.name,
                 dto.hash_checksum,
                 dto.hash_algorithm,
                 dto.hash_chunk_size,
@@ -144,13 +159,19 @@ class Plugin:
                 dto.hash_updated_at,
             )
         except Exception as e:
-            decky.logger.exception("[get_games_dictionary] Unhandled exception: %s", e)
+            decky.logger.exception("[save_game_checksum] Unhandled exception: %s", e)
 
-    async def remove_game_checksum(self, game_id: RemoveGameChecksumDTO):
+    async def remove_game_checksum(self, dto: RemoveGameChecksumDTO):
         try:
-            return self.games.remove_game_checksum(game_id)
+            return self.games.remove_game_checksum(dto.game_id, dto.checksum)
         except Exception as e:
-            decky.logger.exception("[get_games_dictionary] Unhandled exception: %s", e)
+            decky.logger.exception("[remove_game_checksum] Unhandled exception: %s", e)
+
+    async def remove_all_game_checksum(self, game_id: RemoveAllGameChecksumsDTO):
+        try:
+            return self.games.remove_all_game_checksums(game_id)
+        except Exception as e:
+            decky.logger.exception("[remove_game_checksum] Unhandled exception: %s", e)
 
     async def _unload(self):
         decky.logger.info("Goodnight, World!")

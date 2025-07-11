@@ -8,7 +8,6 @@ from python.tests.helpers import AbstractDatabaseTest
 from python.time_tracking import TimeTracking
 from python.dto import ApplyManualTimeCorrectionList
 from python.models import Game
-from pprint import pprint
 
 
 class TestPlayTime(AbstractDatabaseTest):

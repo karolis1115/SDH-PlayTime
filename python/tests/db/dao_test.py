@@ -248,6 +248,78 @@ class TestDao(AbstractDatabaseTest):
         self.assertEqual(has_data_before, True)
         self.assertEqual(has_data_after, True)
 
+    def test_should_save_game_checksum(self):
+        self.dao.save_game_dict("1001", "Zelda BOTW")
+        self.dao.save_game_checksum(
+            "10001",
+            "10c28f0e7cd1917b2f595828df",
+            "SHA256",
+            16 * 1024 * 1024,
+            None,
+            None,
+        )
+        self.dao.save_game_checksum(
+            "10001",
+            "10c28f0e7cd1917b2f595828df12312",
+            "SHA256",
+            16 * 1024 * 1024,
+            None,
+            None,
+        )
+        result = self.dao.get_game_files_checksum("10001")
+
+        self.assertEqual(len(result), 2)
+
+    def test_should_remove_game_checksum(self):
+        self.dao.save_game_dict("1001", "Zelda BOTW")
+        self.dao.save_game_checksum(
+            "10001",
+            "10c28f0e7cd1917b2f595828df",
+            "SHA256",
+            16 * 1024 * 1024,
+            None,
+            None,
+        )
+        self.dao.save_game_checksum(
+            "10001",
+            "10c28f0e7cd1917b2f595828df12312",
+            "SHA256",
+            16 * 1024 * 1024,
+            None,
+            None,
+        )
+
+        self.dao.remove_game_checksum("10001", "10c28f0e7cd1917b2f595828df12312")
+
+        result = self.dao.get_game_files_checksum("10001")
+
+        self.assertEqual(len(result), 1)
+
+    def test_should_remove_all_game_checksums(self):
+        self.dao.save_game_dict("1001", "Zelda BOTW")
+        self.dao.save_game_checksum(
+            "10001",
+            "10c28f0e7cd1917b2f595828df",
+            "SHA256",
+            16 * 1024 * 1024,
+            None,
+            None,
+        )
+        self.dao.save_game_checksum(
+            "10001",
+            "10c28f0e7cd1917b2f595828df12312",
+            "SHA256",
+            16 * 1024 * 1024,
+            None,
+            None,
+        )
+
+        self.dao.remove_all_game_checksums("10001")
+
+        result = self.dao.get_game_files_checksum("10001")
+
+        self.assertEqual(len(result), 0)
+
     def _get_overall_time_for_game(self, game_id: str):
         return list(
             filter(lambda x: x.game_id == game_id, self.dao.fetch_overall_playtime())

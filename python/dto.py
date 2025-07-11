@@ -33,8 +33,7 @@ GetFileSHA256DTO = str
 
 @dataclass
 class AddGameChecksumDTO:
-    game_id: int
-    name: str
+    game_id: str
     hash_checksum: str
     hash_algorithm: str
     hash_chunk_size: int
@@ -42,4 +41,10 @@ class AddGameChecksumDTO:
     hash_updated_at: None | str
 
 
-RemoveGameChecksumDTO = int
+
+@dataclass
+class RemoveGameChecksumDTO:
+    game_id: str
+    checksum: str
+
+RemoveAllGameChecksumsDTO = str

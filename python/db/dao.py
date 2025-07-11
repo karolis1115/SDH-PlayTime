@@ -50,14 +50,19 @@ class GameInformationDto:
 
 
 @dataclass
+class FileChecksum:
+    hash_id: int
+    checksum: str
+    algorithm: str
+    chunk_size: int
+    created_at: None | str
+    updated_at: None | str
+
+
+@dataclass
 class GameDictionary:
     id: str
     name: str
-    hash_checksum: None | str
-    hash_algorithm: None | str
-    hash_chunk_size: None | int
-    hash_created_at: None | str
-    hash_updated_at: None | str
 
 
 class Dao:
@@ -217,6 +222,8 @@ class Dao:
             (start.isoformat(), time_s, game_id, source),
         )
         self._append_overall_time(connection, game_id, time_s)
+
+    # TODO: Add `_remove_play_time`
 
     def _append_overall_time(
         self, connection: sqlite3.Connection, game_id: str, delta_time_s: float
@@ -413,13 +420,13 @@ class Dao:
             },
         ).fetchall()
 
-    def get_game(self, game_id: str) -> GameInformationDto:
+    def get_game(self, game_id: str) -> GameInformationDto | None:
         with self._db.transactional() as connection:
             return self._get_game(connection, game_id)
 
     def _get_game(
         self, connection: sqlite3.Connection, game_id: str
-    ) -> GameInformationDto:
+    ) -> GameInformationDto | None:
         connection.row_factory = lambda c, row: GameInformationDto(
             game_id=row[0], name=row[1], time=row[2]
         )
@@ -450,28 +457,137 @@ class Dao:
         connection.row_factory = lambda c, row: GameDictionary(
             id=row[0],
             name=row[1],
-            hash_checksum=row[2],
-            hash_algorithm=row[3],
-            hash_chunk_size=row[4],
-            hash_created_at=row[5],
-            hash_updated_at=row[6],
         )
 
         return connection.execute(
             """
             SELECT
                 gd.game_id,
-                gd.name,
-                gfh.checksum as hash_checksum,
-                gfh.algorithm as hash_algorithm,
-                gfh.chunk_size as hash_chunk_size,
-                gfh.created_at as hash_created_at,
-                gfh.updated_at as hash_updated_at
+                gd.name
             FROM
-                game_dict gd
-            LEFT JOIN
-                game_file_hash gfh
-            ON
-                gd.game_id = gfh.game_id;
+                game_dict gd;
             """,
         ).fetchall()
+
+    def get_game_files_checksum(self, game_id: str) -> List[FileChecksum]:
+        with self._db.transactional() as connection:
+            return self._get_game_files_checksum(connection, game_id)
+
+    def _get_game_files_checksum(
+        self, connection: sqlite3.Connection, game_id: str
+    ) -> List[FileChecksum]:
+        connection.row_factory = lambda c, row: FileChecksum(
+            row[0], row[1], row[2], row[3], row[4], row[5]
+        )
+
+        return connection.execute(
+            """
+            SELECT
+                gfh.hash_id,
+                gfh.checksum,
+                gfh.algorithm,
+                gfh.chunk_size,
+                gfh.created_at,
+                gfh.updated_at
+            FROM
+                game_file_hash gfh
+            WHERE
+                gfh.game_id = ?
+            """,
+            (game_id,),
+        ).fetchall()
+
+    def save_game_checksum(
+        self,
+        game_id: str,
+        hash_checksum: str,
+        hash_algorithm: str,
+        hash_chunk_size: int,
+        hash_created_at: None | str,
+        hash_updated_at: None | str,
+    ) -> None:
+        with self._db.transactional() as connection:
+            self._save_game_checksum(
+                connection,
+                game_id,
+                hash_checksum,
+                hash_algorithm,
+                hash_chunk_size,
+                hash_created_at,
+                hash_updated_at,
+            )
+
+    def _save_game_checksum(
+        self,
+        connection: sqlite3.Connection,
+        game_id: str,
+        hash_checksum: str,
+        hash_algorithm: str,
+        hash_chunk_size: int,
+        hash_created_at: None | str,
+        hash_updated_at: None | str,
+    ):
+        connection.execute(
+            """
+                INSERT INTO game_file_hash(game_id, checksum, algorithm, chunk_size, created_at, updated_at)
+                VALUES (?, ?, ?, ?, IFNULL(?, CURRENT_TIMESTAMP), IFNULL(?, CURRENT_TIMESTAMP))
+                """,
+            (
+                game_id,
+                hash_checksum,
+                hash_algorithm,
+                hash_chunk_size,
+                hash_created_at,
+                hash_updated_at,
+            ),
+        )
+
+    def remove_game_checksum(
+        self,
+        game_id: str,
+        checksum: str,
+    ) -> None:
+        with self._db.transactional() as connection:
+            self._remove_game_checksum(
+                connection,
+                game_id,
+                checksum,
+            )
+
+    def _remove_game_checksum(
+        self,
+        connection: sqlite3.Connection,
+        game_id: str,
+        checksum: str,
+    ):
+        connection.execute(
+            """
+                DELETE FROM game_file_hash WHERE game_id = ? AND checksum = ?
+                """,
+            (
+                game_id,
+                checksum,
+            ),
+        )
+
+    def remove_all_game_checksums(
+        self,
+        game_id: str,
+    ) -> None:
+        with self._db.transactional() as connection:
+            self._remove_all_game_checksums(
+                connection,
+                game_id,
+            )
+
+    def _remove_all_game_checksums(
+        self,
+        connection: sqlite3.Connection,
+        game_id: str,
+    ):
+        connection.execute(
+            """
+                DELETE FROM game_file_hash WHERE game_id = ?
+                """,
+            (game_id,),
+        )
