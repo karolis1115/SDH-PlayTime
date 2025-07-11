@@ -69,15 +69,18 @@ _migrations = [
         [
             """
         CREATE TABLE game_file_hash(
-            game_id TEXT PRIMARY KEY,
-            checksum TEXT,
+            hash_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            game_id TEXT NOT NULL,
+            checksum TEXT NOT NULL,
             algorithm TEXT NOT NULL CHECK(algorithm IN (
                 'SHA224', 'SHA256', 'SHA384', 'SHA512',
                 'SHA3_224', 'SHA3_256', 'SHA3_384', 'SHA3_512'
             )),
             chunk_size INTEGER NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (game_id) REFERENCES game_dict(game_id),
+            UNIQUE (checksum, algorithm)
         );
         """,
             """
