@@ -41,10 +41,10 @@ class AddGameChecksumDTO:
     hash_updated_at: None | str
 
 
-
 @dataclass
 class RemoveGameChecksumDTO:
     game_id: str
     checksum: str
+
 
 RemoveAllGameChecksumsDTO = str
