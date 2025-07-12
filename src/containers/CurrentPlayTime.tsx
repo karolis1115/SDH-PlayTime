@@ -2,6 +2,8 @@ import { Field, PanelSection, PanelSectionRow } from "@decky/ui";
 import type { PlayTime } from "@src/app/SessionPlayTime";
 import { humanReadableTime } from "@utils/formatters";
 import { useLocator } from "../locator";
+import { useEffect, useState } from "react";
+import { isNil } from "@src/utils/isNil";
 
 function PlaySessionsInformation({
 	currentPlayTime,
@@ -40,7 +42,27 @@ function PlaySessionsInformation({
 
 export const CurrentPlayTime = () => {
 	const { sessionPlayTime } = useLocator();
-	const currentPlayTime = sessionPlayTime.getPlayTime(Date.now());
+	const [currentPlayTime, setTimePlayed] = useState(
+		sessionPlayTime.getPlayTime(Date.now()),
+	);
+
+	useEffect(() => {
+		if (currentPlayTime.length === 0) {
+			return;
+		}
+
+		const timer = setInterval(() => {
+			setTimePlayed(sessionPlayTime.getPlayTime(Date.now()));
+		}, 1000);
+
+		return () => {
+			if (isNil(timer)) {
+				return;
+			}
+
+			clearInterval(timer);
+		};
+	}, []);
 
 	if (currentPlayTime.length === 0) {
 		return null;
