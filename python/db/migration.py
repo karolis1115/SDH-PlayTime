@@ -85,7 +85,7 @@ _migrations = [
         """,
             """
         CREATE INDEX idx_game_file_hash_checksum_algo
-            ON game_file_hash (checksum, algorithm);
+            ON game_file_hash (game_id, checksum, algorithm);
             """,
         ],
     ),

@@ -1,21 +1,19 @@
+from typing import List, TypedDict, Optional
 from dataclasses import dataclass
 from python.models import Game
-from typing import List
 
 
-@dataclass
-class AddTimeDto:
+class AddTimeDict(TypedDict):
     started_at: int
     ended_at: int
     game_id: str
     game_name: str
 
 
-@dataclass
-class DailyStatisticsForPeriodDTO:
+class DailyStatisticsForPeriodDict(TypedDict):
     start_date: str
     end_date: str
-    game_id: str | None
+    game_id: Optional[str]
 
 
 @dataclass
@@ -31,18 +29,16 @@ GetGameDTO = str
 GetFileSHA256DTO = str
 
 
-@dataclass
-class AddGameChecksumDTO:
+class AddGameChecksumDict(TypedDict):
     game_id: str
-    hash_checksum: str
-    hash_algorithm: str
-    hash_chunk_size: int
-    hash_created_at: None | str
-    hash_updated_at: None | str
+    checksum: str
+    algorithm: str
+    chunk_size: int
+    created_at: Optional[str]
+    updated_at: Optional[str]
 
 
-@dataclass
-class RemoveGameChecksumDTO:
+class RemoveGameChecksumDTO(TypedDict):
     game_id: str
     checksum: str
 

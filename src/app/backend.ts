@@ -37,21 +37,16 @@ export class Backend {
 			return;
 		}
 
-		await call<
-			[
-				started_at: number,
-				ended_at: number,
-				game_id: string,
-				game_name: string,
-			],
-			void
-		>("add_time", startedAt / 1000, endedAt / 1000, game.id, game.name).catch(
-			() => {
-				this.errorOnBackend(
-					"Can't save interval, because of backend error (add_time)",
-				);
-			},
-		);
+		await call<[AddTimeDto], void>("add_time", {
+			started_at: startedAt / 1000,
+			ended_at: endedAt / 1000,
+			game_id: game.id,
+			game_name: game.name,
+		}).catch(() => {
+			this.errorOnBackend(
+				"Can't save interval, because of backend error (add_time)",
+			);
+		});
 	}
 
 	async fetchDailyStatisticForInterval(
@@ -60,14 +55,13 @@ export class Backend {
 		gameId?: string,
 	): Promise<PagedDayStatistics> {
 		return await call<
-			[start_date: string, end_date: string, gameId?: string],
+			[DailyStatisticsForPeriodDTO],
 			PagedDayStatisticsResponse
-		>(
-			"daily_statistics_for_period",
-			toIsoDateOnly(start),
-			toIsoDateOnly(end),
-			gameId,
-		)
+		>("daily_statistics_for_period", {
+			start_date: toIsoDateOnly(start),
+			end_date: toIsoDateOnly(end),
+			game_id: gameId,
+		})
 			.then((response) => {
 				return {
 					...response,
@@ -106,7 +100,7 @@ export class Backend {
 	async applyManualOverallTimeCorrection(
 		games: GameWithTime[],
 	): Promise<boolean> {
-		return await call<[list_of_game_stats: Array<GameWithTimeResponse>], void>(
+		return await call<[list_of_game_stats: ApplyManualTimeCorrectionDTO], void>(
 			"apply_manual_time_correction",
 			games,
 		)
@@ -132,7 +126,7 @@ export class Backend {
 	}
 
 	async getGame(gameId: string): Promise<Nullable<GameInformation>> {
-		return await call<[gameId: string], Nullable<GameInformationResponse>>(
+		return await call<GetGameDTO, Nullable<GameInformationResponse>>(
 			"get_game",
 			gameId,
 		)
@@ -147,7 +141,10 @@ export class Backend {
 	}
 
 	public static async getFileSHA256(path: string): Promise<Nullable<string>> {
-		return await call<[path: string], Nullable<string>>("get_file_sha256", path)
+		return await call<GetFileSHA256DTO, Nullable<string>>(
+			"get_file_sha256",
+			path,
+		)
 			.then((response) => {
 				return response;
 			})

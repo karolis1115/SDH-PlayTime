@@ -30,16 +30,20 @@ from python.games import Games
 from python.helpers import parse_date
 from python.statistics import Statistics
 from python.time_tracking import TimeTracking
-from python.dto import (
-    AddTimeDto,
-    DailyStatisticsForPeriodDTO,
+from python.dicts import (
+    AddGameChecksumDict,
+    AddTimeDict,
     ApplyManualTimeCorrectionDTO,
-    GetGameDTO,
+    DailyStatisticsForPeriodDict,
     GetFileSHA256DTO,
-    AddGameChecksumDTO,
-    RemoveGameChecksumDTO,
+    GetGameDTO,
     RemoveAllGameChecksumsDTO,
+    RemoveGameChecksumDTO,
 )
+from python.dto.save_game_checksum import AddGameChecksumDTO
+from python.dto.daily_statistics_for_period import DailyStatisticsForPeriodDTO
+from python.dto.add_time import AddTimeDTO
+
 
 # pylint: enable=wrong-import-position
 
@@ -66,22 +70,28 @@ class Plugin:
         except Exception as e:
             decky.logger.exception("[main] Unhandled exception: %s", e)
 
-    async def add_time(self, dto: AddTimeDto):
+    async def add_time(self, dto_dict: AddTimeDict):
         try:
+            dto = AddTimeDTO.from_dict(dto_dict)
+
             self.time_tracking.add_time(
-                started_at=dto.started_at,
-                ended_at=dto.ended_at,
-                game_id=dto.game_id,
-                game_name=dto.game_name,
+                dto.started_at,
+                dto.ended_at,
+                dto.game_id,
+                dto.game_name,
             )
         except Exception as e:
             decky.logger.exception("[add_time] Unhandled exception: %s", e)
 
-    async def daily_statistics_for_period(self, dto: DailyStatisticsForPeriodDTO):
+    async def daily_statistics_for_period(self, dto_dict: DailyStatisticsForPeriodDict):
         try:
+            dto = DailyStatisticsForPeriodDTO.from_dict(dto_dict)
+
             return dataclasses.asdict(
                 self.statistics.daily_statistics_for_period(
-                    parse_date(dto.start_date), parse_date(dto.end_date), dto.game_id
+                    parse_date(dto.start_date),
+                    parse_date(dto.end_date),
+                    dto.game_id,
                 )
             )
         except Exception as e:
@@ -138,8 +148,10 @@ class Plugin:
         except Exception as e:
             decky.logger.exception("[get_games_dictionary] Unhandled exception: %s", e)
 
-    async def save_game_checksum(self, dto: AddGameChecksumDTO):
+    async def save_game_checksum(self, dto_dict: AddGameChecksumDict):
         try:
+            dto = AddGameChecksumDTO.from_dict(dto_dict)
+
             exist_game_with_id = self.games.get_by_id(dto.game_id)
 
             if exist_game_with_id is None:
@@ -152,18 +164,18 @@ class Plugin:
 
             return self.games.save_game_checksum(
                 dto.game_id,
-                dto.hash_checksum,
-                dto.hash_algorithm,
-                dto.hash_chunk_size,
-                dto.hash_created_at,
-                dto.hash_updated_at,
+                dto.checksum,
+                dto.algorithm,
+                dto.chunk_size,
+                dto.created_at,
+                dto.updated_at,
             )
         except Exception as e:
             decky.logger.exception("[save_game_checksum] Unhandled exception: %s", e)
 
     async def remove_game_checksum(self, dto: RemoveGameChecksumDTO):
         try:
-            return self.games.remove_game_checksum(dto.game_id, dto.checksum)
+            return self.games.remove_game_checksum(dto["game_id"], dto["checksum"])
         except Exception as e:
             decky.logger.exception("[remove_game_checksum] Unhandled exception: %s", e)
 

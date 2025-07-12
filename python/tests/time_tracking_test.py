@@ -6,7 +6,7 @@ from python.db.migration import DbMigration
 from python.statistics import Statistics
 from python.tests.helpers import AbstractDatabaseTest
 from python.time_tracking import TimeTracking
-from python.dto import ApplyManualTimeCorrectionList
+from python.dicts import ApplyManualTimeCorrectionList
 from python.models import Game
 
 

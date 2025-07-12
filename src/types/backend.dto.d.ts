@@ -16,19 +16,19 @@ interface ApplyManualTimeCorrectionList {
 	time: number;
 }
 
-type ApplyManualTimeCorrectionDTO = ApplyManualTimeCorrectionList[];
+type ApplyManualTimeCorrectionDTO = Array<ApplyManualTimeCorrectionList>;
 
-type GetGameDTO = string;
+type GetGameDTO = [gameId: string];
 
-type GetFileSHA256DTO = string;
+type GetFileSHA256DTO = [path: string];
 
 interface AddGameChecksumDTO {
 	game_id: string;
-	hash_checksum: string;
-	hash_algorithm: string;
-	hash_chunk_size: number;
-	hash_created_at?: string;
-	hash_updated_at?: string;
+	checksum: string;
+	algorithm: string;
+	chunk_size: number;
+	created_at?: Date;
+	updated_at?: Date;
 }
 
 interface RemoveGameChecksumDTO {
@@ -36,4 +36,4 @@ interface RemoveGameChecksumDTO {
 	checksum: string;
 }
 
-type RemoveAllGameChecksumsDTO = string;
+type RemoveAllGameChecksumsDTO = [gameId: string];
