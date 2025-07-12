@@ -1,18 +1,17 @@
-// NOTE(ynhhoJ): https://github.com/0u73r-h34v3n/chrono-deck/blob/master/tests/utils/steam/getPathToGameFileByLaunchCommand.test.ts
+// NOTE(ynhhoJ): https://github.com/0u73r-h34v3n/chrono-deck/blob/master/tests/utils/steam/getEmudeckPathToGame.test.ts
 import { describe, expect, it } from "bun:test";
-import getPathToGameFileByLaunchCommand from "@src/steam/utils/getPathToGameFileByLaunchCommand";
+import getEmudeckPathToGame from "@src/steam/utils/GamePaths";
 
-describe("getPathToGameFileByLaunchCommand", () => {
+describe("getEmudeckPathToGame", () => {
 	it('should return "/home/deck/EmuDeckROM/Emulation/roms/gc/The Legend of Zelda - Twilight Princess.iso"', () => {
 		const command =
 			'"/home/deck/EmuDeckROM/Emulation/tools/launchers/dolphin-emu.sh" vblank_mode=0 %command% -b -e "/home/deck/EmuDeckROM/Emulation/roms/gc/The Legend of Zelda - Twilight Princess.iso"';
 		const result =
 			"/home/deck/EmuDeckROM/Emulation/roms/gc/The Legend of Zelda - Twilight Princess.iso";
 
-		const pathToGameFileByLaunchCommand =
-			getPathToGameFileByLaunchCommand(command);
+		const emudeckPathToGame = getEmudeckPathToGame(command);
 
-		expect(pathToGameFileByLaunchCommand).toBe(result);
+		expect(emudeckPathToGame).toBe(result);
 	});
 
 	it('should return "/home/deck/EmuDeckROM/Emulation/roms/snes/Chrono Trigger (RUS) (by Chief-NET).smc"', () => {
@@ -21,10 +20,9 @@ describe("getPathToGameFileByLaunchCommand", () => {
 		const result =
 			"/home/deck/EmuDeckROM/Emulation/roms/snes/Chrono Trigger (RUS) (by Chief-NET).smc";
 
-		const pathToGameFileByLaunchCommand =
-			getPathToGameFileByLaunchCommand(command);
+		const emudeckPathToGame = getEmudeckPathToGame(command);
 
-		expect(pathToGameFileByLaunchCommand).toBe(result);
+		expect(emudeckPathToGame).toBe(result);
 	});
 
 	it('should return "/home/deck/EmuDeckROM/Emulation/roms/gc/The Legend of Zelda - Twilight Princess.iso"', () => {
@@ -33,10 +31,9 @@ describe("getPathToGameFileByLaunchCommand", () => {
 		const result =
 			"/home/deck/EmuDeckROM/Emulation/roms/gc/The Legend of Zelda - Twilight Princess.iso";
 
-		const pathToGameFileByLaunchCommand =
-			getPathToGameFileByLaunchCommand(command);
+		const emudeckPathToGame = getEmudeckPathToGame(command);
 
-		expect(pathToGameFileByLaunchCommand).toBe(result);
+		expect(emudeckPathToGame).toBe(result);
 	});
 
 	it('should return "/home/deck/EmuDeckROM/Emulation/roms/ps2/The Simpsons Hit and Run/The Simpsons - Hit And Run.mdf"', () => {
@@ -45,10 +42,9 @@ describe("getPathToGameFileByLaunchCommand", () => {
 		const result =
 			"/home/deck/EmuDeckROM/Emulation/roms/ps2/The Simpsons Hit and Run/The Simpsons - Hit And Run.mdf";
 
-		const pathToGameFileByLaunchCommand =
-			getPathToGameFileByLaunchCommand(command);
+		const emudeckPathToGame = getEmudeckPathToGame(command);
 
-		expect(pathToGameFileByLaunchCommand).toBe(result);
+		expect(emudeckPathToGame).toBe(result);
 	});
 
 	it('should return "/home/deck/EmuDeckROM/Emulation/roms/psp/God of War - Ghost of Sparta.iso"', () => {
@@ -57,9 +53,8 @@ describe("getPathToGameFileByLaunchCommand", () => {
 		const result =
 			"/home/deck/EmuDeckROM/Emulation/roms/psp/God of War - Ghost of Sparta.iso";
 
-		const pathToGameFileByLaunchCommand =
-			getPathToGameFileByLaunchCommand(command);
+		const emudeckPathToGame = getEmudeckPathToGame(command);
 
-		expect(pathToGameFileByLaunchCommand).toBe(result);
+		expect(emudeckPathToGame).toBe(result);
 	});
 });
