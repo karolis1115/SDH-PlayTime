@@ -9,18 +9,18 @@ export const log = (...args: unknown[]) => {
 
 export const debug = (...args: unknown[]) => {
 	console.debug(
-		"%c PlayTime %c",
+		"%c PlayTime %c DEBUG ",
 		"background: #16a085; color: black;",
-		"background: 'yellow'; color: black;",
+		"background: #d6b600; color: black;",
 		...args,
 	);
 };
 
 export const error = (...args: unknown[]) => {
 	console.error(
-		"%c PlayTime %c",
+		"%c PlayTime %c ERROR ",
 		"background: #16a085; color: black;",
-		"background: #FF0000;",
+		"background: #FF000040;",
 		...args,
 	);
 };
