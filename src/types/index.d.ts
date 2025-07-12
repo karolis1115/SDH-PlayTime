@@ -11,19 +11,16 @@ type GameWithTime = Omit<GameWithTimeResponse, "last_session"> & {
 	lastSession: SessionInformation;
 };
 
-type GameDictionary = Omit<
-	GameDictionaryResponse,
-	| "hash_checksum"
-	| "hash_algorithm"
-	| "hash_chunk_size"
-	| "hash_created_at"
-	| "hash_updated_at"
-> & {
-	hashChecksum?: string;
-	hashAlgorithm?: string;
-	hashChunkSize?: number;
-	hashCreatedAt?: string;
-	hashUpdatedAt?: string;
+type FileChecksum = {
+	checksum: string;
+	algorithm: string;
+	chunkSize: number;
+	createdAt?: string;
+	updatedAt?: string;
+};
+
+type GameDictionary = Omit<GameDictionaryResponse, "files_checksum"> & {
+	filesChecksum: Array<FileChecksum>;
 };
 
 type GameInformation = GameInformationResponse;
@@ -34,4 +31,11 @@ type PagedDayStatistics = Omit<
 > & {
 	hasPrev: boolean;
 	hasNext: boolean;
+};
+
+type LocalNonSteamGame = {
+	id: string;
+	name: string;
+	sha256: string;
+	pathToGame: string;
 };
