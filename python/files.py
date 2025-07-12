@@ -30,6 +30,8 @@ class Files:
                 "Minimum required version of Python is 3.11.0 which supports: hashlib.file_digest"
             )
 
+        file_path = file_path.strip('"').strip("'")
+
         if not os.path.isfile(file_path):
             return None
 
