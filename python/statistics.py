@@ -85,30 +85,42 @@ class Statistics:
     def per_game_overall_statistic(self) -> List[Dict[str, Any]]:
         """
         Returns overall statistics per game, including sessions and last session info.
+        Uses batch fetching for performance.
         """
-        data = self.dao.fetch_overall_playtime()
+        data = self.dao.fetch_overall_playtime()  # List of game stats
+
+        # Batch fetch all sessions for all games
+        # Returns List[Tuple[game_id, SessionInformation]]
+        all_sessions = self.dao.fetch_all_game_sessions_report()
+
+        # Group sessions by game_id
+        sessions_by_game: Dict[str, List[SessionInformation]] = defaultdict(list)
+
+        for game_id, session in all_sessions:
+            sessions_by_game[game_id].append(
+                SessionInformation(session.date, session.duration, session.migrated)
+            )
+
+        # Batch fetch last session info for all games
+        # Returns Dict[game_id, SessionInformation]
+        last_sessions_by_game = self.dao.fetch_all_last_playtime_session_information()
+
         result: List[Dict[str, Any]] = []
 
         for game_stat in data:
-            # Fetch last session info
-            last_session = self.dao.fetch_last_playtime_session_information(
-                game_stat.game_id
-            )
+            game_id = game_stat.game_id
 
-            # Fetch all sessions for this game
-            sessions = [
-                SessionInformation(session.date, session.duration, session.migrated)
-                for session in self.dao.fetch_game_sessions_report(game_stat.game_id)
-            ]
+            sessions = sessions_by_game.get(game_id, [])
+            last_session = last_sessions_by_game.get(game_id)
 
             game_with_time = GameWithTime(
-                game=Game(game_stat.game_id, game_stat.game_name),
+                game=Game(game_id, game_stat.game_name),
                 time=game_stat.time,
                 sessions=sessions,
-                last_session=SessionInformation(
-                    date=last_session.date,
-                    duration=last_session.duration,
-                    migrated=last_session.migrated,
+                last_session=None
+                if last_session is None
+                else SessionInformation(
+                    last_session.date, last_session.duration, last_session.migrated
                 ),
             )
 
