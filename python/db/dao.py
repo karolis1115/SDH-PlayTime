@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import datetime
 import logging
 import sqlite3
-from typing import List
+from typing import List, Dict
 
 from python.db.sqlite_db import SqlLiteDb
 
@@ -419,6 +419,68 @@ class Dao:
                 "game_id": game_id,
             },
         ).fetchall()
+
+    def fetch_all_game_sessions_report(self) -> List[tuple[str, SessionInformation]]:
+        with self._db.transactional() as connection:
+            connection.row_factory = lambda c, row: (
+                row[0],  # game_id
+                SessionInformation(
+                    date=row[1],
+                    duration=row[2],
+                    migrated=row[3],
+                ),
+            )
+
+            return connection.execute(
+                """
+                    SELECT
+                        pt.game_id,
+                        pt.date_time,
+                        pt.duration,
+                        pt.migrated
+                    FROM
+                        play_time pt
+                    ORDER BY
+                        pt.game_id, pt.date_time;
+                """
+            ).fetchall()
+
+    def fetch_all_last_playtime_session_information(
+        self,
+    ) -> Dict[str, SessionInformation]:
+        with self._db.transactional() as connection:
+            connection.row_factory = lambda c, row: (
+                row[0],  # game_id
+                SessionInformation(
+                    date=row[1],
+                    duration=row[2],
+                    migrated=row[3],
+                ),
+            )
+            # This query assumes you want the latest session per game
+            return dict(
+                connection.execute(
+                    """
+                    SELECT
+                        pt.game_id,
+                        pt.date_time,
+                        pt.duration,
+                        pt.migrated
+                    FROM
+                        play_time pt
+                    INNER JOIN (
+                        SELECT
+                            game_id,
+                            MAX(date_time) AS max_date
+                        FROM
+                            play_time
+                        GROUP BY
+                            game_id
+                    ) latest
+                    ON pt.game_id = latest.game_id AND pt.date_time = latest.max_date
+                """
+                ).fetchall()
+            )
 
     def get_game(self, game_id: str) -> GameInformationDto | None:
         with self._db.transactional() as connection:
