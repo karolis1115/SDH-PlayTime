@@ -1,6 +1,7 @@
 import dataclasses
+from collections import defaultdict
 from datetime import datetime, date, time, timedelta
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 from python.db.dao import DailyGameTimeDto, Dao
 from python.helpers import format_date
 from python.models import (
@@ -19,66 +20,61 @@ class Statistics:
         self.dao = dao
 
     def daily_statistics_for_period(
-        self, start: date, end: date, game_id: str | None = None
+        self, start: date, end: date, game_id: Optional[str] = None
     ) -> PagedDayStatistics:
-        start_time = datetime.combine(start, time(00, 00, 00))
-        end_time = datetime.combine(end, time(23, 59, 59, 999999))
+        """
+        Returns daily statistics for a given period and optional game_id.
+        """
+        start_time = datetime.combine(start, time.min)
+        end_time = datetime.combine(end, time.max)
 
-        data = self.dao.fetch_per_day_time_report(start_time, end_time, game_id)
+        # Fetch all per-day time reports in one go
+        daily_reports: List[DailyGameTimeDto] = self.dao.fetch_per_day_time_report(
+            start_time, end_time, game_id
+        )
 
-        data_as_dict: Dict[str, List[DailyGameTimeDto]] = {}
+        # Group reports by date string
+        reports_by_date: Dict[str, List[DailyGameTimeDto]] = defaultdict(list)
 
-        for it in data:
-            if it.date in data_as_dict:
-                data_as_dict[it.date].append(it)
-            else:
-                data_as_dict[it.date] = [it]
+        for report in daily_reports:
+            reports_by_date[report.date].append(report)
 
         result: List[DayStatistics] = []
-        date_range = self._generate_date_range(start, end)
 
-        for day in date_range:
+        for day in self._generate_date_range(start, end):
             date_str = format_date(day)
+            games: List[GameWithTime] = []
+            total_time = 0.0
 
-            if date_str in data_as_dict:
-                games: List[GameWithTime] = []
-                total_time = 0
-
-                for el in data_as_dict[date_str]:
-                    last_playtime_session_information = (
-                        self.dao.fetch_last_playtime_session_information(el.game_id)
-                    )
-                    per_day_game_sessions_report: List[SessionInformation] = []
-
-                    for session in self.dao.fetch_per_day_game_sessions_report(
-                        date_str, el.game_id
-                    ):
-                        per_day_game_sessions_report.append(
-                            SessionInformation(
-                                session.date, session.duration, session.migrated
-                            )
-                        )
-
-                    games.append(
-                        GameWithTime(
-                            Game(el.game_id, el.game_name),
-                            el.time,
-                            per_day_game_sessions_report,
-                            SessionInformation(
-                                date=last_playtime_session_information.date,
-                                duration=last_playtime_session_information.duration,
-                                migrated=last_playtime_session_information.migrated,
-                            ),
-                        )
-                    )
-
-                    total_time += el.time
-
-                result.append(
-                    DayStatistics(date=date_str, games=games, total=total_time)
+            for report in reports_by_date.get(date_str, []):
+                # Fetch last session info (could be optimized if needed)
+                last_session = self.dao.fetch_last_playtime_session_information(
+                    report.game_id
                 )
-            else:
-                result.append(DayStatistics(date_str, [], 0))
+
+                # Fetch all sessions for this game and day
+                sessions = [
+                    SessionInformation(session.date, session.duration, session.migrated)
+                    for session in self.dao.fetch_per_day_game_sessions_report(
+                        date_str, report.game_id
+                    )
+                ]
+
+                games.append(
+                    GameWithTime(
+                        game=Game(report.game_id, report.game_name),
+                        time=report.time,
+                        sessions=sessions,
+                        last_session=SessionInformation(
+                            date=last_session.date,
+                            duration=last_session.duration,
+                            migrated=last_session.migrated,
+                        ),
+                    )
+                )
+                total_time += report.time
+
+            result.append(DayStatistics(date=date_str, games=games, total=total_time))
 
         return PagedDayStatistics(
             data=result,
@@ -86,30 +82,33 @@ class Statistics:
             has_next=self.dao.is_there_is_data_after(end_time, game_id),
         )
 
-    def per_game_overall_statistic(self) -> List[dict[str, Any]]:
+    def per_game_overall_statistic(self) -> List[Dict[str, Any]]:
+        """
+        Returns overall statistics per game, including sessions and last session info.
+        """
         data = self.dao.fetch_overall_playtime()
-        result: List[dict[str, Any]] = []
+        result: List[Dict[str, Any]] = []
 
-        for g in data:
-            last_playtime_session_information = (
-                self.dao.fetch_last_playtime_session_information(g.game_id)
+        for game_stat in data:
+            # Fetch last session info
+            last_session = self.dao.fetch_last_playtime_session_information(
+                game_stat.game_id
             )
 
-            per_day_game_sessions_report: List[SessionInformation] = []
+            # Fetch all sessions for this game
+            sessions = [
+                SessionInformation(session.date, session.duration, session.migrated)
+                for session in self.dao.fetch_game_sessions_report(game_stat.game_id)
+            ]
 
-            for session in self.dao.fetch_game_sessions_report(g.game_id):
-                per_day_game_sessions_report.append(
-                    SessionInformation(session.date, session.duration, session.migrated)
-                )
-
-            game_with_time: GameWithTime = GameWithTime(
-                Game(g.game_id, g.game_name),
-                g.time,
-                per_day_game_sessions_report,
-                SessionInformation(
-                    date=last_playtime_session_information.date,
-                    duration=last_playtime_session_information.duration,
-                    migrated=last_playtime_session_information.migrated,
+            game_with_time = GameWithTime(
+                game=Game(game_stat.game_id, game_stat.game_name),
+                time=game_stat.time,
+                sessions=sessions,
+                last_session=SessionInformation(
+                    date=last_session.date,
+                    duration=last_session.duration,
+                    migrated=last_session.migrated,
                 ),
             )
 
