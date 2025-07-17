@@ -5,6 +5,10 @@ export const SortBy = {
 		key: "name",
 		name: "By Name",
 	},
+	RECENTLY_LAUNCHED: {
+		key: "recentlyLaunched",
+		name: "By Recently Launched",
+	},
 	FIRST_PLAYTIME: {
 		key: "firstPlaytime",
 		name: "By First Playtime",
@@ -98,6 +102,14 @@ function sortByLeastAverageTimePlayed(playedTime: Array<GameWithTime>) {
 	});
 }
 
+function sortByRecentlyLaunched(playedTime: Array<GameWithTime>) {
+	return playedTime.sort(
+		(a, b) =>
+			new Date(b?.lastSession?.date || 0).getTime() -
+			new Date(a?.lastSession?.date || 0).getTime(),
+	);
+}
+
 export function sortPlayedTime(
 	playedTimeOriginal: Array<GameWithTime>,
 	sort?: SortByKeys,
@@ -138,6 +150,10 @@ export function sortPlayedTime(
 
 	if (SortBy.LEAST_AVERAGE_TIME_PLAYED.key === sort) {
 		return sortByLeastAverageTimePlayed(playedTime);
+	}
+
+	if (SortBy.RECENTLY_LAUNCHED.key === sort) {
+		return sortByRecentlyLaunched(playedTime);
 	}
 
 	return sortByMostPlayed(playedTime);
