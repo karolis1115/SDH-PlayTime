@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import type { GameWithTime } from "../src/app/model.ts";
-import { SortBy, sortPlayedTime } from "../src/app/sortPlayTime.ts";
+import { SortBy, sortPlayedTime } from "@src/app/sortPlayTime";
 
 describe("sortPlayedTime", () => {
 	let games: Array<GameWithTime>;
@@ -14,13 +13,13 @@ describe("sortPlayedTime", () => {
 					{ date: "2022-01-01T10:00:00Z", duration: 30 },
 					{ date: "2022-01-02T10:00:00Z", duration: 45 },
 				],
-				last_session: { date: "2022-01-02T10:00:00Z", duration: 45 },
+				lastSession: { date: "2022-01-02T10:00:00Z", duration: 45 },
 			},
 			{
 				game: { name: "Game B", id: "1" },
 				time: 50,
 				sessions: [{ date: "2022-03-01T08:00:00Z", duration: 50 }],
-				last_session: { date: "2022-03-01T08:00:00Z", duration: 50 },
+				lastSession: { date: "2022-03-01T08:00:00Z", duration: 50 },
 			},
 			{
 				game: { name: "Game C", id: "33" },
@@ -31,7 +30,7 @@ describe("sortPlayedTime", () => {
 					{ date: "2022-02-03T09:00:00Z", duration: 30 },
 					{ date: "2022-02-03T19:11:11Z", duration: 180 },
 				],
-				last_session: { date: "2022-02-03T19:11:11Z", duration: 180 },
+				lastSession: { date: "2022-02-03T19:11:11Z", duration: 180 },
 			},
 		];
 	});
@@ -122,5 +121,13 @@ describe("sortPlayedTime", () => {
 		// @ts-expect-error
 		const sorted = sortPlayedTime(null);
 		expect(sorted.length).toBe(0);
+	});
+
+	test("sort by recently played", () => {
+		const sorted = sortPlayedTime(games, SortBy.RECENTLY_LAUNCHED.key);
+
+		expect(sorted[0].game.name).toBe("Game B");
+		expect(sorted[1].game.name).toBe("Game C");
+		expect(sorted[2].game.name).toBe("Game A");
 	});
 });

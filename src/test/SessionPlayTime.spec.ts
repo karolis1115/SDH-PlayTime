@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { SessionPlayTime } from "../src/app/SessionPlayTime";
-import { EventBus } from "../src/app/system";
+import { SessionPlayTime } from "@src/app/SessionPlayTime";
+import { EventBus } from "@src/app/system";
 
 const gameInfo_01: Game = {
 	id: "1",
