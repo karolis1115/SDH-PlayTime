@@ -1,4 +1,3 @@
-import dataclasses
 import sqlite3
 from datetime import datetime
 from python.db.dao import Dao
@@ -7,7 +6,7 @@ from python.tests.helpers import AbstractDatabaseTest
 
 
 class TestDao(AbstractDatabaseTest):
-    dao: Dao = None
+    dao: Dao
 
     def setUp(self) -> None:
         super().setUp()
