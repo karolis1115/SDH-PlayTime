@@ -68,10 +68,9 @@ _migrations = [
         5,
         [
             """
-        CREATE TABLE game_file_hash(
-            hash_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        CREATE TABLE game_file_checksum(
+            checksum_id INTEGER PRIMARY KEY AUTOINCREMENT,
             game_id TEXT NOT NULL,
-            parent_game_id TEXT,
             checksum TEXT NOT NULL,
             algorithm TEXT NOT NULL CHECK(algorithm IN (
                 'SHA224', 'SHA256', 'SHA384', 'SHA512',
@@ -81,13 +80,12 @@ _migrations = [
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (game_id) REFERENCES game_dict(game_id),
-            FOREIGN KEY (parent_game_id) REFERENCES game_dict(parent_game_id),
-            UNIQUE (game_id, parent_game_id, checksum, algorithm)
+            UNIQUE (game_id, checksum, algorithm)
         );
         """,
             """
-        CREATE INDEX idx_game_file_hash_checksum_algo
-            ON game_file_hash (game_id, parent_game_id, checksum, algorithm);
+        CREATE INDEX idx_game_file_checksum
+            ON game_file_checksum (game_id, checksum, algorithm);
             """,
         ],
     ),
