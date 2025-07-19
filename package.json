@@ -18,7 +18,7 @@
 		"@decky/rollup": "^1.0.1",
 		"@types/node": "^22.16.0",
 		"@types/react": "18.3.3",
-		"bun-types": "^1.2.18",
+		"bun-types": "^1.2.19",
 		"mobx": "^6.13.0",
 		"rollup": "^4.45.1",
 		"rollup-plugin-import-css": "^4.0.1",
