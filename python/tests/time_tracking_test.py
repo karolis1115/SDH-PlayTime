@@ -6,8 +6,9 @@ from python.db.migration import DbMigration
 from python.statistics import Statistics
 from python.tests.helpers import AbstractDatabaseTest
 from python.time_tracking import TimeTracking
-from python.dicts import ApplyManualTimeCorrectionList
-from python.models import Game
+from python.games import Games
+from python.schemas.request import ApplyManualTimeCorrectionList
+from python.schemas.response import Game
 
 
 class TestPlayTime(AbstractDatabaseTest):

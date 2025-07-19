@@ -13,21 +13,22 @@ class SessionInformation:
     date: str
     duration: float
     migrated: str | None
+    checksum: str | None
 
 
 @dataclass
 class GameWithTime:
     game: Game
-    time: int
+    time: float
     sessions: List[SessionInformation]
-    last_session: SessionInformation
+    last_session: SessionInformation | None
 
 
 @dataclass
 class DayStatistics:
     date: str
     games: List[GameWithTime]
-    total: int
+    total: float
 
 
 @dataclass
@@ -39,13 +40,13 @@ class PagedDayStatistics:
 
 @dataclass
 class GameInformation:
-    id: str
-    name: str
+    game: Game
     time: float
 
 
 @dataclass
 class FileChecksum:
+    game_id: str
     checksum: str
     algorithm: str
     chunk_size: int
@@ -55,6 +56,11 @@ class FileChecksum:
 
 @dataclass
 class GameDictionary:
-    id: str
-    name: str
+    game: Game
     files_checksum: List[FileChecksum]
+
+
+@dataclass
+class GamesChecksum:
+    game_id: str
+    checksum: str

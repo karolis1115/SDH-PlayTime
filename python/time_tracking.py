@@ -2,7 +2,7 @@ from datetime import datetime
 import logging
 from python.db.dao import Dao
 from python.helpers import end_of_day
-from python.dicts import ApplyManualTimeCorrectionDTO
+from python.schemas.request import ApplyManualTimeCorrectionDTO
 
 
 DATE_FORMAT = "%Y-%m-%d"

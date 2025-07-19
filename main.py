@@ -31,7 +31,7 @@ from python.games import Games
 from python.helpers import parse_date
 from python.statistics import Statistics
 from python.time_tracking import TimeTracking
-from python.dicts import (
+from python.dto.main import (
     AddGameChecksumDict,
     AddTimeDict,
     ApplyManualTimeCorrectionDTO,

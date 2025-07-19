@@ -4,7 +4,7 @@ from datetime import datetime, date, time, timedelta
 from typing import Dict, List, Any, Optional
 from python.db.dao import DailyGameTimeDto, Dao
 from python.helpers import format_date
-from python.models import (
+from python.schemas.response import (
     DayStatistics,
     Game,
     GameWithTime,

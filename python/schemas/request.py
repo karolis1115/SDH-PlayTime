@@ -1,6 +1,6 @@
 from typing import List, TypedDict, Optional
 from dataclasses import dataclass
-from python.models import Game
+from .response import Game
 
 
 class AddTimeDict(TypedDict):

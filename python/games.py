@@ -1,10 +1,12 @@
 from python.db.dao import Dao
 from typing import Dict, List
 import dataclasses
-from python.models import (
+from python.schemas.response import (
+    FileChecksum,
+    Game,
     GameDictionary,
     GameInformation,
-    FileChecksum,
+    GamesChecksum,
 )
 
 
