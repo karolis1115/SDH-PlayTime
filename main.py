@@ -21,7 +21,8 @@ def add_plugin_to_path():
 
 add_plugin_to_path()
 
-# pylint: disable=wrong-import-position
+# pylint: disable=wrong-import-order, wrong-import-position
+# ruff: noqa: E402
 from python.db.dao import Dao
 from python.db.migration import DbMigration
 from python.db.sqlite_db import SqlLiteDb
@@ -45,7 +46,7 @@ from python.dto.daily_statistics_for_period import DailyStatisticsForPeriodDTO
 from python.dto.add_time import AddTimeDTO
 
 
-# pylint: enable=wrong-import-position
+# pylint: enable=wrong-import-order, wrong-import-position
 
 # autopep8: on
 
