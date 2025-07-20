@@ -7,7 +7,14 @@
 	},
 	"files": {
 		"ignoreUnknown": false,
-		"includes": ["src/**", "test/**"]
+		"includes": [
+			"src/**",
+			"test/**",
+			"./tsconfig.json",
+			"./rollup.config.js",
+			"./plugin.json",
+			"./biome.json"
+		]
 	},
 	"formatter": {
 		"enabled": true,
