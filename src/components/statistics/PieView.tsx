@@ -68,7 +68,6 @@ export const PieView: FC<{
 
 	const RADIAN = Math.PI / 180;
 
-	// @ts-ignore
 	const renderCustomizedLabel = ({
 		cx,
 		cy,
