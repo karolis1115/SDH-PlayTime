@@ -23,7 +23,7 @@ class Games:
             return None
 
         return GameInformation(
-            id=response.game_id, name=response.name, time=response.time
+            Game(response.game_id, response.name), time=response.time
         )
 
     def get_dictionary(self) -> List[Dict[str, GameDictionary]]:
@@ -38,6 +38,7 @@ class Games:
             for game_file_checksum in game_files_checksum:
                 file_checksum_list.append(
                     FileChecksum(
+                        game_file_checksum.game_id,
                         game_file_checksum.checksum,
                         game_file_checksum.algorithm,
                         game_file_checksum.chunk_size,
@@ -49,7 +50,7 @@ class Games:
             result.append(
                 dataclasses.asdict(
                     GameDictionary(
-                        id=game.id, name=game.name, files_checksum=file_checksum_list
+                        Game(game.id, game.name), files_checksum=file_checksum_list
                     )
                 )
             )
@@ -79,3 +80,14 @@ class Games:
 
     def remove_all_game_checksums(self, game_id: str):
         self.dao.remove_all_game_checksums(game_id)
+
+    def get_games_checksum(self):
+        games_checksum_without_game_dict = self.dao.get_games_checksum()
+        result = []
+
+        for game in games_checksum_without_game_dict:
+            result.append(
+                dataclasses.asdict(GamesChecksum(game.game_id, game.checksum))
+            )
+
+        return result

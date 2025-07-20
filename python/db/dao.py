@@ -2,7 +2,8 @@ from dataclasses import dataclass
 import datetime
 import logging
 import sqlite3
-from typing import List, Dict
+from typing import List, Dict, Set, Optional, Collection
+from collections import defaultdict
 
 from python.db.sqlite_db import SqlLiteDb
 
@@ -14,6 +15,7 @@ class GameTimeDto:
     game_id: str
     game_name: str
     time: int
+    checksum: str
 
 
 @dataclass
@@ -23,6 +25,7 @@ class DailyGameTimeDto:
     game_name: str
     time: int
     sessions: int
+    checksum: str | None
 
 
 @dataclass
@@ -30,6 +33,7 @@ class SessionInformation:
     date: str
     duration: float
     migrated: str | None
+    checksum: str | None
 
 
 @dataclass
@@ -51,7 +55,8 @@ class GameInformationDto:
 
 @dataclass
 class FileChecksum:
-    hash_id: int
+    checksum_id: int
+    game_id: str
     checksum: str
     algorithm: str
     chunk_size: int
@@ -63,6 +68,12 @@ class FileChecksum:
 class GameDictionary:
     id: str
     name: str
+
+
+@dataclass
+class GamesChecksum:
+    game_id: str
+    checksum: str
 
 
 class Dao:
@@ -202,7 +213,7 @@ class Dao:
             {"game_id": game_id, "game_name": game_name},
         )
 
-    def fetch_overall_playtime(self) -> List[OverallGamesTimeDto]:
+    def fetch_overall_playtime(self) -> List[GameTimeDto]:
         with self._db.transactional() as connection:
             return self._fetch_overall_playtime(connection)
 
@@ -241,25 +252,30 @@ class Dao:
     def _fetch_overall_playtime(
         self,
         connection: sqlite3.Connection,
-    ) -> List[OverallGamesTimeDto]:
+    ) -> List[GameTimeDto]:
         connection.row_factory = lambda c, row: GameTimeDto(
             game_id=row[0],
             game_name=row[1],
             time=row[2],
+            checksum=row[3],
         )
 
         return connection.execute(
             """
-                SELECT
-                    ot.game_id,
-                    gd.name AS game_name,
-                    ot.duration
-                FROM
-                    overall_time ot
-                JOIN 
-                    game_dict gd
-                ON
-                    ot.game_id = gd.game_id;
+            SELECT
+                ot.game_id,
+                gd.name AS game_name,
+                ot.duration,
+                gfc.checksum
+            FROM
+                overall_time ot
+            JOIN 
+                game_dict gd ON ot.game_id = gd.game_id
+            LEFT JOIN (
+                SELECT game_id, MIN(checksum) AS checksum
+                FROM game_file_checksum
+                GROUP BY game_id
+            ) gfc ON ot.game_id = gfc.game_id;
             """
         ).fetchall()
 
@@ -271,25 +287,33 @@ class Dao:
         game_id: str | None = None,
     ) -> List[DailyGameTimeDto]:
         connection.row_factory = lambda c, row: DailyGameTimeDto(
-            date=row[0], game_id=row[1], game_name=row[2], time=row[3], sessions=row[4]
+            date=row[0],
+            game_id=row[1],
+            game_name=row[2],
+            time=row[3],
+            sessions=row[4],
+            checksum=row[5],
         )
 
         if game_id:
             return connection.execute(
                 """
-                SELECT STRFTIME('%Y-%m-%d', STRFTIME('%s', date_time), 'unixepoch') as date,
-                    pt.game_id as game_id,
-                    gd.name as game_name,
-                    SUM(duration) as total_time,
-                    COUNT(pt.game_id) AS sessions
+                SELECT
+                    STRFTIME('%Y-%m-%d', pt.date_time) AS date,
+                    pt.game_id,
+                    gd.name AS game_name,
+                    SUM(pt.duration) AS total_time,
+                    COUNT(*) AS sessions,
+                    gfc.checksum
                 FROM play_time pt
-                        LEFT JOIN game_dict gd ON pt.game_id = gd.game_id
-                WHERE STRFTIME('%s', date_time) BETWEEN STRFTIME('%s', :begin) AND
-                    STRFTIME('%s', :end) AND pt.game_id = :game_id
-                AND migrated IS NULL
-                GROUP BY STRFTIME('%Y-%m-%d', STRFTIME('%s', date_time), 'unixepoch'),
-                         pt.game_id,
-                         gd.name
+                LEFT JOIN game_dict gd ON pt.game_id = gd.game_id
+                LEFT JOIN game_file_checksum gfc ON gfc.game_id = pt.game_id
+                WHERE pt.date_time BETWEEN :begin AND :end
+                    AND pt.game_id = :game_id
+                    AND pt.migrated IS NULL
+                GROUP BY
+                    STRFTIME('%Y-%m-%d', pt.date_time),
+                    pt.game_id;
             """,
                 {
                     "begin": begin.isoformat(),
@@ -300,149 +324,52 @@ class Dao:
 
         result = connection.execute(
             """
-                SELECT STRFTIME('%Y-%m-%d', STRFTIME('%s', date_time), 'unixepoch') as date,
-                    pt.game_id as game_id,
-                    gd.name as game_name,
-                    SUM(duration) as total_time,
-                    COUNT(pt.game_id) AS sessions
-                FROM play_time pt
-                        LEFT JOIN game_dict gd ON pt.game_id = gd.game_id
-                WHERE STRFTIME('%s', date_time) BETWEEN STRFTIME('%s', :begin) AND
-                    STRFTIME('%s', :end)
-                AND migrated IS NULL
-                GROUP BY STRFTIME('%Y-%m-%d', STRFTIME('%s', date_time), 'unixepoch'),
-                         pt.game_id,
-                         gd.name
+            SELECT
+                STRFTIME('%Y-%m-%d', pt.date_time) AS date,
+                pt.game_id,
+                gd.name AS game_name,
+                SUM(pt.duration) AS total_time,
+                COUNT(*) AS sessions,
+                gfc.checksum
+            FROM play_time pt
+            LEFT JOIN game_dict gd ON pt.game_id = gd.game_id
+            LEFT JOIN game_file_checksum gfc ON gfc.game_id = pt.game_id
+            WHERE pt.date_time BETWEEN :begin AND :end
+                AND pt.migrated IS NULL
+            GROUP BY
+                STRFTIME('%Y-%m-%d', pt.date_time),
+                pt.game_id;
             """,
             {"begin": begin.isoformat(), "end": end.isoformat()},
         ).fetchall()
         return result
-
-    def fetch_last_playtime_session_information(
-        self, game_id: str
-    ) -> SessionInformation:
-        with self._db.transactional() as connection:
-            return self._fetch_last_playtime_session_information(connection, game_id)
-
-    def _fetch_last_playtime_session_information(
-        self, connection: sqlite3.Connection, game_id: str
-    ) -> SessionInformation:
-        connection.row_factory = lambda c, row: SessionInformation(
-            date=row[0],
-            duration=row[1],
-            migrated=row[2],
-        )
-
-        return connection.execute(
-            """
-            SELECT
-                pt.date_time,
-                pt.duration,
-                pt.migrated
-            FROM
-                play_time pt
-            WHERE
-                pt.game_id = ?
-            ORDER BY
-                pt.date_time
-            DESC LIMIT 1;
-            """,
-            (game_id,),
-        ).fetchone()
-
-    def fetch_per_day_game_sessions_report(
-        self, date: str, game_id: str
-    ) -> List[SessionInformation]:
-        with self._db.transactional() as connection:
-            return self._fetch_per_day_game_sessions_report(connection, date, game_id)
-
-    def _fetch_per_day_game_sessions_report(
-        self,
-        connection: sqlite3.Connection,
-        date: str,
-        game_id: str,
-    ) -> List[SessionInformation]:
-        connection.row_factory = lambda c, row: SessionInformation(
-            date=row[0],
-            duration=row[1],
-            migrated=row[2],
-        )
-
-        return connection.execute(
-            """
-                SELECT
-                    pt.date_time,
-                    pt.duration,
-                    pt.migrated
-                FROM
-                    play_time pt
-                WHERE
-                    pt.game_id = :game_id
-                AND
-                    STRFTIME('%Y-%m-%d', date_time) = :date
-                ORDER BY
-                    pt.date_time;
-            """,
-            {
-                "date": date,
-                "game_id": game_id,
-            },
-        ).fetchall()
-
-    def fetch_game_sessions_report(self, game_id: str) -> List[SessionInformation]:
-        with self._db.transactional() as connection:
-            return self._fetch_game_sessions_report(connection, game_id)
-
-    def _fetch_game_sessions_report(
-        self, connection: sqlite3.Connection, game_id: str
-    ) -> List[SessionInformation]:
-        connection.row_factory = lambda c, row: SessionInformation(
-            date=row[0],
-            duration=row[1],
-            migrated=row[2],
-        )
-
-        return connection.execute(
-            """
-                SELECT
-                    pt.date_time,
-                    pt.duration,
-                    pt.migrated
-                FROM
-                    play_time pt
-                WHERE
-                    pt.game_id = :game_id
-                ORDER BY
-                    pt.date_time;
-            """,
-            {
-                "game_id": game_id,
-            },
-        ).fetchall()
 
     def fetch_all_game_sessions_report(self) -> List[tuple[str, SessionInformation]]:
         with self._db.transactional() as connection:
             connection.row_factory = lambda c, row: (
                 row[0],  # game_id
                 SessionInformation(
-                    date=row[1],
-                    duration=row[2],
-                    migrated=row[3],
+                    date=row[1], duration=row[2], migrated=row[3], checksum=row[4]
                 ),
             )
 
             return connection.execute(
                 """
-                    SELECT
-                        pt.game_id,
-                        pt.date_time,
-                        pt.duration,
-                        pt.migrated
-                    FROM
-                        play_time pt
-                    ORDER BY
-                        pt.game_id, pt.date_time;
-                """
+                SELECT
+                    pt.game_id,
+                    pt.date_time,
+                    pt.duration,
+                    pt.migrated,
+                    gfc.checksum
+                FROM
+                    play_time pt
+                LEFT JOIN
+                    game_file_checksum gfc
+                ON
+                    pt.game_id = gfc.game_id
+                ORDER BY
+                    pt.game_id, pt.date_time;
+            """
             ).fetchall()
 
     def fetch_all_last_playtime_session_information(
@@ -455,32 +382,154 @@ class Dao:
                     date=row[1],
                     duration=row[2],
                     migrated=row[3],
+                    checksum=row[4],
                 ),
             )
-            # This query assumes you want the latest session per game
+
             return dict(
                 connection.execute(
                     """
+                SELECT
+                    pt.game_id,
+                    pt.date_time,
+                    pt.duration,
+                    pt.migrated,
+                    gfc.checksum
+                FROM (
                     SELECT
-                        pt.game_id,
-                        pt.date_time,
-                        pt.duration,
-                        pt.migrated
-                    FROM
-                        play_time pt
-                    INNER JOIN (
-                        SELECT
-                            game_id,
-                            MAX(date_time) AS max_date
-                        FROM
-                            play_time
-                        GROUP BY
-                            game_id
-                    ) latest
-                    ON pt.game_id = latest.game_id AND pt.date_time = latest.max_date
+                        *,
+                        ROW_NUMBER() OVER (PARTITION BY game_id ORDER BY date_time DESC) AS rn
+                    FROM play_time
+                ) pt
+                LEFT JOIN game_file_checksum gfc ON gfc.game_id = pt.game_id
+                WHERE pt.rn = 1;
                 """
                 ).fetchall()
             )
+
+    def fetch_sessions_for_period(
+        self,
+        start_time: datetime.datetime,
+        end_time: datetime.datetime,
+        game_id: Optional[str] = None,
+    ) -> Dict[str, Dict[str, List[SessionInformation]]]:
+        with self._db.transactional() as connection:
+            return self._fetch_sessions_for_period(
+                connection,
+                start_time,
+                end_time,
+                game_id,
+            )
+
+    def _fetch_sessions_for_period(
+        self,
+        connection: sqlite3.Connection,
+        start_time: datetime.datetime,
+        end_time: datetime.datetime,
+        game_id: Optional[str] = None,
+    ) -> Dict[str, Dict[str, List[SessionInformation]]]:
+        query = """
+            SELECT
+                strftime('%Y-%m-%d', pt.date_time) as session_date,
+                pt.game_id,
+                pt.date_time,
+                pt.duration,
+                pt.migrated,
+                gfc.checksum
+            FROM
+                play_time pt
+            LEFT JOIN
+                game_file_checksum gfc ON pt.game_id = gfc.game_id
+            WHERE
+                pt.date_time >= :start AND pt.date_time < :end
+            {game_id_filter}
+            ORDER BY
+                session_date, pt.game_id, pt.date_time;
+        """
+
+        params = {
+            "start": start_time.isoformat(),
+            "end": end_time.isoformat(),
+        }
+
+        game_id_filter = ""
+        if game_id is not None:
+            game_id_filter = "AND pt.game_id = :game_id"
+            params["game_id"] = game_id
+
+        query = query.format(game_id_filter=game_id_filter)
+
+        sessions_by_day_and_game: Dict[str, Dict[str, List[SessionInformation]]] = (
+            defaultdict(lambda: defaultdict(list))
+        )
+
+        connection.row_factory = lambda c, row: (
+            row[0],  # session_date
+            row[1],  # game_id
+            SessionInformation(
+                date=row[2],
+                duration=row[3],
+                migrated=row[4],
+                checksum=row[5],
+            ),
+        )
+
+        rows = connection.execute(query, params).fetchall()
+
+        for session_date, game_id_val, session_info in rows:
+            sessions_by_day_and_game[session_date][game_id_val].append(session_info)
+
+        return sessions_by_day_and_game
+
+    def fetch_last_sessions_for_games(
+        self,
+        game_ids: Collection[str],
+    ) -> Dict[str, SessionInformation]:
+        with self._db.transactional() as connection:
+            return self._fetch_last_sessions_for_games(
+                connection,
+                game_ids,
+            )
+
+    def _fetch_last_sessions_for_games(
+        self,
+        connection: sqlite3.Connection,
+        game_ids: Collection[str],
+    ) -> Dict[str, SessionInformation]:
+        game_ids_list = list(game_ids)
+        placeholders = ", ".join("?" for _ in game_ids_list)
+
+        connection.row_factory = lambda c, row: (
+            row[0],
+            SessionInformation(
+                date=row[1],
+                duration=row[2],
+                migrated=row[3],
+                checksum=row[4],
+            ),
+        )
+
+        query = f"""
+            SELECT
+                pt.game_id,
+                pt.date_time,
+                pt.duration,
+                pt.migrated,
+                gfc.checksum
+            FROM (
+                SELECT
+                    *,
+                    ROW_NUMBER() OVER (PARTITION BY game_id ORDER BY date_time DESC) AS rn
+                FROM play_time
+                WHERE game_id IN ({placeholders})
+            ) pt
+            LEFT JOIN game_file_checksum gfc ON gfc.game_id = pt.game_id
+            WHERE pt.rn = 1;
+        """
+
+        rows = connection.execute(query, game_ids_list).fetchall()
+
+        return dict(rows)
 
     def get_game(self, game_id: str) -> GameInformationDto | None:
         with self._db.transactional() as connection:
@@ -539,22 +588,23 @@ class Dao:
         self, connection: sqlite3.Connection, game_id: str
     ) -> List[FileChecksum]:
         connection.row_factory = lambda c, row: FileChecksum(
-            row[0], row[1], row[2], row[3], row[4], row[5]
+            row[0], row[1], row[2], row[3], row[4], row[5], row[6]
         )
 
         return connection.execute(
             """
             SELECT
-                gfh.hash_id,
-                gfh.checksum,
-                gfh.algorithm,
-                gfh.chunk_size,
-                gfh.created_at,
-                gfh.updated_at
+                gfc.checksum_id,
+                gfc.game_id,
+                gfc.checksum,
+                gfc.algorithm,
+                gfc.chunk_size,
+                gfc.created_at,
+                gfc.updated_at
             FROM
-                game_file_hash gfh
+                game_file_checksum gfc
             WHERE
-                gfh.game_id = ?
+                gfc.game_id = ?
             """,
             (game_id,),
         ).fetchall()
@@ -591,7 +641,7 @@ class Dao:
     ):
         connection.execute(
             """
-                INSERT INTO game_file_hash(game_id, checksum, algorithm, chunk_size, created_at, updated_at)
+                INSERT INTO game_file_checksum(game_id, checksum, algorithm, chunk_size, created_at, updated_at)
                 VALUES (?, ?, ?, ?, IFNULL(?, CURRENT_TIMESTAMP), IFNULL(?, CURRENT_TIMESTAMP))
                 """,
             (
@@ -624,7 +674,7 @@ class Dao:
     ):
         connection.execute(
             """
-                DELETE FROM game_file_hash WHERE game_id = ? AND checksum = ?
+                DELETE FROM game_file_checksum WHERE game_id = ? AND checksum = ?
                 """,
             (
                 game_id,
@@ -649,7 +699,31 @@ class Dao:
     ):
         connection.execute(
             """
-                DELETE FROM game_file_hash WHERE game_id = ?
+                DELETE FROM game_file_checksum WHERE game_id = ?
                 """,
             (game_id,),
         )
+
+    def get_games_checksum(
+        self,
+    ) -> List[GamesChecksum]:
+        with self._db.transactional() as connection:
+            return self._get_games_checksum(
+                connection,
+            )
+
+    def _get_games_checksum(
+        self,
+        connection: sqlite3.Connection,
+    ) -> List[GamesChecksum]:
+        connection.row_factory = lambda c, row: GamesChecksum(row[0], row[1])
+
+        return connection.execute(
+            """
+            SELECT
+                gfc.game_id,
+                gfc.checksum
+            FROM
+                game_file_checksum gfc;
+            """,
+        ).fetchall()

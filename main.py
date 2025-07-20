@@ -31,7 +31,7 @@ from python.games import Games
 from python.helpers import parse_date
 from python.statistics import Statistics
 from python.time_tracking import TimeTracking
-from python.dto.main import (
+from python.schemas.request import (
     AddGameChecksumDict,
     AddTimeDict,
     ApplyManualTimeCorrectionDTO,
@@ -42,8 +42,10 @@ from python.dto.main import (
     RemoveGameChecksumDTO,
 )
 from python.dto.save_game_checksum import AddGameChecksumDTO
-from python.dto.daily_statistics_for_period import DailyStatisticsForPeriodDTO
-from python.dto.add_time import AddTimeDTO
+from python.dto.statistics.daily_statistics_for_period import (
+    DailyStatisticsForPeriodDTO,
+)
+from python.dto.time.add_time import AddTimeDTO
 
 
 # pylint: enable=wrong-import-order, wrong-import-position
@@ -161,16 +163,6 @@ class Plugin:
         try:
             dto = AddGameChecksumDTO.from_dict(dto_dict)
 
-            exist_game_with_id = self.games.get_by_id(dto.game_id)
-
-            if exist_game_with_id is None:
-                decky.logger.warn(
-                    '[save_game_checksum] Can not set checksume for game that does not exist in "game_dict". Game ID: %s',
-                    dto.game_id,
-                )
-
-                return None
-
             return self.games.save_game_checksum(
                 dto.game_id,
                 dto.checksum,
@@ -195,6 +187,15 @@ class Plugin:
             return self.games.remove_all_game_checksums(game_id)
         except Exception as e:
             decky.logger.exception("[remove_game_checksum] Unhandled exception: %s", e)
+            raise e
+
+    async def get_games_checksum(
+        self,
+    ):
+        try:
+            return self.games.get_games_checksum()
+        except Exception as e:
+            decky.logger.exception("[get_games_checksum] Unhandled exception: %s", e)
             raise e
 
     async def _unload(self):
