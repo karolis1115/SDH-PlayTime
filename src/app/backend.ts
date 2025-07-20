@@ -2,6 +2,7 @@ import { call } from "@decky/api";
 import logger from "@src/utils/logger";
 import { toIsoDateOnly } from "@utils/formatters";
 import type { EventBus } from "./system";
+import { BACK_END_API } from "@src/constants";
 
 export interface OverallPlayTimes {
 	[gameId: string]: number;
@@ -37,7 +38,7 @@ export class Backend {
 			return;
 		}
 
-		await call<[AddTimeDto], void>("add_time", {
+		await call<[AddTimeDto], void>(BACK_END_API.ADD_TIME, {
 			started_at: startedAt / 1000,
 			ended_at: endedAt / 1000,
 			game_id: game.id,
@@ -57,7 +58,7 @@ export class Backend {
 		return await call<
 			[DailyStatisticsForPeriodDTO],
 			PagedDayStatisticsResponse
-		>("daily_statistics_for_period", {
+		>(BACK_END_API.DAILY_STATISTICS_FOR_PERIOD, {
 			start_date: toIsoDateOnly(start),
 			end_date: toIsoDateOnly(end),
 			game_id: gameId,
@@ -82,7 +83,7 @@ export class Backend {
 
 	async fetchPerGameOverallStatistics(): Promise<GameWithTime[]> {
 		return await call<[], Array<GameWithTimeResponse>>(
-			"per_game_overall_statistics",
+			BACK_END_API.PER_GAME_OVERALL_STATISTICS,
 		)
 			.then((response) => {
 				return response.map((item) => ({
@@ -101,7 +102,7 @@ export class Backend {
 		games: GameWithTime[],
 	): Promise<boolean> {
 		return await call<[list_of_game_stats: ApplyManualTimeCorrectionDTO], void>(
-			"apply_manual_time_correction",
+			BACK_END_API.APPLY_MANUAL_TIME_CORRECTION,
 			games,
 		)
 			.then(() => {
@@ -127,7 +128,7 @@ export class Backend {
 
 	async getGame(gameId: string): Promise<Nullable<GameInformation>> {
 		return await call<GetGameDTO, Nullable<GameInformationResponse>>(
-			"get_game",
+			BACK_END_API.GET_GAME,
 			gameId,
 		)
 			.then((response) => {
@@ -142,7 +143,7 @@ export class Backend {
 
 	public static async getFileSHA256(path: string): Promise<Nullable<string>> {
 		return await call<GetFileSHA256DTO, Nullable<string>>(
-			"get_file_sha256",
+			BACK_END_API.GET_FILE_SHA256,
 			path,
 		)
 			.then((response) => {
@@ -156,7 +157,7 @@ export class Backend {
 	}
 
 	public static async getHasMinRequiredPythonVersion(): Promise<boolean> {
-		return await call<[], boolean>("has_min_required_python_version")
+		return await call<[], boolean>(BACK_END_API.HAS_MIN_REQUIRED_PYTHON_VERSION)
 			.then((response) => {
 				return response;
 			})
@@ -168,7 +169,9 @@ export class Backend {
 	}
 
 	public static async getGamesDictionary(): Promise<Array<GameDictionary>> {
-		return await call<[], Array<GameDictionaryResponse>>("get_games_dictionary")
+		return await call<[], Array<GameDictionaryResponse>>(
+			BACK_END_API.GET_GAMES_DICTIONARY,
+		)
 			.then((response) => {
 				return response;
 			})
