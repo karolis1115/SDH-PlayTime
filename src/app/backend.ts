@@ -38,7 +38,7 @@ export class Backend {
 			return;
 		}
 
-		await call<[AddTimeDto], void>(BACK_END_API.ADD_TIME, {
+		await call<[AddTimeDTO], void>(BACK_END_API.ADD_TIME, {
 			started_at: startedAt / 1000,
 			ended_at: endedAt / 1000,
 			game_id: game.id,
@@ -127,7 +127,7 @@ export class Backend {
 	}
 
 	async getGame(gameId: string): Promise<Nullable<GameInformation>> {
-		return await call<GetGameDTO, Nullable<GameInformationResponse>>(
+		return await call<[GetGameDTO], Nullable<GameInformationResponse>>(
 			BACK_END_API.GET_GAME,
 			gameId,
 		)
@@ -142,7 +142,7 @@ export class Backend {
 	}
 
 	public static async getFileSHA256(path: string): Promise<Nullable<string>> {
-		return await call<GetFileSHA256DTO, Nullable<string>>(
+		return await call<[GetFileSHA256DTO], Nullable<string>>(
 			BACK_END_API.GET_FILE_SHA256,
 			path,
 		)
@@ -156,29 +156,62 @@ export class Backend {
 			});
 	}
 
-	public static async getHasMinRequiredPythonVersion(): Promise<boolean> {
-		return await call<[], boolean>(BACK_END_API.HAS_MIN_REQUIRED_PYTHON_VERSION)
-			.then((response) => {
-				return response;
-			})
-			.catch((error) => {
-				logger.error(error);
-
-				return false;
-			});
-	}
-
 	public static async getGamesDictionary(): Promise<Array<GameDictionary>> {
 		return await call<[], Array<GameDictionaryResponse>>(
 			BACK_END_API.GET_GAMES_DICTIONARY,
-		)
-			.then((response) => {
-				return response;
-			})
-			.catch((error) => {
-				logger.error(error);
+		).then((response) => {
+			return response.map((item) => ({
+				...item,
+				filesChecksum: item.files_checksum.map((fileChecksum) => ({
+					...fileChecksum,
+					gameId: fileChecksum.game_id,
+					chunkSize: fileChecksum.chunk_size,
+					createdAt: fileChecksum.created_at,
+					updatedAt: fileChecksum.updated_at,
+				})),
+			}));
+		});
+	}
 
-				return [];
-			});
+	public static async addGameChecksum(
+		id: string,
+		hashChecksum: string,
+		hashAlgorithm: string,
+		hashChunkSize: number,
+		createdAt?: Date,
+		updatedAt?: Date,
+	): Promise<void> {
+		return await call<[AddGameChecksumDTO], void>(
+			BACK_END_API.SAVE_GAME_CHECKSUM,
+			{
+				game_id: id,
+				checksum: hashChecksum,
+				algorithm: hashAlgorithm,
+				chunk_size: hashChunkSize,
+				created_at: createdAt,
+				updated_at: updatedAt,
+			},
+		);
+	}
+
+	public static async removeGameChecksum(
+		id: string,
+		checksum: string,
+	): Promise<void> {
+		return await call<[RemoveGameChecksumDTO], void>(
+			BACK_END_API.REMOVE_GAME_CHECKSUM,
+			{
+				game_id: id,
+				checksum,
+			},
+		);
+	}
+
+	public static async getGamesChecksum(): Promise<Array<GamesChecksum>> {
+		return await call<[], Array<FileChecksumResponse>>(
+			BACK_END_API.GET_GAMES_CHECKSUM,
+		).then((response) =>
+			response.map((item) => ({ ...item, gameId: item.game_id })),
+		);
 	}
 }
