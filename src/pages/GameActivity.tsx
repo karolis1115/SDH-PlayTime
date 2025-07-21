@@ -43,7 +43,8 @@ function Header({ gameId }: HeaderProperties) {
 					return;
 				}
 
-				const { name, time } = response;
+				const { game, time } = response;
+				const { name } = game;
 
 				setGameName(name);
 				setPlayedTime(

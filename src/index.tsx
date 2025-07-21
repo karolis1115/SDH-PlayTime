@@ -1,12 +1,11 @@
 import { routerHook, toaster } from "@decky/api";
 import { definePlugin, staticClasses, useParams } from "@decky/ui";
 import { patchAppPage } from "@src/steam/ui/routePatches";
-import { SteamPlayTimePatches } from "@src/steam/ui/SteamPlayTimePatches";
+import { SteamPlayTimePatches } from "@src/steam/ui/steamPlayTimePatches";
 import { getDurationInHours } from "@utils/formatters";
 import { FaClock } from "react-icons/fa";
 import { SessionPlayTime } from "./app/SessionPlayTime";
 import { Backend } from "./app/backend";
-import { getCurrentNonSteamGamesChecksum } from "./app/games";
 import { SteamEventMiddleware } from "./app/middleware";
 import { BreaksReminder } from "./app/notification";
 import { Reports } from "./app/reports";
@@ -25,19 +24,18 @@ import {
 } from "./cachables";
 import { LocatorProvider } from "./locator";
 import { DeckyPanelPage } from "./pages/DeckyPanelPage";
-import { FileChecksum } from "./pages/FileChecksum";
 import { GameActivity } from "./pages/GameActivity";
 import { ManuallyAdjustTimePage } from "./pages/ManuallyAdjustTimePage";
 import { DetailedPage } from "./pages/ReportPage";
-import { SettingsPage } from "./pages/SettingsPage";
+import { SettingsPage } from "./pages/settings/";
 import {
 	DETAILED_REPORT_ROUTE,
-	FILE_CHECKSUM_ROUTE,
 	GAME_REPORT_ROUTE,
 	MANUALLY_ADJUST_TIME,
 	SETTINGS_ROUTE,
 } from "./pages/navigation";
 import { log } from "./utils/logger";
+import { getNonSteamGamesChecksumFromDataBase } from "./app/games";
 
 export default definePlugin(() => {
 	log("PlayTime plugin loading...");
@@ -104,11 +102,10 @@ function createMountables(
 	eventBus.addSubscriber((event) => {
 		switch (event.type) {
 			case "UserLoggedIn": {
-				getCurrentNonSteamGamesChecksum();
+				getNonSteamGamesChecksumFromDataBase();
 
 				break;
 			}
-
 			case "NotifyToTakeBreak":
 				toaster.toast({
 					body: (
@@ -213,24 +210,6 @@ function createMountables(
 		},
 		unMount() {
 			routerHook.removeRoute(GAME_REPORT_ROUTE);
-		},
-	});
-
-	mounts.push({
-		mount() {
-			routerHook.addRoute(FILE_CHECKSUM_ROUTE, () => (
-				<LocatorProvider
-					reports={reports}
-					sessionPlayTime={sessionPlayTime}
-					settings={settings}
-					timeManipulation={timeMigration}
-				>
-					<FileChecksum />
-				</LocatorProvider>
-			));
-		},
-		unMount() {
-			routerHook.removeRoute(FILE_CHECKSUM_ROUTE);
 		},
 	});
 
