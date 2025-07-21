@@ -1,40 +1,41 @@
-type Game = {
+type GameResponse = {
 	id: string;
 	name: string;
 };
 
-type SessionInformation = {
+type SessionInformationResponse = {
 	date: string;
 	duration: number;
 	migrated?: string;
+	checksum?: string;
 };
 
 type GameWithTimeResponse = {
 	game: Game;
 	time: number;
 	sessions: Array<SessionInformation>;
-	last_session: SessionInformation;
+	last_session?: SessionInformation;
 };
 
-type DayStatistics = {
+type DayStatisticsResponse = {
 	date: string;
 	games: Array<GameWithTime>;
 	total: number;
 };
 
 type PagedDayStatisticsResponse = {
-	data: Array<DayStatistics>;
+	data: Array<DayStatisticsResponse>;
 	has_prev: boolean;
 	has_next: boolean;
 };
 
 type GameInformationResponse = {
-	id: string;
-	name: string;
+	game: Game;
 	time: number;
 };
 
 type FileChecksumResponse = {
+	game_id: string;
 	checksum: string;
 	algorithm: string;
 	chunk_size: number;
@@ -43,7 +44,11 @@ type FileChecksumResponse = {
 };
 
 type GameDictionaryResponse = {
-	id: string;
-	name: string;
+	game: Game;
 	files_checksum: Array<FileChecksumResponse>;
+};
+
+type GamesChecksumResponse = {
+	game_id: string;
+	checksum: string;
 };

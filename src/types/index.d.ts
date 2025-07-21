@@ -2,19 +2,25 @@ declare module "*.css";
 
 type Nullable<T> = T | null | undefined;
 
+type Game = GameResponse;
+
+type SessionInformation = SessionInformationResponse;
+
 type Session = SessionInformation & {
 	migrated?: string;
 };
-type DailyStatistics = DayStatistics;
+
+type DailyStatistics = DayStatisticsResponse;
 
 type GameWithTime = Omit<GameWithTimeResponse, "last_session"> & {
-	lastSession: SessionInformation;
+	lastSession?: SessionInformation;
 };
 
-type FileChecksum = {
-	checksum: string;
-	algorithm: string;
-	chunkSize: number;
+type FileChecksum = Omit<
+	FileChecksumResponse,
+	"game_id" | "chunk_size" | "created_at" | "updated_at"
+> & {
+	gameId: string;
 	createdAt?: string;
 	updatedAt?: string;
 };
@@ -38,4 +44,8 @@ type LocalNonSteamGame = {
 	name: string;
 	sha256: string;
 	pathToGame: string;
+};
+
+type GamesChecksum = Omit<GamesChecksumResponse, "game_id"> & {
+	gameId: string;
 };
