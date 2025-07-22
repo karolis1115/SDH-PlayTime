@@ -1,5 +1,5 @@
 import { routerHook, toaster } from "@decky/api";
-import { definePlugin, staticClasses, useParams } from "@decky/ui";
+import { definePlugin, findSP, staticClasses, useParams } from "@decky/ui";
 import { patchAppPage } from "@src/steam/ui/routePatches";
 import { SteamPlayTimePatches } from "@src/steam/ui/steamPlayTimePatches";
 import { getDurationInHours } from "@utils/formatters";
@@ -34,12 +34,34 @@ import {
 	MANUALLY_ADJUST_TIME,
 	SETTINGS_ROUTE,
 } from "./pages/navigation";
-import { log } from "./utils/logger";
+import { log, error } from "./utils/logger";
 import { getNonSteamGamesChecksumFromDataBase } from "./app/games";
 import { isNil } from "./utils/isNil";
+import PlayTimeStyle from "./styles/output.css";
+
+function injectTailwind() {
+	if (typeof document === "undefined") {
+		error("Impossible to inject TailwindCSS styles into <head />");
+
+		return;
+	}
+
+	if (!isNil(findSP().document.head.querySelector("#playTimeStyle"))) {
+		findSP().document.head.querySelector("#playTimeStyle")?.remove();
+	}
+
+	const style = document.createElement("style");
+	style.id = "playTimeStyle";
+	style.innerHTML = PlayTimeStyle;
+
+	findSP().document.head.appendChild(style);
+
+	log("Inject TailwindCSS styles into <head />");
+}
 
 export default definePlugin(() => {
 	log("PlayTime plugin loading...");
+	injectTailwind();
 
 	const clock = systemClock;
 	const eventBus = new EventBus();
@@ -220,6 +242,8 @@ function createMountables(
 		},
 		unMount() {
 			routerHook.removeRoute(GAME_REPORT_ROUTE);
+
+			findSP().document.head.querySelector("#playTimeStyle")?.remove();
 		},
 	});
 
