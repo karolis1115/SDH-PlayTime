@@ -4,7 +4,7 @@
 	"description": "PlayTime",
 	"type": "module",
 	"scripts": {
-		"build": "shx rm -rf dist && rollup -c"
+		"build": "shx rm -rf ./src/styles/output.css && npx @tailwindcss/cli -i ./src/styles/index.css -o ./src/styles/output.css && shx rm -rf dist && rollup -c"
 	},
 	"keywords": [
 		"decky",
