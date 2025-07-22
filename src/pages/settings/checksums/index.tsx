@@ -10,7 +10,6 @@ import {
 import { useStore } from "@nanostores/react";
 import { Backend } from "@src/app/backend";
 import { initializeGameDetectionByChecksum } from "@src/app/games";
-import Badge from "@src/components/Badge";
 import { FocusableExt } from "@src/components/FocusableExt";
 import { $gameCheksumsLoadingState, gameChecksums } from "@src/stores/games";
 import { TableCSS } from "@src/styles";
@@ -175,61 +174,32 @@ async function saveAllChecksums(tableRows: Array<LocalNonSteamGame>) {
 }
 
 function FileChecksumStatus({
-	gameId,
 	hasChecksumSaved,
 	hasChecksum,
-	hasDuplicate,
 }: {
-	gameId: string;
 	hasChecksum: Nullable<boolean>;
 	hasChecksumSaved: boolean;
-	hasDuplicate: boolean;
 }) {
-	if (hasDuplicate) {
-		return <Badge>Duplicate</Badge>;
-	}
-
 	if (!hasChecksum) {
 		return (
-			<div
-				style={{
-					textAlign: "center",
-					fontWeight: "bold",
-					color: "red",
-					fontSize: "13px",
-				}}
-			>
+			<span className="inline-flex justify-center items-center rounded-md bg-red-400/10 px-2 py-1 text-xs font-medium text-red-400 ring-1 ring-red-400/20 ring-inset">
 				Impossible to detect file checksum
-			</div>
+			</span>
 		);
 	}
 
 	if (!hasChecksumSaved) {
 		return (
-			<div
-				style={{
-					textAlign: "center",
-					fontWeight: "bold",
-					color: "orange",
-					fontSize: "13px",
-				}}
-			>
+			<span className="inline-flex justify-center items-center rounded-md bg-yellow-400/10 px-2 py-1 text-xs font-medium text-yellow-400 ring-1 ring-yellow-400/20 ring-inset">
 				Not saved
-			</div>
+			</span>
 		);
 	}
 
 	return (
-		<div
-			style={{
-				textAlign: "center",
-				fontWeight: "bold",
-				color: "green",
-				fontSize: "13px",
-			}}
-		>
+		<span className="inline-flex justify-center items-center rounded-md bg-green-400/10 px-2 py-1 text-xs font-medium text-green-400 ring-1 ring-green-400/20 ring-inset">
 			Saved
-		</div>
+		</span>
 	);
 }
 
@@ -263,10 +233,6 @@ export function FileChecksum() {
 		return <span>Loading...</span>;
 	}
 
-	const dataBaseGamesDictionary = [...gameChecksums.dataBase].map(
-		(item) => item[1],
-	);
-
 	return (
 		<>
 			<ButtonItem onClick={async () => await saveAllChecksums(tableRows)}>
@@ -294,14 +260,6 @@ export function FileChecksum() {
 						.get(row.id)
 						?.filesChecksum.map((item) => item.checksum),
 				);
-				const hasDuplicate = !isNil(
-					dataBaseGamesDictionary.find((item) =>
-						item.filesChecksum.find(
-							(checksum) =>
-								checksum.checksum === row?.sha256 && item.game.id !== row?.id,
-						),
-					),
-				);
 
 				return (
 					<FocusableExt
@@ -323,7 +281,7 @@ export function FileChecksum() {
 					>
 						<div
 							style={{
-								paddingLeft: "0.5rem",
+								padding: "0 0.5rem",
 								display: "flex",
 								alignItems: "center",
 							}}
@@ -332,10 +290,8 @@ export function FileChecksum() {
 						</div>
 
 						<FileChecksumStatus
-							gameId={row.id}
 							hasChecksumSaved={hasChecksumSaved}
 							hasChecksum={hasChecksum}
-							hasDuplicate={hasDuplicate}
 						/>
 					</FocusableExt>
 				);
