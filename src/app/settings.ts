@@ -15,6 +15,7 @@ export interface PlayTimeSettings {
 	};
 	coverScale: number;
 	selectedSortByOption: SortByKeys;
+	isEnabledDetectionOfGamesByFileChecksum: boolean;
 }
 
 export enum ChartStyle {
@@ -33,6 +34,7 @@ export const DEFAULTS: PlayTimeSettings = {
 	},
 	coverScale: 1,
 	selectedSortByOption: "mostPlayed",
+	isEnabledDetectionOfGamesByFileChecksum: false,
 };
 
 export class Settings {
@@ -41,9 +43,14 @@ export class Settings {
 			.then(async (json) => {
 				const parsedJson = JSON.parse(json) as PlayTimeSettings;
 
+				// TODO(ynhhoJ): Instead of multiple methods, we should modify everythin in `batch` by
+				// creating Object keys
 				await this.setDefaultDisplayTimeIfNeeded(parsedJson);
 				await this.setDefaultCoverScaleIfNeeded(parsedJson);
 				await this.setDefaultSortByOptionIfNeeded(parsedJson);
+				await this.setDefaultDetectionOfFilesByCkechsumValueIfNeeded(
+					parsedJson,
+				);
 			})
 			.catch((e: Error) => {
 				if (e.message === "Not found") {
@@ -74,6 +81,8 @@ export class Settings {
 				showTimeInHours: !!data.displayTime.showTimeInHours,
 				showSeconds: !!data.displayTime.showSeconds,
 			},
+			isEnabledDetectionOfGamesByFileChecksum:
+				!!data.isEnabledDetectionOfGamesByFileChecksum,
 		};
 
 		return data;
@@ -87,6 +96,8 @@ export class Settings {
 				showTimeInHours: +data.displayTime.showTimeInHours,
 				showSeconds: +data.displayTime.showSeconds,
 			},
+			isEnabledDetectionOfGamesByFileChecksum:
+				+data.isEnabledDetectionOfGamesByFileChecksum,
 		});
 	}
 
@@ -154,6 +165,29 @@ export class Settings {
 		await SteamClient.Storage.SetObject(PLAY_TIME_SETTINGS_KEY, {
 			...settings,
 			selectedSortByOption: DEFAULTS.selectedSortByOption,
+		});
+	}
+
+	private async setDefaultDetectionOfFilesByCkechsumValueIfNeeded(
+		settings: PlayTimeSettings,
+	) {
+		// NOTE(ynhhoJ): If fore some reason `settings` is `null` or `undefined` we should set it
+		if (isNil(settings)) {
+			SteamClient.Storage.SetObject(PLAY_TIME_SETTINGS_KEY, DEFAULTS);
+
+			return;
+		}
+
+		const { isEnabledDetectionOfGamesByFileChecksum } = settings;
+
+		if (!isNil(isEnabledDetectionOfGamesByFileChecksum)) {
+			return;
+		}
+
+		await SteamClient.Storage.SetObject(PLAY_TIME_SETTINGS_KEY, {
+			...settings,
+			isEnabledDetectionOfGamesByFileChecksum:
+				DEFAULTS.isEnabledDetectionOfGamesByFileChecksum,
 		});
 	}
 }
