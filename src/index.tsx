@@ -36,6 +36,7 @@ import {
 } from "./pages/navigation";
 import { log } from "./utils/logger";
 import { getNonSteamGamesChecksumFromDataBase } from "./app/games";
+import { isNil } from "./utils/isNil";
 
 export default definePlugin(() => {
 	log("PlayTime plugin loading...");
@@ -99,9 +100,18 @@ function createMountables(
 		eventBus,
 	);
 
-	eventBus.addSubscriber((event) => {
+	eventBus.addSubscriber(async (event) => {
 		switch (event.type) {
 			case "UserLoggedIn": {
+				const userSettings = await settings.get();
+
+				if (
+					isNil(userSettings) ||
+					!userSettings?.isEnabledDetectionOfGamesByFileChecksum
+				) {
+					return;
+				}
+
 				getNonSteamGamesChecksumFromDataBase();
 
 				break;
