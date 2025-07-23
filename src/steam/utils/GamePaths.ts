@@ -31,7 +31,7 @@ export async function getPathToGame(applicationId: number) {
 		}
 
 		if (isNil(pathToGame)) {
-			logger.debug(`Unsupported pathToGame:`, {
+			logger.error(`Unsupported pathToGame:`, {
 				strShortcutExe,
 				strShortcutLaunchOptions,
 			});

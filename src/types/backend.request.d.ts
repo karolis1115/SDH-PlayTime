@@ -25,7 +25,15 @@ type GetFileSHA256DTO = string;
 type AddGameChecksumDTO = {
 	game_id: string;
 	checksum: string;
-	algorithm: string;
+	algorithm:
+		| "SHA224"
+		| "SHA256"
+		| "SHA384"
+		| "SHA512"
+		| "SHA3_224"
+		| "SHA3_256"
+		| "SHA3_384"
+		| "SHA3_512";
 	chunk_size: number;
 	created_at?: Date;
 	updated_at?: Date;
