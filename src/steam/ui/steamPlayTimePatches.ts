@@ -178,12 +178,15 @@ export class SteamPlayTimePatches implements Mountable {
 			this.cachedOverallTime.isReady() &&
 			this.cachedLastTwoWeeksTimes.isReady()
 		) {
-			const overallTime =
-				this.cachedOverallTime.get()?.get(`${appOverview.appid}`) || 0;
+			const { appid: appId } = appOverview;
+
+			const overallTime = this.cachedOverallTime.get()?.get(`${appId}`) || 0;
 			const lastTwoWeeksTime =
-				this.cachedLastTwoWeeksTimes.get()?.get(`${appOverview.appid}`) || 0;
+				this.cachedLastTwoWeeksTimes.get()?.get(`${appId}`) || 0;
+
 			this.patchOverviewWithValues(appOverview, overallTime, lastTwoWeeksTime);
 		}
+
 		return appOverview;
 	}
 
