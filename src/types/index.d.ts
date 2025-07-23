@@ -42,8 +42,8 @@ type PagedDayStatistics = Omit<
 type LocalNonSteamGame = {
 	id: string;
 	name: string;
-	sha256: string;
-	pathToGame: string;
+	checksum?: string;
+	pathToGame?: string;
 };
 
 type GamesChecksum = Omit<GamesChecksumResponse, "game_id"> & {
