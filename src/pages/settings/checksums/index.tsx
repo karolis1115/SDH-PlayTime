@@ -68,9 +68,18 @@ function showChecksumContextMenu(
 				onSelected={() => {
 					console.log(11, gameInformation);
 
+					if (isNil(gameInformation.checksum)) {
+						toaster.toast({
+							title: "PlayTime",
+							body: "Checksum is undefined",
+						});
+
+						return;
+					}
+
 					Backend.addGameChecksum(
 						gameInformation.id,
-						gameInformation.sha256,
+						gameInformation.checksum,
 						"SHA256",
 						// NOTE(ynhhoJ): 16 MB
 						16 * 1024 * 1024,
@@ -86,16 +95,25 @@ function showChecksumContextMenu(
 				}}
 				disabled={hasChecksum && hasChecksumSaved}
 			>
-				Save SHA256 in DataBase
+				Save checksum in DataBase
 			</MenuItem>
 
 			<MenuItem
 				onSelected={() => {
 					console.log(22, gameInformation);
 
+					if (isNil(gameInformation.checksum)) {
+						toaster.toast({
+							title: "PlayTime",
+							body: "Checksum is undefined",
+						});
+
+						return;
+					}
+
 					Backend.removeGameChecksum(
 						gameInformation.id,
-						gameInformation.sha256,
+						gameInformation.checksum,
 					).then(async () => {
 						toaster.toast({
 							title: "PlayTime",
@@ -108,7 +126,7 @@ function showChecksumContextMenu(
 				disabled={hasChecksum && !hasChecksumSaved}
 				tone="destructive"
 			>
-				Remove SHA256
+				Remove checksum
 			</MenuItem>
 		</Menu>,
 	);
@@ -118,14 +136,15 @@ async function saveAllChecksums(tableRows: Array<LocalNonSteamGame>) {
 	const savedChecksumsForGames: Array<string> = [];
 
 	for (const game of tableRows) {
-		const hasChecksum = !isNil(game.sha256);
+		const { checksum } = game;
+		const hasChecksum = !isNil(checksum);
 
 		if (!hasChecksum) {
 			continue;
 		}
 
 		const hasChecksumSaved = verifyIfHasChecksumSaved(
-			game?.sha256,
+			game?.checksum,
 			gameChecksums.dataBase
 				.get(game.id)
 				?.filesChecksum.map((item) => item.checksum),
@@ -140,7 +159,7 @@ async function saveAllChecksums(tableRows: Array<LocalNonSteamGame>) {
 			.find((item) =>
 				item.filesChecksum.find(
 					(checksum) =>
-						checksum.checksum === game?.sha256 && item.game.id !== game?.id,
+						checksum.checksum === game?.checksum && item.game.id !== game?.id,
 				),
 			);
 
@@ -150,8 +169,8 @@ async function saveAllChecksums(tableRows: Array<LocalNonSteamGame>) {
 
 		await Backend.addGameChecksum(
 			game.id,
-			game.sha256,
-			"SHA256",
+			checksum,
+			"checksum",
 			16 * 1024 * 1024,
 		)
 			.then(() => {
@@ -175,15 +194,23 @@ async function saveAllChecksums(tableRows: Array<LocalNonSteamGame>) {
 
 function FileChecksumStatus({
 	hasChecksumSaved,
-	hasChecksum,
+	game,
 }: {
-	hasChecksum: Nullable<boolean>;
+	game: LocalNonSteamGame;
 	hasChecksumSaved: boolean;
 }) {
-	if (!hasChecksum) {
+	if (isNil(game?.pathToGame)) {
 		return (
 			<span className="inline-flex justify-center items-center rounded-md bg-red-400/10 px-2 py-1 text-xs font-medium text-red-400 ring-1 ring-red-400/20 ring-inset">
-				Impossible to detect file checksum
+				File not found or unsupported path
+			</span>
+		);
+	}
+
+	if (isNil(game?.checksum)) {
+		return (
+			<span className="inline-flex justify-center items-center rounded-md bg-red-400/10 px-2 py-1 text-xs font-medium text-red-400 ring-1 ring-red-400/20 ring-inset">
+				Unknown checksum
 			</span>
 		);
 	}
@@ -253,9 +280,9 @@ export function FileChecksum() {
 			</div>
 
 			{tableRows.map((row) => {
-				const hasChecksum = !isNil(row.sha256);
+				const hasChecksum = !isNil(row?.checksum);
 				const hasChecksumSaved = verifyIfHasChecksumSaved(
-					row?.sha256,
+					row?.checksum,
 					gameChecksums.dataBase
 						.get(row.id)
 						?.filesChecksum.map((item) => item.checksum),
@@ -291,7 +318,7 @@ export function FileChecksum() {
 
 						<FileChecksumStatus
 							hasChecksumSaved={hasChecksumSaved}
-							hasChecksum={hasChecksum}
+							game={row}
 						/>
 					</FocusableExt>
 				);
