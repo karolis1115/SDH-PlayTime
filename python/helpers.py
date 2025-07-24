@@ -26,3 +26,11 @@ def end_of_day(day_to_end: datetime) -> datetime:
         ).timestamp()
         - 1
     )
+
+
+def start_of_week(date: datetime):
+    return date - timedelta(days=date.weekday())
+
+
+def end_of_week(date: datetime):
+    return start_of_week(date) + timedelta(days=6)
