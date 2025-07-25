@@ -60,7 +60,17 @@ class GameDictionary:
     files_checksum: List[FileChecksum]
 
 
+# TODO: Use `GameDictionary` instead of this
 @dataclass
 class GamesChecksum:
     game_id: str
     checksum: str
+
+
+@dataclass
+class PlaytimeInformation:
+    game_id: str
+    total_time: float
+    last_played_date: str
+    game_name: str
+    aliases_id: str | None
