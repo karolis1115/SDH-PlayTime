@@ -76,6 +76,15 @@ class GamesChecksum:
     checksum: str
 
 
+@dataclass
+class PlaytimeInformation:
+    game_id: str
+    total_time: float
+    last_played_date: str
+    game_name: str
+    aliases_id: str | None
+
+
 class Dao:
     def __init__(self, db: SqlLiteDb):
         self._db = db
@@ -276,6 +285,98 @@ class Dao:
                 FROM game_file_checksum
                 GROUP BY game_id
             ) gfc ON ot.game_id = gfc.game_id;
+            """
+        ).fetchall()
+
+    def fetch_playtime_information(self) -> List[PlaytimeInformation]:
+        with self._db.transactional() as connection:
+            return self._fetch_playtime_information(connection)
+
+    def _fetch_playtime_information(
+        self,
+        connection: sqlite3.Connection,
+    ) -> List[PlaytimeInformation]:
+        connection.row_factory = lambda c, row: PlaytimeInformation(
+            game_id=row[0],
+            total_time=row[1],
+            last_played_date=row[2],
+            game_name=row[3],
+            aliases_id=row[4],
+        )
+
+        return connection.execute(
+            """
+            WITH RECURSIVE
+            -- Step 1: Find all direct alias pairs, simplified and optimized.
+            -- We only need pairs where game_id_1 < game_id_2 to make the graph directed
+            -- and reduce the number of pairs by half. This is a major optimization.
+            AliasPairs (id1, id2) AS (
+                SELECT DISTINCT gfc1.game_id, gfc2.game_id
+                FROM game_file_checksum gfc1
+                JOIN game_file_checksum gfc2 
+                  ON gfc1.checksum = gfc2.checksum AND gfc1.algorithm = gfc2.algorithm
+                WHERE gfc1.game_id < gfc2.game_id
+            ),
+            -- Step 2: Recursively find the component leader for each game.
+            -- The "leader" is the smallest game_id in a connected component.
+            ComponentLeaders (game_id, leader_id) AS (
+                -- Anchor: Every game starts as its own leader.
+                SELECT game_id, game_id FROM game_dict
+                UNION -- In recursion, UNION is appropriate as it implicitly handles duplicates across iterations.
+                -- Recursive part: Propagate the smallest leader_id across connections.
+                -- If game 'c.game_id' has a leader 'c.leader_id', and it's connected to another
+                -- game via an alias pair, propagate that leader.
+                -- We check both directions of the edge.
+                SELECT
+                    ap.id2,           -- The game receiving the new leader
+                    cl.leader_id      -- The leader being propagated
+                FROM ComponentLeaders cl
+                JOIN AliasPairs ap ON cl.game_id = ap.id1
+                UNION
+                SELECT
+                    ap.id1,           -- The game receiving the new leader
+                    cl.leader_id      -- The leader being propagated
+                FROM ComponentLeaders cl
+                JOIN AliasPairs ap ON cl.game_id = ap.id2
+            ),
+            -- Step 3: Find the definitive leader for each group.
+            -- After recursion, a game might have been assigned multiple potential leaders.
+            -- The true leader is the smallest one (the MIN).
+            ComponentMapping AS (
+                SELECT
+                    game_id,
+                    MIN(leader_id) as component_leader_id
+                FROM ComponentLeaders
+                GROUP BY game_id
+            ),
+            -- Step 4: Aggregate raw stats for each individual game_id.
+            -- This CTE remains largely the same as it's clear and efficient.
+            IndividualGameStats AS (
+                SELECT
+                    gd.game_id,
+                    gd.name,
+                    COALESCE(ot.duration, 0) AS total_duration,
+                    pt_agg.last_played_date
+                FROM game_dict gd
+                LEFT JOIN overall_time ot ON gd.game_id = ot.game_id
+                LEFT JOIN (
+                    SELECT game_id, MAX(date_time) as last_played_date
+                    FROM play_time
+                    GROUP BY game_id
+                ) pt_agg ON gd.game_id = pt_agg.game_id
+            )
+            -- Final Step: Group the individual stats by the component leader ID.
+            SELECT
+                cm.component_leader_id as game_id,
+                SUM(igs.total_duration) AS total_time,
+                MAX(igs.last_played_date) AS last_played_date,
+                GROUP_CONCAT(DISTINCT igs.name) AS game_name,
+                -- A cleaner way to list aliases: aggregate all IDs that are not the leader.
+                NULLIF(GROUP_CONCAT(DISTINCT CASE WHEN igs.game_id <> cm.component_leader_id THEN igs.game_id END), '') AS aliases_id
+            FROM ComponentMapping cm
+            JOIN IndividualGameStats igs ON cm.game_id = igs.game_id
+            GROUP BY cm.component_leader_id
+            ORDER BY last_played_date DESC, game_id DESC;
             """
         ).fetchall()
 
