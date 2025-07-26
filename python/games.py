@@ -4,9 +4,9 @@ import dataclasses
 from python.schemas.response import (
     FileChecksum,
     Game,
-    GameDictionary,
-    GameInformation,
-    GamesChecksum,
+    GameWithChecksums,
+    GamePlaytimeSummary,
+    GameWithChecksums,
 )
 
 
@@ -16,20 +16,20 @@ class Games:
     def __init__(self, dao: Dao) -> None:
         self.dao = dao
 
-    def get_by_id(self, game_id: str) -> GameInformation | None:
+    def get_by_id(self, game_id: str) -> GamePlaytimeSummary | None:
         response = self.dao.get_game(game_id)
 
         if response is None:
             return None
 
-        return GameInformation(
-            Game(response.game_id, response.name), time=response.time
+        return GamePlaytimeSummary(
+            Game(response.game_id, response.name), total_time=response.time
         )
 
-    def get_dictionary(self) -> List[Dict[str, GameDictionary]]:
+    def get_dictionary(self) -> List[Dict[str, GameWithChecksums]]:
         data = self.dao.get_games_dictionary()
 
-        result: List[Dict[str, GameDictionary]] = []
+        result: List[Dict[str, GameWithChecksums]] = []
 
         for game in data:
             game_files_checksum = self.dao.get_game_files_checksum(game.id)
@@ -38,7 +38,7 @@ class Games:
             for game_file_checksum in game_files_checksum:
                 file_checksum_list.append(
                     FileChecksum(
-                        game_file_checksum.game_id,
+                        Game(game_file_checksum.game_id, game_file_checksum.game_name),
                         game_file_checksum.checksum,
                         game_file_checksum.algorithm,
                         game_file_checksum.chunk_size,
@@ -49,8 +49,8 @@ class Games:
 
             result.append(
                 dataclasses.asdict(
-                    GameDictionary(
-                        Game(game.id, game.name), files_checksum=file_checksum_list
+                    GameWithChecksums(
+                        Game(game.id, game.name), files=file_checksum_list
                     )
                 )
             )
@@ -87,7 +87,7 @@ class Games:
 
         for game in games_checksum_without_game_dict:
             result.append(
-                dataclasses.asdict(GamesChecksum(game.game_id, game.checksum))
+                dataclasses.asdict(GameWithChecksums(game.game_id, game.checksum))
             )
 
         return result
