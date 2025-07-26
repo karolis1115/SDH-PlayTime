@@ -2,10 +2,11 @@ from dataclasses import dataclass
 import datetime
 import logging
 import sqlite3
-from typing import List, Dict, Set, Optional, Collection
+from typing import List, Dict, Optional, Collection
 from collections import defaultdict
 
 from python.db.sqlite_db import SqlLiteDb
+from python.schemas.common import Checksum
 
 logger = logging.getLogger()
 
@@ -57,7 +58,8 @@ class GameInformationDto:
 class FileChecksum:
     checksum_id: int
     game_id: str
-    checksum: str
+    game_name: str
+    checksum: Checksum
     algorithm: str
     chunk_size: int
     created_at: None | str
@@ -772,7 +774,7 @@ class Dao:
         self, connection: sqlite3.Connection, game_id: str
     ) -> List[FileChecksum]:
         connection.row_factory = lambda c, row: FileChecksum(
-            row[0], row[1], row[2], row[3], row[4], row[5], row[6]
+            row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]
         )
 
         return connection.execute(
@@ -780,6 +782,7 @@ class Dao:
             SELECT
                 gfc.checksum_id,
                 gfc.game_id,
+                gd.name,
                 gfc.checksum,
                 gfc.algorithm,
                 gfc.chunk_size,
@@ -787,6 +790,7 @@ class Dao:
                 gfc.updated_at
             FROM
                 game_file_checksum gfc
+            LEFT JOIN game_dict gd ON gd.game_id = gfc.game_id
             WHERE
                 gfc.game_id = ?
             """,
