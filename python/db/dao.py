@@ -380,6 +380,89 @@ class Dao:
             """
         ).fetchall()
 
+    def fetch_playtime_information_for_period(
+        self,
+        start_time: datetime.datetime,
+        end_time: datetime.datetime,
+    ) -> List[PlaytimeInformation]:
+        with self._db.transactional() as connection:
+            return self._fetch_playtime_information_for_period(
+                connection, start_time, end_time
+            )
+
+    def _fetch_playtime_information_for_period(
+        self,
+        connection: sqlite3.Connection,
+        start_time: datetime.datetime,
+        end_time: datetime.datetime,
+    ) -> List[PlaytimeInformation]:
+        connection.row_factory = lambda c, row: PlaytimeInformation(
+            game_id=row[0],
+            total_time=row[1],
+            last_played_date=row[2],
+            game_name=row[3],
+            aliases_id=row[4],
+        )
+        return connection.execute(
+            """
+            WITH RECURSIVE
+            AliasPairs (id1, id2) AS (
+                SELECT DISTINCT gfc1.game_id, gfc2.game_id
+                FROM game_file_checksum gfc1
+                JOIN game_file_checksum gfc2
+                    ON gfc1.checksum = gfc2.checksum AND gfc1.algorithm = gfc2.algorithm
+                WHERE gfc1.game_id < gfc2.game_id
+            ),
+            ComponentLeaders (game_id, leader_id) AS (
+                SELECT game_id, game_id FROM game_dict
+                UNION
+                SELECT ap.id2, cl.leader_id FROM ComponentLeaders cl JOIN AliasPairs ap ON cl.game_id = ap.id1
+                UNION
+                SELECT ap.id1, cl.leader_id FROM ComponentLeaders cl JOIN AliasPairs ap ON cl.game_id = ap.id2
+            ),
+            ComponentMapping AS (
+                SELECT
+                    game_id,
+                    MIN(leader_id) as component_leader_id
+                FROM ComponentLeaders
+                GROUP BY game_id
+            ),
+            GameStats AS (
+                SELECT
+                    game_id,
+                    -- Sum duration ONLY for sessions within the specified period.
+                    SUM(CASE WHEN date_time >= :start AND date_time < :end THEN duration ELSE 0 END) AS period_duration,
+                    -- Get the absolute last played date for the game across all time.
+                    MAX(date_time) AS last_played_date
+                FROM play_time
+                GROUP BY game_id
+            )
+            -- Join all data, aggregate by group, and filter using HAVING.
+            SELECT
+                cm.component_leader_id AS game_id,
+                SUM(gs.period_duration) AS total_time,
+                MAX(gs.last_played_date) AS last_played_date,
+                MAX(CASE WHEN gd.game_id = cm.component_leader_id THEN gd.name END) AS game_name,
+                NULLIF(GROUP_CONCAT(DISTINCT CASE WHEN gd.game_id <> cm.component_leader_id THEN gd.game_id END), '') AS aliases_id
+            FROM ComponentMapping cm
+            -- Join to get the calculated stats for each game. INNER JOIN naturally filters out
+            -- games that have never been played at all.
+            JOIN GameStats gs ON cm.game_id = gs.game_id
+            -- Join to get the names of the games.
+            JOIN game_dict gd ON cm.game_id = gd.game_id
+            -- Optional filter for a specific game group
+            GROUP BY cm.component_leader_id
+            -- HAVING clause filters the results AFTER grouping.
+            -- This ensures we only see groups with playtime > 0 in the selected period.
+            HAVING SUM(gs.period_duration) > 0
+            ORDER BY last_played_date DESC, game_id DESC;
+        """,
+            {
+                "start": start_time.isoformat(),
+                "end": end_time.isoformat(),
+            },
+        ).fetchall()
+
     def _fetch_per_day_time_report(
         self,
         connection: sqlite3.Connection,
