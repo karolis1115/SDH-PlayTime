@@ -45,7 +45,7 @@ class TestPlayTime(AbstractDatabaseTest):
                                 "id": "100",
                                 "name": "Zelda BOTW",
                             },
-                            "time": 3600,
+                            "total_time": 3600,
                             "sessions": [
                                 {
                                     "date": "2022-01-01T09:00:00",
@@ -97,7 +97,7 @@ class TestPlayTime(AbstractDatabaseTest):
                                 "id": "3647351456",
                                 "name": "Zelda BOTW",
                             },
-                            "time": 7200,
+                            "total_time": 7200,
                             "sessions": [
                                 {
                                     "date": "2022-01-01T09:00:00",
@@ -146,7 +146,7 @@ class TestPlayTime(AbstractDatabaseTest):
                                 "id": "100",
                                 "name": "Zelda BOTW",
                             },
-                            "time": 3600,
+                            "total_time": 3600,
                             "sessions": [
                                 {
                                     "date": "2022-01-01T23:00:00",
@@ -173,7 +173,7 @@ class TestPlayTime(AbstractDatabaseTest):
                                 "id": "100",
                                 "name": "Zelda BOTW",
                             },
-                            "time": 3600,
+                            "total_time": 3600,
                             "sessions": [
                                 {
                                     "date": "2022-01-02T00:00:00",
@@ -221,7 +221,7 @@ class TestPlayTime(AbstractDatabaseTest):
                                 "id": "100",
                                 "name": "Zelda BOTW",
                             },
-                            "time": 3600,
+                            "total_time": 3600,
                             "sessions": [
                                 {
                                     "date": "2022-01-01T09:00:00",
@@ -242,7 +242,7 @@ class TestPlayTime(AbstractDatabaseTest):
                                 "id": "101",
                                 "name": "Doom",
                             },
-                            "time": 1800,
+                            "total_time": 1800,
                             "sessions": [
                                 {
                                     "date": "2022-01-01T10:00:00",
@@ -315,7 +315,7 @@ class TestPlayTime(AbstractDatabaseTest):
                                 "id": "101",
                                 "name": "Doom",
                             },
-                            "time": 3600,
+                            "total_time": 3600,
                             "sessions": [
                                 {
                                     "date": "2022-01-02T09:00:00",
@@ -342,7 +342,7 @@ class TestPlayTime(AbstractDatabaseTest):
                                 "id": "102",
                                 "name": "Zelda Minish Cap",
                             },
-                            "time": 1800,
+                            "total_time": 1800,
                             "sessions": [
                                 {
                                     "date": "2022-01-03T09:00:00",
@@ -369,7 +369,7 @@ class TestPlayTime(AbstractDatabaseTest):
                                 "id": "100",
                                 "name": "Zelda BOTW",
                             },
-                            "time": 1800,
+                            "total_time": 1800,
                             "sessions": [
                                 {
                                     "date": "2022-01-04T09:00:00",
@@ -408,7 +408,7 @@ class TestPlayTime(AbstractDatabaseTest):
         )
 
         result = self.playtime_statistics.per_game_overall_statistic()
-        self.assertEqual(result[0]["time"], 3600 + 1800)
+        self.assertEqual(result[0]["total_time"], 3600 + 1800)
 
     def test_should_apply_manual_time_for_games(self):
         now = datetime(2025, 1, 1, 9, 0)
@@ -476,7 +476,7 @@ class TestPlayTime(AbstractDatabaseTest):
                             "checksum": None,
                         },
                     ],
-                    "time": 1800,
+                    "total_time": 1800,
                 }
             ],
         )
@@ -596,7 +596,7 @@ class TestPlayTime(AbstractDatabaseTest):
                             "checksum": "a3976a0553ba444ac96074ee2330a38a6b635e70a0c2a7ac2d0b568765ce2a0a",
                         },
                     ],
-                    "time": 3698,
+                    "total_time": 3698,
                 },
                 {
                     "game": {"id": "1001", "name": "Zelda BOTW"},
@@ -620,7 +620,7 @@ class TestPlayTime(AbstractDatabaseTest):
                             "migrated": None,
                         },
                     ],
-                    "time": 1393,
+                    "total_time": 1393,
                 },
             ],
         )
@@ -733,7 +733,7 @@ class TestPlayTime(AbstractDatabaseTest):
                                     "migrated": None,
                                 }
                             ],
-                            "time": 780,
+                            "total_time": 780,
                         },
                         {
                             "game": {
@@ -754,7 +754,7 @@ class TestPlayTime(AbstractDatabaseTest):
                                     "migrated": None,
                                 }
                             ],
-                            "time": 58,
+                            "total_time": 58,
                         },
                     ],
                     "total": 838.0,
@@ -787,7 +787,7 @@ class TestPlayTime(AbstractDatabaseTest):
                                     "migrated": None,
                                 },
                             ],
-                            "time": 914,
+                            "total_time": 914,
                         },
                     ],
                     "total": 914.0,
@@ -814,7 +814,7 @@ class TestPlayTime(AbstractDatabaseTest):
                                     "migrated": None,
                                 }
                             ],
-                            "time": 26,
+                            "total_time": 26,
                         }
                     ],
                     "total": 26.0,
@@ -838,7 +838,7 @@ class TestPlayTime(AbstractDatabaseTest):
                                     "migrated": None,
                                 }
                             ],
-                            "time": 613,
+                            "total_time": 613,
                         },
                         {
                             "game": {
@@ -859,7 +859,7 @@ class TestPlayTime(AbstractDatabaseTest):
                                     "migrated": None,
                                 }
                             ],
-                            "time": 3600,
+                            "total_time": 3600,
                         },
                     ],
                     "total": 4213.0,
