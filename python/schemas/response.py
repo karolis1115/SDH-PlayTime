@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import List
+from .common import Checksum
 
 
 @dataclass
@@ -17,17 +18,27 @@ class SessionInformation:
 
 
 @dataclass
-class GameWithTime:
+class GamePlaytimeSummary:
     game: Game
-    time: float
+    total_time: float
+
+
+@dataclass
+class GamePlaytimeDetails(GamePlaytimeSummary):
     sessions: List[SessionInformation]
     last_session: SessionInformation | None
 
 
 @dataclass
+class GamePlaytimeReport(GamePlaytimeSummary):
+    last_played_date: str
+    aliases_id: str | None
+
+
+@dataclass
 class DayStatistics:
     date: str
-    games: List[GameWithTime]
+    games: List[GamePlaytimeDetails]
     total: float
 
 
@@ -39,15 +50,9 @@ class PagedDayStatistics:
 
 
 @dataclass
-class GameInformation:
-    game: Game
-    time: float
-
-
-@dataclass
 class FileChecksum:
-    game_id: str
-    checksum: str
+    game: Game
+    checksum: Checksum
     algorithm: str
     chunk_size: int
     created_at: None | str
@@ -55,22 +60,6 @@ class FileChecksum:
 
 
 @dataclass
-class GameDictionary:
+class GameWithChecksums:
     game: Game
-    files_checksum: List[FileChecksum]
-
-
-# TODO: Use `GameDictionary` instead of this
-@dataclass
-class GamesChecksum:
-    game_id: str
-    checksum: str
-
-
-@dataclass
-class PlaytimeInformation:
-    game_id: str
-    total_time: float
-    last_played_date: str
-    game_name: str
-    aliases_id: str | None
+    files: List[FileChecksum]
