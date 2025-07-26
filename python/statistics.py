@@ -7,10 +7,10 @@ from python.helpers import format_date
 from python.schemas.response import (
     DayStatistics,
     Game,
-    GameWithTime,
+    GamePlaytimeDetails,
     SessionInformation,
     PagedDayStatistics,
-    PlaytimeInformation,
+    GamePlaytimeReport,
 )
 from dataclasses import dataclass
 from python.helpers import start_of_week, end_of_week
@@ -39,8 +39,8 @@ class Statistics:
 
         for day in days:
             # Group games by checksum for the current day
-            checksum_to_games: Dict[Optional[str], List[GameWithTime]] = defaultdict(
-                list
+            checksum_to_games: Dict[Optional[str], List[GamePlaytimeDetails]] = (
+                defaultdict(list)
             )
             for gwt in day.games:
                 # Assumption: The checksum of the first session is representative
@@ -48,7 +48,7 @@ class Statistics:
                 checksum = gwt.sessions[0].checksum if gwt.sessions else None
                 checksum_to_games[checksum].append(gwt)
 
-            merged_games: List[GameWithTime] = []
+            merged_games: List[GamePlaytimeDetails] = []
             for checksum, game_group in checksum_to_games.items():
                 # If checksum is None or only one game has it, no merging is needed
                 if checksum is None or len(game_group) == 1:
@@ -60,15 +60,15 @@ class Statistics:
                 # group is used for the merged entry.
                 representative_game = game_group[0]
 
-                total_time = sum(g.time for g in game_group)
+                total_time = sum(g.total_time for g in game_group)
 
                 all_sessions = [s for g in game_group for s in g.sessions]
                 all_sessions.sort(key=lambda s: s.date, reverse=True)
 
                 merged_games.append(
-                    GameWithTime(
+                    GamePlaytimeDetails(
                         game=representative_game.game,
-                        time=total_time,
+                        total_time=total_time,
                         sessions=all_sessions,
                         # Last session is kept from the representative game
                         last_session=representative_game.last_session,
@@ -76,7 +76,7 @@ class Statistics:
                 )
 
             # Re-calculate total time for the day after merging
-            total_day_time = sum(gwt.time for gwt in merged_games)
+            total_day_time = sum(gwt.total_time for gwt in merged_games)
             result_days.append(
                 DayStatistics(date=day.date, games=merged_games, total=total_day_time)
             )
@@ -108,7 +108,7 @@ class Statistics:
         for day in self._generate_date_range(start_time, end_time):
             date_str = format_date(day)
 
-            day_games: List[GameWithTime] = []
+            day_games: List[GamePlaytimeDetails] = []
             total_day_time = 0.0
 
             for report in reports_by_date.get(date_str, []):
@@ -119,9 +119,9 @@ class Statistics:
                 last_session = last_sessions_map.get(report.game_id)
 
                 day_games.append(
-                    GameWithTime(
+                    GamePlaytimeDetails(
                         game=Game(report.game_id, report.game_name),
-                        time=report.time,
+                        total_time=report.time,
                         sessions=game_sessions,
                         last_session=last_session,
                     )
@@ -178,7 +178,7 @@ class Statistics:
 
         two_weeks_ago_end = end_of_week(now)
 
-        result: List[dict[str, PlaytimeInformation]] = []
+        result: List[dict[str, GamePlaytimeReport]] = []
 
         playtime_information = self.dao.fetch_playtime_information_for_period(
             two_weeks_ago_start, two_weeks_ago_end
@@ -189,11 +189,10 @@ class Statistics:
                 for alias_id in information.aliases_id.split(","):
                     result.append(
                         dataclasses.asdict(
-                            PlaytimeInformation(
-                                game_id=alias_id,
+                            GamePlaytimeReport(
+                                game=Game(alias_id, information.game_name),
                                 total_time=information.total_time,
                                 last_played_date=information.last_played_date,
-                                game_name=information.game_name,
                                 aliases_id=information.aliases_id.replace(
                                     alias_id, information.game_id
                                 ),
@@ -205,8 +204,8 @@ class Statistics:
 
         return result
 
-    def fetch_playtime_information(self) -> List[dict[str, PlaytimeInformation]]:
-        result: List[dict[str, PlaytimeInformation]] = []
+    def fetch_playtime_information(self) -> List[dict[str, GamePlaytimeReport]]:
+        result: List[dict[str, GamePlaytimeReport]] = []
         playtime_information = self.dao.fetch_playtime_information()
 
         for information in playtime_information:
@@ -214,11 +213,10 @@ class Statistics:
                 for alias_id in information.aliases_id.split(","):
                     result.append(
                         dataclasses.asdict(
-                            PlaytimeInformation(
-                                game_id=alias_id,
+                            GamePlaytimeReport(
+                                game=Game(alias_id, information.game_name),
                                 total_time=information.total_time,
                                 last_played_date=information.last_played_date,
-                                game_name=information.game_name,
                                 aliases_id=information.aliases_id.replace(
                                     alias_id, information.game_id
                                 ),
@@ -273,9 +271,9 @@ class Statistics:
             if last_session is None:
                 last_session = last_sessions_by_key.get(first_game.game_id)
 
-            game_with_time = GameWithTime(
+            game_with_time = GamePlaytimeDetails(
                 game=Game(first_game.game_id, first_game.game_name),
-                time=total_time,
+                total_time=total_time,
                 sessions=sessions,
                 last_session=last_session,
             )
