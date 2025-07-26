@@ -1,4 +1,3 @@
-from time import process_time
 import dataclasses
 from collections import defaultdict
 from datetime import datetime, date, time, timedelta
@@ -11,8 +10,10 @@ from python.schemas.response import (
     GameWithTime,
     SessionInformation,
     PagedDayStatistics,
+    PlaytimeInformation,
 )
 from dataclasses import dataclass
+from python.helpers import start_of_week, end_of_week
 
 
 @dataclass
@@ -82,49 +83,34 @@ class Statistics:
 
         return result_days
 
-    def daily_statistics_for_period(
-        self, start: date, end: date, game_id: Optional[str] = None
-    ) -> PagedDayStatistics:
-        """
-        Returns daily statistics, optimized to avoid N+1 queries.
-        """
-        general_start = process_time()
-        start_time = datetime.combine(start, time.min)
-        end_time = datetime.combine(end, time.max)
-
-        # 1. Initial fetch: Get aggregated time per game per day. This is efficient.
+    def _get_statistics_for_period(
+        self, start_time: datetime, end_time: datetime, game_id: Optional[str] = None
+    ):
         daily_reports = self.dao.fetch_per_day_time_report(
             start_time, end_time, game_id
         )
 
-        # Collect all unique game IDs from the reports
         game_ids_in_period = {report.game_id for report in daily_reports}
 
-        # --- Bulk Data Fetching (Replaces N+1 queries) ---
-
-        # 2. Fetch ALL sessions for ALL relevant games in the period in ONE query.
         sessions_by_day_and_game = self.dao.fetch_sessions_for_period(
             start_time, end_time, game_id
         )
 
-        # 3. Fetch the single LATEST session for ALL relevant games in ONE query.
         last_sessions_map = self.dao.fetch_last_sessions_for_games(game_ids_in_period)
 
-        # --- Data Processing (In-memory) ---
-
-        # Group reports by date for easier processing
         reports_by_date: Dict[str, List[DailyGameTimeDto]] = defaultdict(list)
+
         for report in daily_reports:
             reports_by_date[report.date].append(report)
 
         result_days: List[DayStatistics] = []
-        for day in self._generate_date_range(start, end):
+
+        for day in self._generate_date_range(start_time, end_time):
             date_str = format_date(day)
 
             day_games: List[GameWithTime] = []
             total_day_time = 0.0
 
-            # Loop through games reported for this day
             for report in reports_by_date.get(date_str, []):
                 # Retrieve pre-fetched data from our lookups (fast, no DB call)
                 game_sessions = sessions_by_day_and_game.get(date_str, {}).get(
@@ -146,8 +132,15 @@ class Statistics:
                 DayStatistics(date=date_str, games=day_games, total=total_day_time)
             )
 
-        # The final combination and pagination steps remain the same
-        combined_data = self.combine_games_by_checksum_per_day(result_days)
+        return self.combine_games_by_checksum_per_day(result_days)
+
+    def daily_statistics_for_period(
+        self, start: date, end: date, game_id: Optional[str] = None
+    ) -> PagedDayStatistics:
+        start_time = datetime.combine(start, time.min)
+        end_time = datetime.combine(end, time.max)
+
+        combined_data = self._get_statistics_for_period(start_time, end_time, game_id)
 
         has_prev = self.dao.is_there_is_data_before(start_time, game_id)
         has_next = self.dao.is_there_is_data_after(end_time, game_id)
@@ -176,6 +169,66 @@ class Statistics:
                 last_sessions_by_checksum[checksum] = last_session
 
         return last_sessions_by_checksum
+
+    def get_statistics_for_last_two_weeks(self):
+        now = datetime.now()
+
+        start_current_week = start_of_week(now)
+        two_weeks_ago_start = start_current_week - timedelta(weeks=1)
+
+        two_weeks_ago_end = end_of_week(now)
+
+        result: List[dict[str, PlaytimeInformation]] = []
+
+        playtime_information = self.dao.fetch_playtime_information_for_period(
+            two_weeks_ago_start, two_weeks_ago_end
+        )
+
+        for information in playtime_information:
+            if information.aliases_id is not None:
+                for alias_id in information.aliases_id.split(","):
+                    result.append(
+                        dataclasses.asdict(
+                            PlaytimeInformation(
+                                game_id=alias_id,
+                                total_time=information.total_time,
+                                last_played_date=information.last_played_date,
+                                game_name=information.game_name,
+                                aliases_id=information.aliases_id.replace(
+                                    alias_id, information.game_id
+                                ),
+                            )
+                        )
+                    )
+
+            result.append(dataclasses.asdict(information))
+
+        return result
+
+    def fetch_playtime_information(self) -> List[dict[str, PlaytimeInformation]]:
+        result: List[dict[str, PlaytimeInformation]] = []
+        playtime_information = self.dao.fetch_playtime_information()
+
+        for information in playtime_information:
+            if information.aliases_id is not None:
+                for alias_id in information.aliases_id.split(","):
+                    result.append(
+                        dataclasses.asdict(
+                            PlaytimeInformation(
+                                game_id=alias_id,
+                                total_time=information.total_time,
+                                last_played_date=information.last_played_date,
+                                game_name=information.game_name,
+                                aliases_id=information.aliases_id.replace(
+                                    alias_id, information.game_id
+                                ),
+                            )
+                        )
+                    )
+
+            result.append(dataclasses.asdict(information))
+
+        return result
 
     def per_game_overall_statistic(self) -> List[Dict[str, Any]]:
         """
