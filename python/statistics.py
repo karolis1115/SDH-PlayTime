@@ -142,8 +142,8 @@ class Statistics:
 
         combined_data = self._get_statistics_for_period(start_time, end_time, game_id)
 
-        has_prev = self.dao.is_there_is_data_before(start_time, game_id)
-        has_next = self.dao.is_there_is_data_after(end_time, game_id)
+        has_prev = self.dao.has_data_before(start_time, game_id)
+        has_next = self.dao.has_data_after(end_time, game_id)
 
         return PagedDayStatistics(
             data=combined_data,

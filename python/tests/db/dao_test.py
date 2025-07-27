@@ -105,7 +105,7 @@ class TestDao(AbstractDatabaseTest):
         self.dao.save_game_dict("1001", "Zelda BOTW")
         self.dao.save_play_time(datetime(2023, 1, 1), 3600, "1001")
 
-        has_data_before = self.dao.is_there_is_data_before(datetime(2025, 1, 5))
+        has_data_before = self.dao.has_data_before(datetime(2025, 1, 5))
 
         self.assertEqual(has_data_before, True)
 
@@ -113,7 +113,7 @@ class TestDao(AbstractDatabaseTest):
         self.dao.save_game_dict("1001", "Zelda BOTW")
         self.dao.save_play_time(datetime(2023, 1, 1), 3600, "1001")
 
-        has_data_before = self.dao.is_there_is_data_before(datetime(2025, 1, 1), "1001")
+        has_data_before = self.dao.has_data_before(datetime(2025, 1, 1), "1001")
 
         self.assertEqual(has_data_before, True)
 
@@ -121,7 +121,7 @@ class TestDao(AbstractDatabaseTest):
         self.dao.save_game_dict("1001", "Zelda BOTW")
         self.dao.save_play_time(datetime(2025, 1, 1), 3600, "1001")
 
-        has_data_before = self.dao.is_there_is_data_before(datetime(2025, 1, 1))
+        has_data_before = self.dao.has_data_before(datetime(2025, 1, 1))
 
         self.assertEqual(has_data_before, False)
 
@@ -129,7 +129,7 @@ class TestDao(AbstractDatabaseTest):
         self.dao.save_game_dict("1001", "Zelda BOTW")
         self.dao.save_play_time(datetime(2025, 1, 1), 3600, "1001")
 
-        has_data_before = self.dao.is_there_is_data_before(datetime(2025, 1, 1), "1001")
+        has_data_before = self.dao.has_data_before(datetime(2025, 1, 1), "1001")
 
         self.assertEqual(has_data_before, False)
 
@@ -137,7 +137,7 @@ class TestDao(AbstractDatabaseTest):
         self.dao.save_game_dict("1001", "Zelda BOTW")
         self.dao.save_play_time(datetime(2025, 1, 1, 9, 0), 3600, "1001")
 
-        has_data_after = self.dao.is_there_is_data_after(datetime(2023, 1, 1))
+        has_data_after = self.dao.has_data_after(datetime(2023, 1, 1))
 
         self.assertEqual(has_data_after, True)
 
@@ -145,12 +145,12 @@ class TestDao(AbstractDatabaseTest):
         self.dao.save_game_dict("1001", "Zelda BOTW")
         self.dao.save_play_time(datetime(2025, 1, 1), 3600, "1001")
 
-        has_data_after = self.dao.is_there_is_data_after(datetime(2025, 5, 1), "1001")
+        has_data_after = self.dao.has_data_after(datetime(2025, 5, 1), "1001")
 
         self.assertEqual(has_data_after, False)
 
     def test_should_not_have_date_after_when_no_data_exists(self):
-        has_data_after = self.dao.is_there_is_data_after(datetime(2025, 5, 1))
+        has_data_after = self.dao.has_data_after(datetime(2025, 5, 1))
 
         self.assertEqual(has_data_after, False)
 
@@ -159,7 +159,7 @@ class TestDao(AbstractDatabaseTest):
         self.dao.save_play_time(datetime(2023, 1, 1), 3600, "1001")
         self.dao.save_play_time(datetime(2024, 1, 1), 7200, "1001")
 
-        has_data_before = self.dao.is_there_is_data_before(datetime(2025, 1, 1))
+        has_data_before = self.dao.has_data_before(datetime(2025, 1, 1))
 
         self.assertEqual(has_data_before, True)
 
@@ -170,7 +170,7 @@ class TestDao(AbstractDatabaseTest):
         self.dao.save_game_dict("1002", "Mario Kart")
         self.dao.save_play_time(datetime(2024, 1, 1), 1800, "1002")
 
-        has_data_before = self.dao.is_there_is_data_before(datetime(2025, 1, 1))
+        has_data_before = self.dao.has_data_before(datetime(2025, 1, 1))
 
         self.assertEqual(has_data_before, True)
 
@@ -181,7 +181,7 @@ class TestDao(AbstractDatabaseTest):
         self.dao.save_game_dict("1002", "Mario Kart")
         self.dao.save_play_time(datetime(2025, 5, 1), 7200, "1002")
 
-        has_data_after = self.dao.is_there_is_data_after(datetime(2025, 1, 1))
+        has_data_after = self.dao.has_data_after(datetime(2025, 1, 1))
 
         self.assertEqual(has_data_after, True)
 
@@ -192,7 +192,7 @@ class TestDao(AbstractDatabaseTest):
         self.dao.save_game_dict("1002", "Mario Kart")
         self.dao.save_play_time(datetime(2025, 5, 1), 7200, "1002")
 
-        has_data_after = self.dao.is_there_is_data_after(
+        has_data_after = self.dao.has_data_after(
             datetime(2025, 1, 1, 23, 59, 59), "1001"
         )
 
@@ -201,7 +201,7 @@ class TestDao(AbstractDatabaseTest):
     def test_should_not_have_data_after_when_no_playtime_exists(self):
         self.dao.save_game_dict("1001", "Zelda BOTW")
 
-        has_data_after = self.dao.is_there_is_data_after(datetime(2025, 1, 1))
+        has_data_after = self.dao.has_data_after(datetime(2025, 1, 1))
 
         self.assertEqual(has_data_after, False)
 
@@ -210,14 +210,14 @@ class TestDao(AbstractDatabaseTest):
         self.dao.save_play_time(datetime(2025, 1, 1), 3600, "1001")
         self.dao.save_play_time(datetime(2025, 6, 1), 7200, "1001")
 
-        has_data_before = self.dao.is_there_is_data_before(datetime(2025, 1, 1))
+        has_data_before = self.dao.has_data_before(datetime(2025, 1, 1))
 
         self.assertEqual(has_data_before, False)
 
     def test_should_have_data_before_when_no_playtime_exists_for_game(self):
         self.dao.save_game_dict("1001", "Zelda BOTW")
 
-        has_data_before = self.dao.is_there_is_data_before(datetime(2025, 1, 1), "1001")
+        has_data_before = self.dao.has_data_before(datetime(2025, 1, 1), "1001")
 
         self.assertEqual(has_data_before, False)
 
@@ -225,7 +225,7 @@ class TestDao(AbstractDatabaseTest):
         self.dao.save_game_dict("1001", "Zelda BOTW")
         self.dao.save_play_time(datetime(2025, 1, 1), 3600, "1001")
 
-        has_data_before = self.dao.is_there_is_data_before(datetime(2025, 1, 1))
+        has_data_before = self.dao.has_data_before(datetime(2025, 1, 1))
 
         self.assertEqual(has_data_before, False)
 
@@ -233,7 +233,7 @@ class TestDao(AbstractDatabaseTest):
         self.dao.save_game_dict("1001", "Zelda BOTW")
         self.dao.save_play_time(datetime(2025, 7, 10), 3600, "1001")
 
-        has_data_after = self.dao.is_there_is_data_after(datetime(2025, 7, 9))
+        has_data_after = self.dao.has_data_after(datetime(2025, 7, 9))
 
         self.assertEqual(has_data_after, True)
 
@@ -241,8 +241,8 @@ class TestDao(AbstractDatabaseTest):
         self.dao.save_game_dict("1001", "Zelda BOTW")
         self.dao.save_play_time(datetime(2023, 1, 1), 0, "1001")
 
-        has_data_before = self.dao.is_there_is_data_before(datetime(2025, 1, 1))
-        has_data_after = self.dao.is_there_is_data_after(datetime(2022, 1, 1))
+        has_data_before = self.dao.has_data_before(datetime(2025, 1, 1))
+        has_data_after = self.dao.has_data_after(datetime(2022, 1, 1))
 
         self.assertEqual(has_data_before, True)
         self.assertEqual(has_data_after, True)

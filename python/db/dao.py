@@ -135,19 +135,19 @@ class Dao:
         with self._db.transactional() as connection:
             return self._fetch_per_day_time_report(connection, begin, end, game_id)
 
-    def is_there_is_data_before(
+    def has_data_before(
         self, date: datetime.datetime, game_id: str | None = None
     ) -> bool:
         with self._db.transactional() as connection:
-            return self._is_there_is_data_before(connection, date, game_id)
+            return self._has_data_before(connection, date, game_id)
 
-    def is_there_is_data_after(
+    def has_data_after(
         self, date: datetime.datetime, game_id: str | None = None
     ) -> bool:
         with self._db.transactional() as connection:
-            return self._is_there_is_data_after(connection, date, game_id)
+            return self._has_data_after(connection, date, game_id)
 
-    def _is_there_is_data_before(
+    def _has_data_before(
         self,
         connection: sqlite3.Connection,
         date: datetime.datetime,
@@ -157,29 +157,27 @@ class Dao:
             return (
                 connection.execute(
                     """
-                SELECT count(1) FROM play_time pt
-                WHERE date_time < ? AND pt.game_id = ?
-            """,
+                    SELECT EXISTS(SELECT 1 FROM play_time pt WHERE date_time < ? AND pt.game_id = ?)
+                    """,
                     (
                         date.isoformat(),
                         game_id,
                     ),
                 ).fetchone()[0]
-                > 0
+                == 1
             )
 
         return (
             connection.execute(
                 """
-                SELECT count(1) FROM play_time
-                WHERE date_time < ?
-            """,
+                SELECT EXISTS(SELECT 1 FROM play_time pt WHERE date_time < ?)
+                """,
                 (date.isoformat(),),
             ).fetchone()[0]
-            > 0
+            == 1
         )
 
-    def _is_there_is_data_after(
+    def _has_data_after(
         self,
         connection: sqlite3.Connection,
         date: datetime.datetime,
@@ -189,26 +187,24 @@ class Dao:
             return (
                 connection.execute(
                     """
-                SELECT count(1) FROM play_time pt
-                WHERE date_time > ? AND pt.game_id = ?
-            """,
+                    SELECT EXISTS(SELECT 1 FROM play_time pt WHERE date_time > ? AND pt.game_id = ?)
+                    """,
                     (
                         date.isoformat(),
                         game_id,
                     ),
                 ).fetchone()[0]
-                > 0
+                == 1
             )
 
         return (
             connection.execute(
                 """
-                SELECT count(1) FROM play_time
-                WHERE date_time > ?
+                    SELECT EXISTS(SELECT 1 FROM play_time pt WHERE date_time > ?)
             """,
                 (date.isoformat(),),
             ).fetchone()[0]
-            > 0
+            == 1
         )
 
     def _save_game_dict(
@@ -491,15 +487,45 @@ class Dao:
                     SUM(pt.duration) AS total_time,
                     COUNT(*) AS sessions,
                     gfc.checksum
-                FROM play_time pt
-                LEFT JOIN game_dict gd ON pt.game_id = gd.game_id
-                LEFT JOIN game_file_checksum gfc ON gfc.game_id = pt.game_id
-                WHERE pt.date_time BETWEEN :begin AND :end
-                    AND pt.game_id = :game_id
+                FROM
+                    play_time pt
+                    LEFT JOIN game_dict gd ON pt.game_id = gd.game_id
+                    LEFT JOIN game_file_checksum gfc ON gfc.game_id = pt.game_id
+                WHERE
+                    EXISTS (SELECT 1 FROM game_file_checksum WHERE game_id = :game_id)
+                    AND pt.game_id IN (
+                        SELECT DISTINCT gfc_alias.game_id
+                        FROM game_file_checksum gfc_alias
+                        WHERE gfc_alias.checksum IN (
+                            SELECT gfc_base.checksum
+                            FROM game_file_checksum gfc_base
+                            WHERE gfc_base.game_id = :game_id
+                        )
+                    )
+                    AND pt.date_time BETWEEN :begin AND :end
                     AND pt.migrated IS NULL
                 GROUP BY
-                    STRFTIME('%Y-%m-%d', pt.date_time),
-                    pt.game_id;
+                    date, pt.game_id, gd.name, gfc.checksum
+                UNION ALL
+                SELECT
+                    STRFTIME('%Y-%m-%d', pt.date_time) AS date,
+                    pt.game_id,
+                    gd.name AS game_name,
+                    SUM(pt.duration) AS total_time,
+                    COUNT(*) AS sessions,
+                    NULL AS checksum -- Checksum is guaranteed to be NULL in this case
+                FROM
+                    play_time pt
+                    LEFT JOIN game_dict gd ON pt.game_id = gd.game_id
+                WHERE
+                    NOT EXISTS (SELECT 1 FROM game_file_checksum WHERE game_id = :game_id)
+                    AND pt.game_id = :game_id
+                    AND pt.date_time BETWEEN :begin AND :end
+                    AND pt.migrated IS NULL
+                GROUP BY
+                    date, pt.game_id, gd.name
+                ORDER BY
+                    date, game_name;
             """,
                 {
                     "begin": begin.isoformat(),
@@ -524,7 +550,8 @@ class Dao:
                 AND pt.migrated IS NULL
             GROUP BY
                 STRFTIME('%Y-%m-%d', pt.date_time),
-                pt.game_id;
+                pt.game_id,
+                gfc.checksum;
             """,
             {"begin": begin.isoformat(), "end": end.isoformat()},
         ).fetchall()
@@ -614,7 +641,35 @@ class Dao:
         end_time: datetime.datetime,
         game_id: Optional[str] = None,
     ) -> Dict[str, Dict[str, List[SessionInformation]]]:
-        query = """
+        query = ""
+
+        if game_id is not None:
+            query = """
+                WITH TargetChecksums AS (
+                    -- Step 1: Find all unique checksums associated with the primary game_id.
+                    SELECT DISTINCT checksum
+                    FROM game_file_checksum
+                    WHERE game_id = :game_id
+                )
+                SELECT
+                    strftime('%Y-%m-%d', pt.date_time) as session_date,
+                    pt.game_id,
+                    pt.date_time,
+                    pt.duration,
+                    pt.migrated,
+                    gfc.checksum
+                FROM
+                    play_time pt
+                JOIN
+                    game_file_checksum gfc ON pt.game_id = gfc.game_id
+                WHERE
+                    pt.date_time >= :start AND pt.date_time < :end
+                AND gfc.checksum IN (SELECT checksum FROM TargetChecksums)
+                ORDER BY
+                    session_date, pt.game_id, pt.date_time;
+            """
+        else:
+            query = """
             SELECT
                 strftime('%Y-%m-%d', pt.date_time) as session_date,
                 pt.game_id,
@@ -628,10 +683,9 @@ class Dao:
                 game_file_checksum gfc ON pt.game_id = gfc.game_id
             WHERE
                 pt.date_time >= :start AND pt.date_time < :end
-            {game_id_filter}
             ORDER BY
                 session_date, pt.game_id, pt.date_time;
-        """
+            """
 
         params = {
             "start": start_time.isoformat(),
