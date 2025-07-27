@@ -55,55 +55,45 @@ export class Backend {
 		end: Date,
 		gameId?: string,
 	): Promise<PagedDayStatistics> {
-		return await call<
-			[DailyStatisticsForPeriodDTO],
-			PagedDayStatisticsResponse
-		>(BACK_END_API.DAILY_STATISTICS_FOR_PERIOD, {
-			start_date: toIsoDateOnly(start),
-			end_date: toIsoDateOnly(end),
-			game_id: gameId,
-		})
-			.then((response) => {
-				return {
-					...response,
-					hasNext: response.has_next,
-					hasPrev: response.has_prev,
-				};
-			})
-			.catch((error) => {
-				logger.error(error);
+		console.time(BACK_END_API.DAILY_STATISTICS_FOR_PERIOD);
 
-				return {
-					hasNext: false,
-					hasPrev: false,
-					data: [],
-				} as PagedDayStatistics;
-			});
+		return await call<[DailyStatisticsForPeriodDTO], PagedDayStatistics>(
+			BACK_END_API.DAILY_STATISTICS_FOR_PERIOD,
+			{
+				start_date: toIsoDateOnly(start),
+				end_date: toIsoDateOnly(end),
+				game_id: gameId,
+			},
+		).catch((error) => {
+			logger.error(error);
+
+			return {
+				hasNext: false,
+				hasPrev: false,
+				data: [],
+			} as PagedDayStatistics;
+		});
 	}
 
-	async fetchPerGameOverallStatistics(): Promise<GameWithTime[]> {
-		return await call<[], Array<GameWithTimeResponse>>(
+	async fetchPerGameOverallStatistics(): Promise<GamePlaytimeDetails[]> {
+		return await call<[], Array<GamePlaytimeDetails>>(
 			BACK_END_API.PER_GAME_OVERALL_STATISTICS,
-		)
-			.then((response) => {
-				return response.map((item) => ({
-					...item,
-					lastSession: item.last_session,
-				}));
-			})
-			.catch((error) => {
-				logger.error(error);
+		).catch((error) => {
+			logger.error(error);
 
-				return [];
-			});
+			return [];
+		});
 	}
 
 	async applyManualOverallTimeCorrection(
-		games: GameWithTime[],
+		games: GamePlaytimeDetails[],
 	): Promise<boolean> {
 		return await call<[list_of_game_stats: ApplyManualTimeCorrectionDTO], void>(
 			BACK_END_API.APPLY_MANUAL_TIME_CORRECTION,
-			games,
+			games.map((item) => ({
+				game: item.game,
+				time: item.totalTime,
+			})),
 		)
 			.then(() => {
 				this.eventBus.emit({ type: "TimeManuallyAdjusted" });
@@ -126,57 +116,42 @@ export class Backend {
 		});
 	}
 
-	async getGame(gameId: string): Promise<Nullable<GameInformation>> {
-		return await call<[GetGameDTO], Nullable<GameInformationResponse>>(
+	async getGame(gameId: string): Promise<Nullable<GamePlaytimeSummary>> {
+		return await call<[GetGameDTO], Nullable<GamePlaytimeSummary>>(
 			BACK_END_API.GET_GAME,
 			gameId,
-		)
-			.then((response) => {
-				return response;
-			})
-			.catch((error) => {
-				logger.error(error);
+		).catch((error) => {
+			logger.error(error);
 
-				return null;
-			});
+			return null;
+		});
 	}
 
 	public static async getFileSHA256(path: string): Promise<Nullable<string>> {
 		return await call<[GetFileSHA256DTO], Nullable<string>>(
 			BACK_END_API.GET_FILE_SHA256,
 			path,
-		)
-			.then((response) => {
-				return response;
-			})
-			.catch((error) => {
-				logger.error(error);
-
-				return undefined;
-			});
+		);
 	}
 
 	public static async getGamesDictionary(): Promise<Array<GameDictionary>> {
-		return await call<[], Array<GameDictionaryResponse>>(
+		return await call<[], Array<GameDictionary>>(
 			BACK_END_API.GET_GAMES_DICTIONARY,
-		).then((response) => {
-			return response.map((item) => ({
-				...item,
-				filesChecksum: item.files_checksum.map((fileChecksum) => ({
-					...fileChecksum,
-					gameId: fileChecksum.game_id,
-					chunkSize: fileChecksum.chunk_size,
-					createdAt: fileChecksum.created_at,
-					updatedAt: fileChecksum.updated_at,
-				})),
-			}));
-		});
+		);
 	}
 
 	public static async addGameChecksum(
 		id: string,
 		hashChecksum: string,
-		hashAlgorithm: string,
+		hashAlgorithm:
+			| "SHA224"
+			| "SHA256"
+			| "SHA384"
+			| "SHA512"
+			| "SHA3_224"
+			| "SHA3_256"
+			| "SHA3_384"
+			| "SHA3_512",
 		hashChunkSize: number,
 		createdAt?: Date,
 		updatedAt?: Date,
@@ -207,11 +182,51 @@ export class Backend {
 		);
 	}
 
-	public static async getGamesChecksum(): Promise<Array<GamesChecksum>> {
-		return await call<[], Array<FileChecksumResponse>>(
-			BACK_END_API.GET_GAMES_CHECKSUM,
-		).then((response) =>
-			response.map((item) => ({ ...item, gameId: item.game_id })),
+	public static async getGamesChecksum(): Promise<Array<FileChecksum>> {
+		return await call<[], Array<FileChecksum>>(BACK_END_API.GET_GAMES_CHECKSUM);
+	}
+
+	public static async getStatisticsForLastTwoWeeks(): Promise<
+		Array<GamePlaytimeReport>
+	> {
+		console.time(BACK_END_API.GET_STATISTICS_FOR_LAST_TWO_WEEKS);
+		return await call<[], Array<GamePlaytimeReport>>(
+			BACK_END_API.GET_STATISTICS_FOR_LAST_TWO_WEEKS,
 		);
+		//     .then(() => {
+		// 	console.timeEnd(BACK_END_API.GET_STATISTICS_FOR_LAST_TWO_WEEKS);
+		// 	console.log(BACK_END_API.GET_STATISTICS_FOR_LAST_TWO_WEEKS, );
+		//
+		// 	return .map((item) => ({
+		// 		...item,
+		// 		gameId: item.game_id,
+		// 		totalTime: item.total_time,
+		// 		gameName: item.game_name,
+		// 		lastPlayedDate: item.last_played_date,
+		// 		aliasesId: item?.aliases_id,
+		// 	}));
+		// });
+	}
+
+	public static async getPlaytimeInformation(): Promise<
+		Array<GamePlaytimeReport>
+	> {
+		console.time(BACK_END_API.FETCH_PLAYTIME_INFORMATION);
+		return await call<[], Array<GamePlaytimeReport>>(
+			BACK_END_API.FETCH_PLAYTIME_INFORMATION,
+		);
+		// .then(() => {
+		// 	console.timeEnd(BACK_END_API.FETCH_PLAYTIME_INFORMATION);
+		// 	console.log(BACK_END_API.FETCH_PLAYTIME_INFORMATION, );
+		//
+		// 	return .map((item) => ({
+		// 		...item,
+		// 		gameId: item.game_id,
+		// 		totalTime: item.total_time,
+		// 		gameName: item.game_name,
+		// 		lastPlayedDate: item.last_played_date,
+		// 		aliasesId: item?.aliases_id,
+		// 	}));
+		// });
 	}
 }

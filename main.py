@@ -52,6 +52,57 @@ from python.dto.time.add_time import AddTimeDTO
 
 # autopep8: on
 
+import re
+
+
+def to_camel_case(snake_str):
+    """
+    Converts a snake_case string to camelCase.
+
+    _leading_underscores are removed.
+    For example: "__my_string" -> "myString"
+    """
+    # Use a regex to find all occurrences of an underscore followed by a letter
+    # and replace it with the uppercase version of that letter.
+    # The lambda function m.group(1).upper() takes the matched group (the letter)
+    # and converts it to uppercase.
+    # Example: for "user_id", it finds "_i" and replaces it with "I".
+    camel_string = re.sub(r"_([a-zA-Z0-9])", lambda m: m.group(1).upper(), snake_str)
+
+    # Remove any leading underscores that might remain if the string started with them
+    return camel_string.lstrip("_")
+
+
+def convert_keys_to_camel_case(data):
+    """
+    Recursively converts all keys in a dictionary or a list of dictionaries
+    from snake_case to camelCase.
+
+    Args:
+        data: A dict, list, or other python object.
+
+    Returns:
+        A new object with all dictionary keys converted to camelCase.
+        Non-dict and non-list items are returned as is.
+    """
+    if isinstance(data, dict):
+        # It's a dictionary, process its keys and values
+        new_dict = {}
+        for key, value in data.items():
+            # Convert the key to camelCase
+            new_key = to_camel_case(key)
+            # Recursively call the function on the value
+            new_dict[new_key] = convert_keys_to_camel_case(value)
+        return new_dict
+
+    elif isinstance(data, list):
+        # It's a list, process each item in the list
+        return [convert_keys_to_camel_case(item) for item in data]
+
+    else:
+        # It's a primitive type (str, int, etc.), return it as is
+        return data
+
 
 class Plugin:
     files: Files = Files()
@@ -92,11 +143,13 @@ class Plugin:
         try:
             dto = DailyStatisticsForPeriodDTO.from_dict(dto_dict)
 
-            return dataclasses.asdict(
-                self.statistics.daily_statistics_for_period(
-                    parse_date(dto.start_date),
-                    parse_date(dto.end_date),
-                    dto.game_id,
+            return convert_keys_to_camel_case(
+                dataclasses.asdict(
+                    self.statistics.daily_statistics_for_period(
+                        parse_date(dto.start_date),
+                        parse_date(dto.end_date),
+                        dto.game_id,
+                    )
                 )
             )
         except Exception as e:
@@ -105,9 +158,46 @@ class Plugin:
             )
             raise e
 
+    async def statistics_for_last_two_weeks(self):
+        try:
+            return convert_keys_to_camel_case(
+                self.statistics.get_statistics_for_last_two_weeks()
+            )
+
+        except Exception as e:
+            decky.logger.exception(
+                "[statistics_for_GameDictionary_weeks] Unhandled exception: %s", e
+            )
+            raise e
+
+    async def fetch_playtime_information(self):
+        try:
+            return convert_keys_to_camel_case(
+                self.statistics.fetch_playtime_information()
+            )
+
+        except Exception as e:
+            decky.logger.exception(
+                "[fetch_playtime_information] Unhandled exception: %s", e
+            )
+            raise e
+
     async def per_game_overall_statistics(self):
         try:
-            return self.statistics.per_game_overall_statistic()
+            return convert_keys_to_camel_case(
+                self.statistics.per_game_overall_statistic()
+            )
+        except Exception as e:
+            decky.logger.exception(
+                "[per_game_overall_statistics] Unhandled exception: %s", e
+            )
+            raise e
+
+    async def short_per_game_overall_statistics(self):
+        try:
+            return convert_keys_to_camel_case(
+                self.statistics.per_game_overall_statistic()
+            )
         except Exception as e:
             decky.logger.exception(
                 "[per_game_overall_statistics] Unhandled exception: %s", e
@@ -134,7 +224,7 @@ class Plugin:
             if game_by_id is None:
                 return None
 
-            return dataclasses.asdict(game_by_id)
+            return convert_keys_to_camel_case(dataclasses.asdict(game_by_id))
         except Exception as e:
             decky.logger.exception("[get_game] Unhandled exception: %s", e)
             raise e
@@ -154,7 +244,7 @@ class Plugin:
 
     async def get_games_dictionary(self):
         try:
-            return self.games.get_dictionary()
+            return convert_keys_to_camel_case(self.games.get_dictionary())
         except Exception as e:
             decky.logger.exception("[get_games_dictionary] Unhandled exception: %s", e)
             raise e
@@ -177,14 +267,18 @@ class Plugin:
 
     async def remove_game_checksum(self, dto: RemoveGameChecksumDTO):
         try:
-            return self.games.remove_game_checksum(dto["game_id"], dto["checksum"])
+            return convert_keys_to_camel_case(
+                self.games.remove_game_checksum(dto["game_id"], dto["checksum"])
+            )
         except Exception as e:
             decky.logger.exception("[remove_game_checksum] Unhandled exception: %s", e)
             raise e
 
     async def remove_all_game_checksum(self, game_id: RemoveAllGameChecksumsDTO):
         try:
-            return self.games.remove_all_game_checksums(game_id)
+            return convert_keys_to_camel_case(
+                self.games.remove_all_game_checksums(game_id)
+            )
         except Exception as e:
             decky.logger.exception("[remove_game_checksum] Unhandled exception: %s", e)
             raise e
@@ -193,7 +287,7 @@ class Plugin:
         self,
     ):
         try:
-            return self.games.get_games_checksum()
+            return convert_keys_to_camel_case(self.games.get_games_checksum())
         except Exception as e:
             decky.logger.exception("[get_games_checksum] Unhandled exception: %s", e)
             raise e

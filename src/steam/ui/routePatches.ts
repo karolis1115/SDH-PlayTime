@@ -16,7 +16,17 @@ function routePatch(path: string, patch: RoutePatch): Mountable {
 	};
 }
 
-export function patchAppPage(timeCache: Cache<Map<string, number>>): Mountable {
+export function patchAppPage(
+	timeCache: Cache<
+		Map<
+			string,
+			{
+				time: number;
+				lastDate: number;
+			}
+		>
+	>,
+): Mountable {
 	return routePatch(
 		"/library/app/:appid",
 		(props: { path: string; children: ReactElement }) => {
@@ -30,7 +40,7 @@ export function patchAppPage(timeCache: Cache<Map<string, number>>): Mountable {
 
 				if (overview.app_type === APP_TYPE.THIRD_PARTY) {
 					if (details && timeCache.isReady()) {
-						const time = timeCache.get()?.get(app_id.toString()) || 0;
+						const time = timeCache.get()?.get(app_id.toString())?.time || 0;
 
 						details.nPlaytimeForever = +(time / 60.0).toFixed(1);
 					}

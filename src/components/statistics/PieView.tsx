@@ -6,7 +6,7 @@ import { FocusableExt } from "../FocusableExt";
 interface TimeByGame {
 	gameId: string;
 	gameName: string;
-	time: number;
+	totalTime: number;
 }
 
 const colors = [
@@ -18,13 +18,13 @@ const colors = [
 ];
 
 function isDailyStatistics(
-	statistics: Array<DailyStatistics | GameWithTime>,
+	statistics: Array<DailyStatistics | GamePlaytimeDetails>,
 ): statistics is Array<DailyStatistics> {
 	return (statistics[0] as DailyStatistics)?.games !== undefined;
 }
 
 export const PieView: FC<{
-	statistics: Array<DailyStatistics> | Array<GameWithTime>;
+	statistics: Array<DailyStatistics> | Array<GamePlaytimeDetails>;
 }> = ({ statistics }) => {
 	if (isNil(statistics) || statistics.length === 0) {
 		return undefined;
@@ -37,16 +37,16 @@ export const PieView: FC<{
 			.map((value) => {
 				return {
 					name: value.gameName,
-					value: value.time / 60.0,
+					value: value.totalTime / 60.0,
 				};
 			})
 			.sort((a, b) => b.value - a.value);
 	} else {
 		raw_data = statistics
-			.sort((a, b) => b.time - a.time)
+			.sort((a, b) => b.totalTime - a.totalTime)
 			.map((item) => ({
 				name: item.game.name,
-				value: item.time / 60.0,
+				value: item.totalTime / 60.0,
 			}));
 	}
 
@@ -134,7 +134,10 @@ function sumTimeAndGroupByGame(statistics: DailyStatistics[]): TimeByGame[] {
 	const titleByGameId = new Map<string, string>();
 
 	for (const el of statistics.flatMap((it) => it.games)) {
-		timeByGameId.set(el.game.id, (timeByGameId.get(el.game.id) || 0) + el.time);
+		timeByGameId.set(
+			el.game.id,
+			(timeByGameId.get(el.game.id) || 0) + el.totalTime,
+		);
 		titleByGameId.set(el.game.id, el.game.name);
 	}
 
@@ -144,11 +147,11 @@ function sumTimeAndGroupByGame(statistics: DailyStatistics[]): TimeByGame[] {
 		timeByGames.push({
 			gameId: k,
 			gameName: titleByGameId.get(k) || "Unknown",
-			time: v,
+			totalTime: v,
 		} as TimeByGame);
 	});
 
-	timeByGames.sort((a, b) => b.time - a.time);
+	timeByGames.sort((a, b) => b.totalTime - a.totalTime);
 
 	return timeByGames;
 }

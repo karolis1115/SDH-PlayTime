@@ -4,9 +4,9 @@ import dataclasses
 from python.schemas.response import (
     FileChecksum,
     Game,
-    GameWithChecksums,
+    GameDictionary,
     GamePlaytimeSummary,
-    GameWithChecksums,
+    GameDictionary,
 )
 
 
@@ -26,10 +26,10 @@ class Games:
             Game(response.game_id, response.name), total_time=response.time
         )
 
-    def get_dictionary(self) -> List[Dict[str, GameWithChecksums]]:
+    def get_dictionary(self) -> List[Dict[str, GameDictionary]]:
         data = self.dao.get_games_dictionary()
 
-        result: List[Dict[str, GameWithChecksums]] = []
+        result: List[Dict[str, GameDictionary]] = []
 
         for game in data:
             game_files_checksum = self.dao.get_game_files_checksum(game.id)
@@ -49,9 +49,7 @@ class Games:
 
             result.append(
                 dataclasses.asdict(
-                    GameWithChecksums(
-                        Game(game.id, game.name), files=file_checksum_list
-                    )
+                    GameDictionary(Game(game.id, game.name), files=file_checksum_list)
                 )
             )
 
@@ -87,7 +85,7 @@ class Games:
 
         for game in games_checksum_without_game_dict:
             result.append(
-                dataclasses.asdict(GameWithChecksums(game.game_id, game.checksum))
+                dataclasses.asdict(GameDictionary(game.game_id, game.checksum))
             )
 
         return result

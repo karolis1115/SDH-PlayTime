@@ -28,7 +28,7 @@ export const ManuallyAdjustTimePage = () => {
 		useLocator();
 	const [isLoading, setLoading] = useState<boolean>(true);
 	const [gameWithTimeByAppId, setGameWithTimeByAppId] = useState<
-		Map<string, GameWithTime>
+		Map<string, GamePlaytimeDetails>
 	>(new Map());
 	const [tableRows, setTableRows] = useState<TableRowsProps[]>([]);
 
@@ -67,7 +67,8 @@ export const ManuallyAdjustTimePage = () => {
 	const onGameChange = (index: number, appId: string) => {
 		const newRows = [...tableRows];
 		newRows[index].appId = appId;
-		newRows[index].playTimeTrackedSec = gameWithTimeByAppId.get(appId)?.time;
+		newRows[index].playTimeTrackedSec =
+			gameWithTimeByAppId.get(appId)?.totalTime;
 		newRows[index].desiredHours =
 			ifNull(newRows[index].playTimeTrackedSec, 0) / 3600;
 		setTableRows(newRows);
@@ -96,8 +97,8 @@ export const ManuallyAdjustTimePage = () => {
 
 				return {
 					game: gameWithTimeByAppId.get(appId)?.game,
-					time: desiredHours * 3600,
-				} as GameWithTime;
+					totalTime: desiredHours * 3600,
+				} as GamePlaytimeDetails;
 			});
 		await timeMigration.applyManualOverallTimeCorrection(gamesToMigrate[0]);
 		navigateBack();

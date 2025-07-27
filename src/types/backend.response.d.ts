@@ -1,54 +1,125 @@
-type GameResponse = {
+// type Game = {
+// 	id: string;
+// 	name: string;
+// };
+//
+// type SessionInformation = {
+// 	date: string;
+// 	duration: number;
+// 	migrated?: string;
+// 	checksum?: string;
+// };
+//
+// type GameWithTime = {
+// 	game: Game;
+// 	time: number;
+// 	sessions: Array<SessionInformation>;
+// 	last_session?: SessionInformation;
+// };
+//
+// type DayStatistics = {
+// 	date: string;
+// 	games: Array<GameWithTime>;
+// 	total: number;
+// };
+//
+// type PagedDayStatistics = {
+// 	data: Array<DayStatistics>;
+// 	has_prev: boolean;
+// 	has_next: boolean;
+// };
+//
+// type GameInformation = {
+// 	game: Game;
+// 	time: number;
+// };
+//
+// type FileChecksum = {
+// 	game_id: string;
+// 	checksum: string;
+// 	algorithm: string;
+// 	chunk_size: number;
+// 	created_at?: string;
+// 	updated_at?: string;
+// };
+//
+// type GameDictionary = {
+// 	game: Game;
+// 	files_checksum: Array<FileChecksum>;
+// };
+//
+// type GamesChecksum = {
+// 	game_id: string;
+// 	checksum: string;
+// };
+//
+// type PlaytimeInformation = {
+// 	game_id: string;
+// 	total_time: number;
+// 	last_played_date: string;
+// 	game_name: string;
+// 	aliases_id?: string;
+// };
+//
+type Checksum =
+	| "SHA224"
+	| "SHA256"
+	| "SHA384"
+	| "SHA512"
+	| "SHA3_224"
+	| "SHA3_256"
+	| "SHA3_384"
+	| "SHA3_512";
+
+type Game = {
 	id: string;
 	name: string;
 };
 
-type SessionInformationResponse = {
+type SessionInformation = {
 	date: string;
 	duration: number;
 	migrated?: string;
 	checksum?: string;
 };
 
-type GameWithTimeResponse = {
+type GamePlaytimeSummary = {
 	game: Game;
-	time: number;
-	sessions: Array<SessionInformation>;
-	last_session?: SessionInformation;
+	totalTime: number;
 };
 
-type DayStatisticsResponse = {
+interface GamePlaytimeDetails extends GamePlaytimeSummary {
+	sessions: SessionInformation[];
+	lastSession?: SessionInformation;
+}
+
+interface GamePlaytimeReport extends GamePlaytimeSummary {
+	lastPlayedDate: string;
+	aliasesId?: string;
+}
+
+type DayStatistics = {
 	date: string;
-	games: Array<GameWithTime>;
+	games: GamePlaytimeDetails[];
 	total: number;
 };
 
-type PagedDayStatisticsResponse = {
-	data: Array<DayStatisticsResponse>;
-	has_prev: boolean;
-	has_next: boolean;
+type PagedDayStatistics = {
+	data: DayStatistics[];
+	hasPrev: boolean;
+	hasNext: boolean;
 };
 
-type GameInformationResponse = {
+type FileChecksum = {
 	game: Game;
-	time: number;
-};
-
-type FileChecksumResponse = {
-	game_id: string;
-	checksum: string;
+	checksum: Checksum;
 	algorithm: string;
-	chunk_size: number;
-	created_at?: string;
-	updated_at?: string;
+	chunkSize: number;
+	createdAt?: string;
+	updatedAt?: string;
 };
 
-type GameDictionaryResponse = {
+type GameDictionary = {
 	game: Game;
-	files_checksum: Array<FileChecksumResponse>;
-};
-
-type GamesChecksumResponse = {
-	game_id: string;
-	checksum: string;
+	files: FileChecksum[];
 };

@@ -60,6 +60,6 @@ class FileChecksum:
 
 
 @dataclass
-class GameWithChecksums:
+class GameDictionary:
     game: Game
     files: List[FileChecksum]

@@ -48,7 +48,7 @@ const showGameInformation = (
 				>
 					{JSON.stringify(game, null, 2)}
 				</pre>
-				{hasChecksum} | {hasChecksumSaved}
+				{JSON.stringify(hasChecksum)} | {JSON.stringify(hasChecksumSaved)}
 			</details>
 		</ModalRoot>,
 		window,
@@ -145,9 +145,7 @@ async function saveAllChecksums(tableRows: Array<LocalNonSteamGame>) {
 
 		const hasChecksumSaved = verifyIfHasChecksumSaved(
 			game?.checksum,
-			gameChecksums.dataBase
-				.get(game.id)
-				?.filesChecksum.map((item) => item.checksum),
+			gameChecksums.dataBase.get(game.id)?.files.map((item) => item.checksum),
 		);
 
 		if (hasChecksumSaved) {
@@ -157,7 +155,7 @@ async function saveAllChecksums(tableRows: Array<LocalNonSteamGame>) {
 		const hasDuplicate = [...gameChecksums.dataBase]
 			.map((item) => item[1])
 			.find((item) =>
-				item.filesChecksum.find(
+				item.files.find(
 					(checksum) =>
 						checksum.checksum === game?.checksum && item.game.id !== game?.id,
 				),
@@ -167,12 +165,7 @@ async function saveAllChecksums(tableRows: Array<LocalNonSteamGame>) {
 			return;
 		}
 
-		await Backend.addGameChecksum(
-			game.id,
-			checksum,
-			"checksum",
-			16 * 1024 * 1024,
-		)
+		await Backend.addGameChecksum(game.id, checksum, "SHA256", 16 * 1024 * 1024)
 			.then(() => {
 				savedChecksumsForGames.push(game.name);
 			})
@@ -285,7 +278,7 @@ export function FileChecksum() {
 					row?.checksum,
 					gameChecksums.dataBase
 						.get(row.id)
-						?.filesChecksum.map((item) => item.checksum),
+						?.files.map((item) => item.checksum),
 				);
 
 				return (

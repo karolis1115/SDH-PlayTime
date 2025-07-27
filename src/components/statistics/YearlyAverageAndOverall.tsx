@@ -26,7 +26,7 @@ function calculateAverages(yearlyStats: Array<DailyStatistics>): {
 			const { sessions } = game;
 
 			totalSessions += sessions.length;
-			totalPlaytime += game.time;
+			totalPlaytime += game.totalTime;
 
 			for (const session of sessions) {
 				const formattedDate = format(new Date(session.date), "M-d");

@@ -46,15 +46,15 @@ function injectTailwind() {
 		return;
 	}
 
-	if (!isNil(findSP().document.head.querySelector("#playTimeStyle"))) {
-		findSP().document.head.querySelector("#playTimeStyle")?.remove();
+	if (!isNil(findSP()?.document?.head?.querySelector("#playTimeStyle"))) {
+		findSP()?.document?.head?.querySelector("#playTimeStyle")?.remove();
 	}
 
 	const style = document.createElement("style");
 	style.id = "playTimeStyle";
 	style.innerHTML = PlayTimeStyle;
 
-	findSP().document.head.appendChild(style);
+	findSP()?.document?.head?.appendChild(style);
 
 	log("Inject TailwindCSS styles into <head />");
 }
@@ -74,7 +74,6 @@ export default definePlugin(() => {
 	const mountManager = new MountManager(eventBus, clock);
 	const mounts = createMountables(
 		eventBus,
-		backend,
 		clock,
 		settings,
 		reports,
@@ -109,18 +108,15 @@ export default definePlugin(() => {
 
 function createMountables(
 	eventBus: EventBus,
-	backend: Backend,
 	clock: Clock,
 	settings: Settings,
 	reports: Reports,
 	sessionPlayTime: SessionPlayTime,
 	timeMigration: TimeManipulation,
 ): Mountable[] {
-	const cachedPlayTimes = createCachedPlayTimes(backend, eventBus);
-	const cachedLastTwoWeeksPlayTimes = createCachedLastTwoWeeksPlayTimes(
-		backend,
-		eventBus,
-	);
+	const cachedPlayTimes = createCachedPlayTimes(eventBus);
+	const cachedLastTwoWeeksPlayTimes =
+		createCachedLastTwoWeeksPlayTimes(eventBus);
 
 	eventBus.addSubscriber(async (event) => {
 		switch (event.type) {

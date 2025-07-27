@@ -200,7 +200,16 @@ class Statistics:
                         )
                     )
 
-            result.append(dataclasses.asdict(information))
+            result.append(
+                dataclasses.asdict(
+                    GamePlaytimeReport(
+                        game=Game(information.game_id, information.game_name),
+                        total_time=information.total_time,
+                        last_played_date=information.last_played_date,
+                        aliases_id=information.aliases_id,
+                    )
+                )
+            )
 
         return result
 
@@ -224,7 +233,16 @@ class Statistics:
                         )
                     )
 
-            result.append(dataclasses.asdict(information))
+            result.append(
+                dataclasses.asdict(
+                    GamePlaytimeReport(
+                        game=Game(information.game_id, information.game_name),
+                        total_time=information.total_time,
+                        last_played_date=information.last_played_date,
+                        aliases_id=information.aliases_id,
+                    )
+                )
+            )
 
         return result
 

@@ -12,7 +12,7 @@ import { useLocator } from "../locator";
 export const ReportOverall = () => {
 	const { reports, currentSettings, settings, setCurrentSettings } =
 		useLocator();
-	const [data, setData] = useState<GameWithTime[]>([]);
+	const [data, setData] = useState<GamePlaytimeDetails[]>([]);
 	const [isLoading, setLoading] = useState<boolean>(false);
 	const sortType = currentSettings.selectedSortByOption || "mostPlayed";
 

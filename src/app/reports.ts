@@ -84,11 +84,11 @@ export class Reports {
 		);
 	}
 
-	public async overallStatistics(): Promise<GameWithTime[]> {
+	public async overallStatistics(): Promise<GamePlaytimeDetails[]> {
 		return await this.backend.fetchPerGameOverallStatistics();
 	}
 
-	public async getGame(gameId: string): Promise<Nullable<GameInformation>> {
+	public async getGame(gameId: string): Promise<Nullable<GamePlaytimeSummary>> {
 		return await this.backend.getGame(gameId);
 	}
 }

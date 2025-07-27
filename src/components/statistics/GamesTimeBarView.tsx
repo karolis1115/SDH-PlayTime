@@ -11,7 +11,7 @@ import { Timebar } from "../Timebar";
 import { VerticalContainer } from "../VerticalContainer";
 
 type GamesTimeBarViewProperties = {
-	data: Array<GameWithTime>;
+	data: Array<GamePlaytimeDetails>;
 	showCovers?: boolean;
 	onOptionsPress: () => void;
 	onMenuPress: (gameName: string, gameId: string) => void;
@@ -23,10 +23,10 @@ type GamesTimeBarViewCoversProperties = Omit<
 >;
 
 type PlayedSessionsInformation = {
-	game: GameWithTime;
+	game: GamePlaytimeDetails;
 };
 
-function getLastPlayedTime(game: GameWithTime) {
+function getLastPlayedTime(game: GamePlaytimeDetails) {
 	const { lastSession } = game;
 
 	if (isNil(lastSession)) {
@@ -52,7 +52,7 @@ function PlayedSessionsInformation({ game }: PlayedSessionsInformation) {
 			settings.selectedSortByOption,
 		)
 	) {
-		const averagePlayedTime = game.time / game.sessions.length;
+		const averagePlayedTime = game.totalTime / game.sessions.length;
 
 		return (
 			<span>
@@ -81,7 +81,7 @@ function GamesTimeBarViewWithCovers({
 	onMenuPress,
 }: GamesTimeBarViewCoversProperties) {
 	const { currentSettings: settings } = useLocator();
-	const allTime = data.reduce((acc, it) => acc + it.time, 0);
+	const allTime = data.reduce((acc, it) => acc + it.totalTime, 0);
 
 	return (
 		<div className="games-by-week">
@@ -143,7 +143,7 @@ function GamesTimeBarViewWithCovers({
 										</span>
 									</div>
 
-									<Timebar time={it.time} allTime={allTime} />
+									<Timebar time={it.totalTime} allTime={allTime} />
 
 									<div
 										style={{
@@ -183,8 +183,8 @@ export const GamesTimeBarView: React.FC<GamesTimeBarViewProperties> = ({
 		);
 	}
 
-	const allTime = data.reduce((acc, it) => acc + it.time, 0);
-	const sortedByTime = data.sort((a, b) => b.time - a.time);
+	const allTime = data.reduce((acc, it) => acc + it.totalTime, 0);
+	const sortedByTime = data.sort((a, b) => b.totalTime - a.totalTime);
 
 	return (
 		<div className="games-by-week">
@@ -193,7 +193,7 @@ export const GamesTimeBarView: React.FC<GamesTimeBarViewProperties> = ({
 					<VerticalContainer>
 						<div style={hide_text_on_overflow}>{it.game.name}</div>
 
-						<Timebar time={it.time} allTime={allTime} />
+						<Timebar time={it.totalTime} allTime={allTime} />
 					</VerticalContainer>
 				</FocusableExt>
 			))}

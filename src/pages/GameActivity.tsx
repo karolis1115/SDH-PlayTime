@@ -18,7 +18,7 @@ interface GameActivityProperties {
 	gameId: string;
 }
 
-type SessionByDay = Record<string, Array<Session>>;
+type SessionByDay = Record<string, Array<SessionInformation>>;
 
 interface SessionsProperties {
 	sessionsList: SessionByDay;
@@ -43,14 +43,14 @@ function Header({ gameId }: HeaderProperties) {
 					return;
 				}
 
-				const { game, time } = response;
+				const { game, totalTime } = response;
 				const { name } = game;
 
 				setGameName(name);
 				setPlayedTime(
 					humanReadableTime(
 						settings.displayTime.showTimeInHours,
-						time,
+						totalTime,
 						false,
 						settings.displayTime.showSeconds,
 					),
@@ -101,7 +101,7 @@ function SessionsList({
 	showTimeInHours = true,
 	showSeconds = true,
 }: {
-	sessions: Array<Session>;
+	sessions: Array<SessionInformation>;
 	sessionDateKey: string;
 	showTimeInHours: boolean;
 	showSeconds: boolean;
