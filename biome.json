@@ -13,7 +13,8 @@
 			"./tsconfig.json",
 			"./rollup.config.js",
 			"./plugin.json",
-			"./biome.json"
+			"./biome.json",
+			"!src/styles/output.css"
 		]
 	},
 	"formatter": {
