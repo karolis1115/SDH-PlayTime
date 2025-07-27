@@ -4,8 +4,15 @@ import { $gameCheksumsLoadingState, gameChecksums } from "@src/stores/games";
 import { isNil } from "@src/utils/isNil";
 import logger from "@src/utils/logger";
 import { Backend } from "./backend";
+import { APP_TYPE } from "@src/constants";
 
 export function getAllNonSteamAppIds() {
+	if (isNil(collectionStore.deckDesktopApps)) {
+		return appStore.allApps
+			.filter((item) => item.app_type === APP_TYPE.THIRD_PARTY)
+			.map((item) => Number.parseInt(item.gameid));
+	}
+
 	return Array.from(collectionStore.deckDesktopApps.apps.keys());
 }
 
