@@ -645,28 +645,31 @@ class Dao:
 
         if game_id is not None:
             query = """
-                WITH TargetChecksums AS (
-                    -- Step 1: Find all unique checksums associated with the primary game_id.
-                    SELECT DISTINCT checksum
-                    FROM game_file_checksum
-                    WHERE game_id = :game_id
+            WITH TargetChecksums AS (
+                SELECT DISTINCT checksum
+                FROM game_file_checksum
+                WHERE game_id = :game_id
+            )
+            SELECT
+                strftime('%Y-%m-%d', pt.date_time) as session_date,
+                pt.game_id,
+                pt.date_time,
+                pt.duration,
+                pt.migrated,
+                gfc.checksum
+            FROM
+                play_time pt
+            LEFT JOIN
+                game_file_checksum gfc ON pt.game_id = gfc.game_id
+            WHERE
+                pt.date_time >= :start AND pt.date_time < :end
+                AND (
+                    pt.game_id = :game_id
+                    OR
+                    gfc.checksum IN (SELECT checksum FROM TargetChecksums)
                 )
-                SELECT
-                    strftime('%Y-%m-%d', pt.date_time) as session_date,
-                    pt.game_id,
-                    pt.date_time,
-                    pt.duration,
-                    pt.migrated,
-                    gfc.checksum
-                FROM
-                    play_time pt
-                JOIN
-                    game_file_checksum gfc ON pt.game_id = gfc.game_id
-                WHERE
-                    pt.date_time >= :start AND pt.date_time < :end
-                AND gfc.checksum IN (SELECT checksum FROM TargetChecksums)
-                ORDER BY
-                    session_date, pt.game_id, pt.date_time;
+            ORDER BY
+                session_date, pt.game_id, pt.date_time;
             """
         else:
             query = """
