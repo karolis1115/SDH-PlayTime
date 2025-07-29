@@ -15,6 +15,8 @@ export const $nonSteamAppsCount = atom<number>(0);
 export const $generatingChecksumForAppWithIndex = atom<number>(0);
 export const $isGeneratingChecksumForGames = atom<boolean>(false);
 
+export const $isSavingChecksumsIntoDataBase = atom<boolean>(false);
+
 export const unbindListener = $gameCheksumsLoadingState.subscribe(
 	(value, oldValue) => {
 		logger.debug(

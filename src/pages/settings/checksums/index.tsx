@@ -16,6 +16,7 @@ import {
 	$generatingChecksumForAppWithIndex,
 	$isGeneratingChecksumForGames,
 	$isLoadingChecksumFromDataBase,
+	$isSavingChecksumsIntoDataBase,
 	$nonSteamAppsCount,
 	gameChecksums,
 } from "@src/stores/games";
@@ -140,6 +141,12 @@ function showChecksumContextMenu(
 }
 
 async function saveAllChecksums(tableRows: Array<LocalNonSteamGame>) {
+	if ($isSavingChecksumsIntoDataBase.get()) {
+		return;
+	}
+
+	$isSavingChecksumsIntoDataBase.set(true);
+
 	const savedChecksumsForGames: Array<string> = [];
 
 	for (const game of tableRows) {
@@ -188,6 +195,8 @@ async function saveAllChecksums(tableRows: Array<LocalNonSteamGame>) {
 		`Saved checksum for ${savedChecksumsForGames.length} games`,
 		savedChecksumsForGames,
 	);
+
+	$isSavingChecksumsIntoDataBase.set(false);
 
 	await initializeGameDetectionByChecksum();
 }
@@ -241,6 +250,9 @@ export function FileChecksum() {
 	const generatingChecksumForAppWithIndex = useStore(
 		$generatingChecksumForAppWithIndex,
 	);
+	const isSavingChecksumsIntoDataBase = useStore(
+		$isSavingChecksumsIntoDataBase,
+	);
 	const [hasMinRequiredPythonVersion, setHasMinRequiredPythonVersion] =
 		useState<Nullable<boolean>>(undefined);
 
@@ -291,7 +303,10 @@ export function FileChecksum() {
 
 	return (
 		<>
-			<ButtonItem onClick={async () => await saveAllChecksums(tableRows)}>
+			<ButtonItem
+				onClick={async () => await saveAllChecksums(tableRows)}
+				disabled={isSavingChecksumsIntoDataBase}
+			>
 				Save all checksums in DataBase
 			</ButtonItem>
 
