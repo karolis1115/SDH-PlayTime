@@ -18,4 +18,6 @@ export const BACK_END_API = {
 	REMOVE_ALL_GAME_CHECKSUM: "remove_all_game_checksum",
 	GET_GAMES_CHECKSUM: "get_games_checksum",
 	GET_STATISTICS_FOR_LAST_TWO_WEEKS: "statistics_for_last_two_weeks",
+	SAVE_GAME_CHECKSUM_BULK: "save_game_checksum_bulk",
+	REMOVE_ALL_CHECKSUMS: "remove_all_checksums",
 } as const;

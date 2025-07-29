@@ -97,7 +97,7 @@ export async function getCurrentNonSteamGamesChecksum(
 	allNonSteamAppIds: Array<number>,
 ) {
 	if (gameChecksums.nonSteam.size !== 0) {
-		gameChecksums.nonSteam.clear();
+		return;
 	}
 
 	$isGeneratingChecksumForGames.set(true);

@@ -1,6 +1,7 @@
 import { toaster } from "@decky/api";
 import {
-	ButtonItem,
+	DialogButton,
+	Focusable,
 	Menu,
 	MenuItem,
 	ModalRoot,
@@ -9,7 +10,10 @@ import {
 } from "@decky/ui";
 import { useStore } from "@nanostores/react";
 import { Backend } from "@src/app/backend";
-import { initializeGameDetectionByChecksum } from "@src/app/games";
+import {
+	getNonSteamGamesChecksumFromDataBase,
+	initializeGameDetectionByChecksum,
+} from "@src/app/games";
 import { FocusableExt } from "@src/components/FocusableExt";
 import {
 	$gameCheksumsLoadingState,
@@ -92,13 +96,10 @@ function showChecksumContextMenu(
 						// NOTE(ynhhoJ): 16 MB
 						16 * 1024 * 1024,
 					).then(async () => {
-						// $gameCheksumsLoadingState.set("loading");
 						toaster.toast({
 							title: "PlayTime",
 							body: `Saved checksum for ${gameInformation.name}`,
 						});
-
-						await initializeGameDetectionByChecksum();
 					});
 				}}
 				disabled={hasChecksum && hasChecksumSaved}
@@ -140,6 +141,12 @@ function showChecksumContextMenu(
 	);
 }
 
+async function updateChecksumList() {
+	$gameCheksumsLoadingState.set("loading");
+	await getNonSteamGamesChecksumFromDataBase();
+	$gameCheksumsLoadingState.set("loaded");
+}
+
 async function saveAllChecksums(tableRows: Array<LocalNonSteamGame>) {
 	if ($isSavingChecksumsIntoDataBase.get()) {
 		return;
@@ -147,7 +154,7 @@ async function saveAllChecksums(tableRows: Array<LocalNonSteamGame>) {
 
 	$isSavingChecksumsIntoDataBase.set(true);
 
-	const savedChecksumsForGames: Array<string> = [];
+	const savedChecksumsForGames: Array<AddGameChecksumDTO> = [];
 
 	for (const game of tableRows) {
 		const { checksum } = game;
@@ -179,26 +186,40 @@ async function saveAllChecksums(tableRows: Array<LocalNonSteamGame>) {
 			return;
 		}
 
-		await Backend.addGameChecksum(game.id, checksum, "SHA256", 16 * 1024 * 1024)
-			.then(() => {
-				savedChecksumsForGames.push(game.name);
-			})
-			.catch((_error) => {});
+		savedChecksumsForGames.push({
+			game_id: game.id,
+			checksum,
+			algorithm: "SHA256",
+			chunk_size: 16 * 1024 * 1024,
+		});
 	}
 
-	toaster.toast({
-		title: "PlayTime",
-		body: `Saved checksum for ${savedChecksumsForGames.length} games`,
+	await Backend.addGameChecksumBulk(savedChecksumsForGames).then(async () => {
+		toaster.toast({
+			title: "PlayTime",
+			body: `Saved checksum for ${savedChecksumsForGames.length} games`,
+		});
+
+		logger.debug(
+			`Saved checksum for ${savedChecksumsForGames.length} games`,
+			savedChecksumsForGames,
+		);
+
+		$isSavingChecksumsIntoDataBase.set(false);
+
+		await updateChecksumList();
 	});
+}
 
-	logger.debug(
-		`Saved checksum for ${savedChecksumsForGames.length} games`,
-		savedChecksumsForGames,
-	);
+async function removeAllChecksums() {
+	return Backend.removeAllChecksums().then(async (response) => {
+		toaster.toast({
+			title: "PlayTime",
+			body: `${response} checksums was removed from DataBase`,
+		});
 
-	$isSavingChecksumsIntoDataBase.set(false);
-
-	await initializeGameDetectionByChecksum();
+		await updateChecksumList();
+	});
 }
 
 function FileChecksumStatus({
@@ -272,11 +293,16 @@ export function FileChecksum() {
 				return;
 			}
 
-			initializeGameDetectionByChecksum().then(() => {
-				setTableRows(
-					Array.from(gameChecksums.nonSteam).map(([_name, value]) => value),
-				);
-			});
+			if (
+				gameCheksumsLoadingStateStore === "initialize" ||
+				gameCheksumsLoadingStateStore === "empty"
+			) {
+				initializeGameDetectionByChecksum().then(() => {
+					setTableRows(
+						Array.from(gameChecksums.nonSteam).map(([_name, value]) => value),
+					);
+				});
+			}
 		});
 	}, [gameCheksumsLoadingStateStore]);
 
@@ -303,12 +329,21 @@ export function FileChecksum() {
 
 	return (
 		<>
-			<ButtonItem
-				onClick={async () => await saveAllChecksums(tableRows)}
-				disabled={isSavingChecksumsIntoDataBase}
+			<Focusable
+				style={{ display: "flex", alignItems: "center", gap: "1rem" }}
+				flow-children="horizontal"
 			>
-				Save all checksums in DataBase
-			</ButtonItem>
+				<DialogButton onClick={removeAllChecksums}>
+					Remove all checksums from DB
+				</DialogButton>
+
+				<DialogButton
+					onClick={async () => await saveAllChecksums(tableRows)}
+					disabled={isSavingChecksumsIntoDataBase}
+				>
+					Save all checksums in DB
+				</DialogButton>
+			</Focusable>
 
 			<div style={TableCSS.table__container}>
 				<div

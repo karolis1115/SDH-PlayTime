@@ -169,6 +169,15 @@ export class Backend {
 		);
 	}
 
+	public static async addGameChecksumBulk(
+		checksumsToAdd: Array<AddGameChecksumDTO>,
+	): Promise<void> {
+		return await call<[Array<AddGameChecksumDTO>], void>(
+			BACK_END_API.SAVE_GAME_CHECKSUM_BULK,
+			checksumsToAdd,
+		);
+	}
+
 	public static async removeGameChecksum(
 		id: string,
 		checksum: string,
@@ -180,6 +189,10 @@ export class Backend {
 				checksum,
 			},
 		);
+	}
+
+	public static async removeAllChecksums(): Promise<number> {
+		return await call<[], number>(BACK_END_API.REMOVE_ALL_CHECKSUMS);
 	}
 
 	public static async getGamesChecksum(): Promise<Array<FileChecksum>> {

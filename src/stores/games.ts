@@ -6,7 +6,7 @@ export const gameChecksums = {
 	nonSteam: new Map<string, LocalNonSteamGame>(),
 };
 
-export type LoadingStateValue = "empty" | "loading" | "loaded";
+export type LoadingStateValue = "empty" | "initialize" | "loading" | "loaded";
 
 export const $gameCheksumsLoadingState = atom<LoadingStateValue>("empty");
 export const $isLoadingChecksumFromDataBase = atom<boolean>(false);
