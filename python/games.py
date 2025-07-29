@@ -8,6 +8,7 @@ from python.schemas.response import (
     GamePlaytimeSummary,
     GameDictionary,
 )
+from python.dto.save_game_checksum import AddGameChecksumDTO
 
 
 class Games:
@@ -73,19 +74,35 @@ class Games:
             hash_updated_at,
         )
 
+    def save_game_checksum_bulk(self, checksums: List[AddGameChecksumDTO]):
+        checksums_data = [
+            (
+                dto.game_id,
+                dto.checksum,
+                dto.algorithm,
+                dto.chunk_size,
+                dto.created_at,
+                dto.updated_at,
+            )
+            for dto in checksums
+        ]
+
+        self.dao.save_game_checksum_bulk(checksums_data)
+
     def remove_game_checksum(self, game_id: str, checksum: str):
         self.dao.remove_game_checksum(game_id, checksum)
 
     def remove_all_game_checksums(self, game_id: str):
         self.dao.remove_all_game_checksums(game_id)
 
+    def remove_all_checksums(self):
+        return self.dao.remove_all_checksums()
+
     def get_games_checksum(self):
         games_checksum_without_game_dict = self.dao.get_games_checksum()
         result = []
 
         for game in games_checksum_without_game_dict:
-            result.append(
-                dataclasses.asdict(GameDictionary(game.game_id, game.checksum))
-            )
+            result.append(dataclasses.asdict(game))
 
         return result

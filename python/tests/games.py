@@ -6,6 +6,7 @@ from python.games import Games
 from python.db.dao import Dao
 from python.time_tracking import TimeTracking
 from python.statistics import Statistics
+from python.dto.save_game_checksum import AddGameChecksumDTO
 
 
 class TestGame(AbstractDatabaseTest):
@@ -95,7 +96,139 @@ class TestGame(AbstractDatabaseTest):
 
         result = self.playtime_statistics.per_game_overall_statistic()
 
-        self.assertEqual(result[0]["time"], 3600 + 1800)
+        self.assertEqual(result[0]["total_time"], 3600 + 1800)
+
+    def test_save_game_checksum_bulk_inserts_multiple_records(self):
+        """
+        Verify that multiple, unique checksums are inserted correctly.
+        """
+        checksums_to_save = [
+            AddGameChecksumDTO(
+                game_id="game-123",
+                checksum="checksum_alpha",
+                algorithm="SHA256",
+                chunk_size=1024,
+                created_at="2023-03-01 12:00:00",
+                updated_at="2023-03-01 12:00:00",
+            ),
+            AddGameChecksumDTO(
+                game_id="game-123",
+                checksum="checksum_beta",
+                algorithm="BLAKE2B",
+                chunk_size=2048,
+                created_at="2023-03-02 12:00:00",
+                updated_at="2023-03-02 12:00:00",
+            ),
+            AddGameChecksumDTO(
+                game_id="game-456",
+                checksum="checksum_gamma",
+                algorithm="SHA256",
+                chunk_size=1024,
+                created_at="2023-03-03 12:00:00",
+                updated_at="2023-03-03 12:00:00",
+            ),
+        ]
+
+        self.games.save_game_checksum_bulk(checksums_to_save)
+
+        results = self.games.get_games_checksum()
+
+        assert len(results) == 3
+
+        self.assertEqual(
+            results,
+            [
+                {
+                    "checksum_id": 1,
+                    "game_id": "game-123",
+                    "checksum": "checksum_alpha",
+                    "algorithm": "SHA256",
+                    "chunk_size": 1024,
+                    "created_at": "2023-03-01 12:00:00",
+                    "updated_at": "2023-03-01 12:00:00",
+                },
+                {
+                    "checksum_id": 2,
+                    "game_id": "game-123",
+                    "checksum": "checksum_beta",
+                    "algorithm": "BLAKE2B",
+                    "chunk_size": 2048,
+                    "created_at": "2023-03-02 12:00:00",
+                    "updated_at": "2023-03-02 12:00:00",
+                },
+                {
+                    "checksum_id": 3,
+                    "game_id": "game-456",
+                    "checksum": "checksum_gamma",
+                    "algorithm": "SHA256",
+                    "chunk_size": 1024,
+                    "created_at": "2023-03-03 12:00:00",
+                    "updated_at": "2023-03-03 12:00:00",
+                },
+            ],
+        )
+
+    def test_save_game_checksum_bulk_ignores_duplicates(self):
+        """
+        Verify that `INSERT OR IGNORE` correctly handles duplicate entries.
+        A duplicate is defined by the UNIQUE constraint: (game_id, checksum, algorithm)
+        """
+        self.games.save_game_checksum(
+            "game-123",
+            "checksum_alpha",
+            "SHA256",
+            1024,
+            "2023-01-01 12:00:00",
+            "2023-01-01 12:00:00",
+        )
+
+        checksums_to_save = [
+            AddGameChecksumDTO(
+                game_id="game-123",
+                checksum="checksum_alpha",
+                algorithm="SHA256",
+                chunk_size=1024,
+                created_at="2023-02-01 12:00:00",
+                updated_at="2023-02-01 12:00:00",
+            ),
+            AddGameChecksumDTO(
+                game_id="game-123",
+                checksum="checksum_delta",
+                algorithm="SHA256",
+                chunk_size=4096,
+                created_at="2023-03-01 12:00:00",
+                updated_at="2023-03-01 12:00:00",
+            ),
+        ]
+
+        self.games.save_game_checksum_bulk(checksums_to_save)
+
+        results = self.games.get_games_checksum()
+        assert len(results) == 2
+
+        self.assertEqual(
+            results,
+            [
+                {
+                    "algorithm": "SHA256",
+                    "checksum": "checksum_alpha",
+                    "checksum_id": 1,
+                    "chunk_size": 1024,
+                    "created_at": "2023-01-01 12:00:00",
+                    "game_id": "game-123",
+                    "updated_at": "2023-01-01 12:00:00",
+                },
+                {
+                    "algorithm": "SHA256",
+                    "checksum": "checksum_delta",
+                    "checksum_id": 3,
+                    "chunk_size": 4096,
+                    "created_at": "2023-03-01 12:00:00",
+                    "game_id": "game-123",
+                    "updated_at": "2023-03-01 12:00:00",
+                },
+            ],
+        )
 
 
 if __name__ == "__main__":

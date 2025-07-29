@@ -4,6 +4,7 @@ import os
 import sys
 import asyncio
 from pathlib import Path
+from typing import List
 
 
 decky_home = os.environ["DECKY_HOME"]
@@ -265,6 +266,17 @@ class Plugin:
             decky.logger.exception("[save_game_checksum] Unhandled exception: %s", e)
             raise e
 
+    async def save_game_checksum_bulk(self, dtos_list: List[AddGameChecksumDict]):
+        try:
+            dtos = [AddGameChecksumDTO.from_dict(dto_dict) for dto_dict in dtos_list]
+
+            return self.games.save_game_checksum_bulk(dtos)
+        except Exception as e:
+            decky.logger.exception(
+                "[save_game_checksum_bulk] Unhandled exception: %s", e
+            )
+            raise e
+
     async def remove_game_checksum(self, dto: RemoveGameChecksumDTO):
         try:
             return convert_keys_to_camel_case(
@@ -281,6 +293,13 @@ class Plugin:
             )
         except Exception as e:
             decky.logger.exception("[remove_game_checksum] Unhandled exception: %s", e)
+            raise e
+
+    async def remove_all_checksums(self):
+        try:
+            return self.games.remove_all_checksums()
+        except Exception as e:
+            decky.logger.exception("[remove_all_checksums] Unhandled exception: %s", e)
             raise e
 
     async def get_games_checksum(

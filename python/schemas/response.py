@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import List
-from .common import Checksum
+from .common import ChecksumAlgorithm
 
 
 @dataclass
@@ -52,8 +52,8 @@ class PagedDayStatistics:
 @dataclass
 class FileChecksum:
     game: Game
-    checksum: Checksum
-    algorithm: str
+    checksum: str
+    algorithm: ChecksumAlgorithm
     chunk_size: int
     created_at: None | str
     updated_at: None | str

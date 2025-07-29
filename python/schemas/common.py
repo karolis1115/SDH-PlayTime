@@ -1,6 +1,6 @@
 from typing import Literal
 
-Checksum = Literal[
+ChecksumAlgorithm = Literal[
     "SHA224",
     "SHA256",
     "SHA384",

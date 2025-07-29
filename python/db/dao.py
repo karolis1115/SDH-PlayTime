@@ -2,11 +2,11 @@ from dataclasses import dataclass
 import datetime
 import logging
 import sqlite3
-from typing import List, Dict, Optional, Collection
+from typing import Tuple, List, Dict, Optional, Collection
 from collections import defaultdict
 
 from python.db.sqlite_db import SqlLiteDb
-from python.schemas.common import Checksum
+from python.schemas.common import ChecksumAlgorithm
 
 logger = logging.getLogger()
 
@@ -59,8 +59,8 @@ class FileChecksum:
     checksum_id: int
     game_id: str
     game_name: str
-    checksum: Checksum
-    algorithm: str
+    checksum: str
+    algorithm: ChecksumAlgorithm
     chunk_size: int
     created_at: None | str
     updated_at: None | str
@@ -74,8 +74,13 @@ class GameDictionary:
 
 @dataclass
 class GamesChecksum:
+    checksum_id: str
     game_id: str
     checksum: str
+    algorithm: ChecksumAlgorithm
+    chunk_size: int
+    created_at: None | str
+    updated_at: None | str
 
 
 @dataclass
@@ -899,6 +904,26 @@ class Dao:
             ),
         )
 
+    def save_game_checksum_bulk(
+        self,
+        checksums_data: List[Tuple[str, str, str, int, Optional[str], Optional[str]]],
+    ) -> None:
+        with self._db.transactional() as connection:
+            self._save_game_checksum_bulk(connection, checksums_data)
+
+    def _save_game_checksum_bulk(
+        self,
+        connection: sqlite3.Connection,
+        checksums_data: List[Tuple[str, str, str, int, Optional[str], Optional[str]]],
+    ):
+        connection.executemany(
+            """
+            INSERT OR IGNORE INTO game_file_checksum(game_id, checksum, algorithm, chunk_size, created_at, updated_at)
+            VALUES (?, ?, ?, ?, IFNULL(?, CURRENT_TIMESTAMP), IFNULL(?, CURRENT_TIMESTAMP))
+            """,
+            checksums_data,
+        )
+
     def remove_game_checksum(
         self,
         game_id: str,
@@ -961,14 +986,43 @@ class Dao:
         self,
         connection: sqlite3.Connection,
     ) -> List[GamesChecksum]:
-        connection.row_factory = lambda c, row: GamesChecksum(row[0], row[1])
+        connection.row_factory = lambda c, row: GamesChecksum(
+            row[0], row[1], row[2], row[3], row[4], row[5], row[6]
+        )
 
         return connection.execute(
             """
             SELECT
-                gfc.game_id,
-                gfc.checksum
+                checksum_id,
+                game_id,
+                checksum,
+                algorithm,
+                chunk_size,
+                created_at,
+                updated_at
             FROM
                 game_file_checksum gfc;
             """,
         ).fetchall()
+
+    def remove_all_checksums(
+        self,
+    ) -> int:
+        with self._db.transactional() as connection:
+            return self._remove_all_checksums(
+                connection,
+            )
+
+    def _remove_all_checksums(
+        self,
+        connection: sqlite3.Connection,
+    ) -> int:
+        cursor = connection.execute(
+            """
+            DELETE
+            FROM
+                game_file_checksum;
+            """,
+        )
+
+        return cursor.rowcount
