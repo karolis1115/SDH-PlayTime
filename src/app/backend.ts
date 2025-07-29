@@ -193,19 +193,6 @@ export class Backend {
 		return await call<[], Array<GamePlaytimeReport>>(
 			BACK_END_API.GET_STATISTICS_FOR_LAST_TWO_WEEKS,
 		);
-		//     .then(() => {
-		// 	console.timeEnd(BACK_END_API.GET_STATISTICS_FOR_LAST_TWO_WEEKS);
-		// 	console.log(BACK_END_API.GET_STATISTICS_FOR_LAST_TWO_WEEKS, );
-		//
-		// 	return .map((item) => ({
-		// 		...item,
-		// 		gameId: item.game_id,
-		// 		totalTime: item.total_time,
-		// 		gameName: item.game_name,
-		// 		lastPlayedDate: item.last_played_date,
-		// 		aliasesId: item?.aliases_id,
-		// 	}));
-		// });
 	}
 
 	public static async getPlaytimeInformation(): Promise<
@@ -215,18 +202,11 @@ export class Backend {
 		return await call<[], Array<GamePlaytimeReport>>(
 			BACK_END_API.FETCH_PLAYTIME_INFORMATION,
 		);
-		// .then(() => {
-		// 	console.timeEnd(BACK_END_API.FETCH_PLAYTIME_INFORMATION);
-		// 	console.log(BACK_END_API.FETCH_PLAYTIME_INFORMATION, );
-		//
-		// 	return .map((item) => ({
-		// 		...item,
-		// 		gameId: item.game_id,
-		// 		totalTime: item.total_time,
-		// 		gameName: item.game_name,
-		// 		lastPlayedDate: item.last_played_date,
-		// 		aliasesId: item?.aliases_id,
-		// 	}));
-		// });
+	}
+
+	public static async hasMinRequiredPythonVersion() {
+		return await call<[], boolean>(
+			BACK_END_API.HAS_MIN_REQUIRED_PYTHON_VERSION,
+		);
 	}
 }
