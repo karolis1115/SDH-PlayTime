@@ -37,14 +37,6 @@ export async function getPathToGame(applicationId: number) {
 			});
 		}
 
-		console.log(
-			"getPathToGame -> ",
-			appDetails,
-			strShortcutExe,
-			appDetails.strShortcutExe,
-			appDetails.strShortcutLaunchOptions,
-		);
-
 		return pathToGame;
 	});
 }

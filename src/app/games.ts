@@ -1,6 +1,13 @@
 import { toaster } from "@decky/api";
 import { getPathToGame } from "@src/steam/utils/GamePaths";
-import { $gameCheksumsLoadingState, gameChecksums } from "@src/stores/games";
+import {
+	$gameCheksumsLoadingState,
+	$generatingChecksumForAppWithIndex,
+	$isGeneratingChecksumForGames,
+	$isLoadingChecksumFromDataBase,
+	$nonSteamAppsCount,
+	gameChecksums,
+} from "@src/stores/games";
 import { isNil } from "@src/utils/isNil";
 import logger from "@src/utils/logger";
 import { Backend } from "./backend";
@@ -58,57 +65,56 @@ export async function getFileSHA256(applicationId: number) {
 }
 
 export async function getNonSteamGamesChecksumFromDataBase() {
-	return await Backend.getGamesDictionary().then((response) => {
-		if (isNil(response)) {
-			return;
-		}
+	$isLoadingChecksumFromDataBase.set(true);
 
-		const nonSteamKeys = getAllNonSteamAppIds();
-		const onlyNonSteamGames = response
-			.filter((game) =>
-				nonSteamKeys.includes(Number.parseInt(game.game.id, 10)),
-			)
-			.sort((a, b) => a.game.name.localeCompare(b.game.name))
-			.map((item) => ({
-				...item,
-				...gameChecksums.nonSteam.get(item.game.id),
-			}));
+	return await Backend.getGamesDictionary()
+		.then((response) => {
+			if (isNil(response)) {
+				return;
+			}
 
-		console.log("onlyNonSteamGames -> ", onlyNonSteamGames);
+			const nonSteamKeys = getAllNonSteamAppIds();
+			const onlyNonSteamGames = response
+				.filter((game) =>
+					nonSteamKeys.includes(Number.parseInt(game.game.id, 10)),
+				)
+				.sort((a, b) => a.game.name.localeCompare(b.game.name))
+				.map((item) => ({
+					...item,
+					...gameChecksums.nonSteam.get(item.game.id),
+				}));
 
-		for (const nonSteamGame of onlyNonSteamGames) {
-			gameChecksums.dataBase.set(nonSteamGame.game.id, nonSteamGame);
-		}
-
-		console.log(
-			"getNonSteamGamesChecksumFromDataBase -> end",
-			gameChecksums.dataBase,
-		);
-	});
+			for (const nonSteamGame of onlyNonSteamGames) {
+				gameChecksums.dataBase.set(nonSteamGame.game.id, nonSteamGame);
+			}
+		})
+		.finally(() => {
+			$isLoadingChecksumFromDataBase.set(false);
+		});
 }
 
-export async function getCurrentNonSteamGamesChecksum() {
+export async function getCurrentNonSteamGamesChecksum(
+	allNonSteamAppIds: Array<number>,
+) {
 	if (gameChecksums.nonSteam.size !== 0) {
 		gameChecksums.nonSteam.clear();
 	}
 
-	const allNonSteamAppIds = getAllNonSteamAppIds();
+	$isGeneratingChecksumForGames.set(true);
 
-	for (const applicationId of allNonSteamAppIds) {
+	for (const [index, applicationId] of allNonSteamAppIds.entries()) {
+		$generatingChecksumForAppWithIndex.set(index);
+
 		await getFileSHA256(applicationId).then((response) => {
 			if (isNil(response)) {
 				return;
 			}
 
-			console.log(
-				"nonSteamGamesChecksum -> set -> ",
-				applicationId,
-				response,
-				gameChecksums.nonSteam,
-			);
 			gameChecksums.nonSteam.set(`${applicationId}`, response);
 		});
 	}
+
+	$isGeneratingChecksumForGames.set(false);
 }
 
 export async function findGameWithSameChecksum(appId: number) {
@@ -130,7 +136,10 @@ export async function initializeGameDetectionByChecksum() {
 
 	$gameCheksumsLoadingState.set("loading");
 
-	const allNonSteamAppIdsLength = getAllNonSteamAppIds().length;
+	const allNonSteamAppIds = getAllNonSteamAppIds();
+	const allNonSteamAppIdsLength = allNonSteamAppIds.length;
+
+	$nonSteamAppsCount.set(allNonSteamAppIdsLength);
 
 	toaster.toast({
 		title: "PlayTime",
@@ -138,10 +147,7 @@ export async function initializeGameDetectionByChecksum() {
 	});
 
 	await getNonSteamGamesChecksumFromDataBase();
-	console.log("go to getCurrentNonSteamGamesChecksum");
-	await getCurrentNonSteamGamesChecksum();
-
-	console.log("nonSteamGamesChecksum -> 111 -> ", gameChecksums.nonSteam);
+	await getCurrentNonSteamGamesChecksum(allNonSteamAppIds);
 
 	$gameCheksumsLoadingState.set("loaded");
 

@@ -11,7 +11,14 @@ import { useStore } from "@nanostores/react";
 import { Backend } from "@src/app/backend";
 import { initializeGameDetectionByChecksum } from "@src/app/games";
 import { FocusableExt } from "@src/components/FocusableExt";
-import { $gameCheksumsLoadingState, gameChecksums } from "@src/stores/games";
+import {
+	$gameCheksumsLoadingState,
+	$generatingChecksumForAppWithIndex,
+	$isGeneratingChecksumForGames,
+	$isLoadingChecksumFromDataBase,
+	$nonSteamAppsCount,
+	gameChecksums,
+} from "@src/stores/games";
 import { TableCSS } from "@src/styles";
 import { isNil } from "@src/utils/isNil";
 import logger from "@src/utils/logger";
@@ -117,7 +124,7 @@ function showChecksumContextMenu(
 					).then(async () => {
 						toaster.toast({
 							title: "PlayTime",
-							body: `Rmoved "${gameInformation.name}" checksum`,
+							body: `Removed "${gameInformation.name}" checksum`,
 						});
 
 						await initializeGameDetectionByChecksum();
@@ -226,30 +233,59 @@ function FileChecksumStatus({
 export function FileChecksum() {
 	const [tableRows, setTableRows] = useState<Array<LocalNonSteamGame>>([]);
 	const gameCheksumsLoadingStateStore = useStore($gameCheksumsLoadingState);
-
-	logger.debug(
-		"gameCheksumsLoadingStateStore -> ",
-		gameCheksumsLoadingStateStore,
-		gameChecksums,
+	const isLoadingChecksumFromDataBase = useStore(
+		$isLoadingChecksumFromDataBase,
 	);
+	const isGeneratingChecksumForGames = useStore($isGeneratingChecksumForGames);
+	const nonSteamAppsCount = useStore($nonSteamAppsCount);
+	const generatingChecksumForAppWithIndex = useStore(
+		$generatingChecksumForAppWithIndex,
+	);
+	const [hasMinRequiredPythonVersion, setHasMinRequiredPythonVersion] =
+		useState<Nullable<boolean>>(undefined);
 
 	useEffect(() => {
-		if (gameCheksumsLoadingStateStore === "loaded") {
-			setTableRows(
-				Array.from(gameChecksums.nonSteam).map(([_name, value]) => value),
-			);
+		Backend.hasMinRequiredPythonVersion().then((response) => {
+			setHasMinRequiredPythonVersion(response);
 
-			return;
-		}
+			if (!response) {
+				return;
+			}
 
-		initializeGameDetectionByChecksum().then(() => {
-			setTableRows(
-				Array.from(gameChecksums.nonSteam).map(([_name, value]) => value),
-			);
+			if (gameCheksumsLoadingStateStore === "loaded") {
+				setTableRows(
+					Array.from(gameChecksums.nonSteam).map(([_name, value]) => value),
+				);
+
+				return;
+			}
+
+			initializeGameDetectionByChecksum().then(() => {
+				setTableRows(
+					Array.from(gameChecksums.nonSteam).map(([_name, value]) => value),
+				);
+			});
 		});
 	}, [gameCheksumsLoadingStateStore]);
 
+	if (!isNil(hasMinRequiredPythonVersion) && !hasMinRequiredPythonVersion) {
+		return <span>Python 3.11 or higher is required.</span>;
+	}
+
 	if (gameCheksumsLoadingStateStore === "loading") {
+		if (isLoadingChecksumFromDataBase) {
+			return <span>Loading checksums from database...</span>;
+		}
+
+		if (isGeneratingChecksumForGames) {
+			return (
+				<span>
+					Generating checksum for {generatingChecksumForAppWithIndex}/
+					{nonSteamAppsCount}
+				</span>
+			);
+		}
+
 		return <span>Loading...</span>;
 	}
 
