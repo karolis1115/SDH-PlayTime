@@ -14,7 +14,11 @@ type GamesTimeBarViewProperties = {
 	data: Array<GamePlaytimeDetails>;
 	showCovers?: boolean;
 	onOptionsPress: () => void;
-	onMenuPress: (gameName: string, gameId: string) => void;
+	onMenuPress: (
+		gameName: string,
+		gameId: string,
+		hasChecksumEnabled: boolean,
+	) => void;
 };
 
 type GamesTimeBarViewCoversProperties = Omit<
@@ -106,7 +110,13 @@ function GamesTimeBarViewWithCovers({
 							);
 						}}
 						onMenuActionDescription={<span>Options</span>}
-						onMenuButton={() => onMenuPress(it.game.name, it.game.id)}
+						onMenuButton={() =>
+							onMenuPress(
+								it.game.name,
+								it.game.id,
+								settings.isEnabledDetectionOfGamesByFileChecksum,
+							)
+						}
 					>
 						<VerticalContainer>
 							<div

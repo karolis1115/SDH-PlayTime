@@ -89,8 +89,12 @@ export const ReportWeekly = ({ slim = false }: ReportWeeklyProperties) => {
 		})();
 	};
 
-	const onMenuPress = (gameName: string, gameId: string) => {
-		showGameOptionsContextMenu({ gameName, gameId })();
+	const onMenuPress = (
+		gameName: string,
+		gameId: string,
+		hasChecksumEnabled: boolean = false,
+	) => {
+		showGameOptionsContextMenu({ gameName, gameId, hasChecksumEnabled })();
 	};
 
 	return (

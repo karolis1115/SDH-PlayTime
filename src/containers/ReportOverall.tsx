@@ -52,8 +52,12 @@ export const ReportOverall = () => {
 		})();
 	};
 
-	const onMenuPress = (gameName: string, gameId: string) => {
-		showGameOptionsContextMenu({ gameName, gameId })();
+	const onMenuPress = (
+		gameName: string,
+		gameId: string,
+		hasChecksumEnabled: boolean = false,
+	) => {
+		showGameOptionsContextMenu({ gameName, gameId, hasChecksumEnabled })();
 	};
 
 	return (
