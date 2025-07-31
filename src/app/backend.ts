@@ -232,4 +232,15 @@ export class Backend {
 			BACK_END_API.HAS_MIN_REQUIRED_PYTHON_VERSION,
 		);
 	}
+
+	public static async linkGameToGameWithChecksum(
+		childGameId: string,
+		parentGameId: string,
+	) {
+		return await call<[childGameId: string, parentGameId: string]>(
+			BACK_END_API.LINK_GAME_TO_GAME_WITH_CHECKSUM,
+			childGameId,
+			parentGameId,
+		);
+	}
 }
