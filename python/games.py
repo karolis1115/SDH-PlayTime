@@ -103,7 +103,22 @@ class Games:
         result = []
 
         for game in games_checksum_without_game_dict:
-            result.append(dataclasses.asdict(game))
+            result.append(
+                dataclasses.asdict(
+                    FileChecksum(
+                        # TODO: Add test case to check if name is correct
+                        Game(
+                            game.game_id,
+                            game.game_name if game.game_name is not None else "[Unknown name]",
+                        ),
+                        game.checksum,
+                        game.algorithm,
+                        game.chunk_size,
+                        game.created_at,
+                        game.updated_at,
+                    )
+                )
+            )
 
         return result
 
