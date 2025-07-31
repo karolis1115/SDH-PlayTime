@@ -8,6 +8,8 @@ import { ChartStyle } from "../app/settings";
 import { GamesTimeBarView } from "../components/statistics/GamesTimeBarView";
 import { PieView } from "../components/statistics/PieView";
 import { useLocator } from "../locator";
+import { useStore } from "@nanostores/react";
+import { $toggleUpdateInListeningComponents } from "@src/stores/ui";
 
 export const ReportOverall = () => {
 	const { reports, currentSettings, settings, setCurrentSettings } =
@@ -15,6 +17,9 @@ export const ReportOverall = () => {
 	const [data, setData] = useState<GamePlaytimeDetails[]>([]);
 	const [isLoading, setLoading] = useState<boolean>(false);
 	const sortType = currentSettings.selectedSortByOption || "mostPlayed";
+	const toggleUpdateInListeningComponents = useStore(
+		$toggleUpdateInListeningComponents,
+	);
 
 	const selectedSortOptionByKey =
 		getSelectedSortOptionByKey(currentSettings.selectedSortByOption) ||
@@ -29,7 +34,7 @@ export const ReportOverall = () => {
 			setData(it);
 			setLoading(false);
 		});
-	}, []);
+	}, [toggleUpdateInListeningComponents]);
 
 	const sortedData = useMemo(
 		() => sortPlayedTime(data, currentSettings.selectedSortByOption),
