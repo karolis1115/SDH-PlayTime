@@ -12,6 +12,7 @@ import { isNil } from "@src/utils/isNil";
 import logger from "@src/utils/logger";
 import { Backend } from "./backend";
 import { APP_TYPE } from "@src/constants";
+import { $toggleUpdateInListeningComponents } from "@src/stores/ui";
 
 export function getAllNonSteamAppIds() {
 	if (isNil(collectionStore.deckDesktopApps)) {
@@ -154,5 +155,53 @@ export async function initializeGameDetectionByChecksum() {
 	toaster.toast({
 		title: "PlayTime",
 		body: `Generated SHA256 for ${gameChecksums.nonSteam.size}/${allNonSteamAppIdsLength} non-steam games.`,
+	});
+}
+
+export async function addGameChecksumById(gameId: string) {
+	const checksum = await getFileSHA256(Number.parseInt(gameId, 10));
+
+	if (isNil(checksum)) {
+		toaster.toast({
+			title: "PlayTime",
+			body: "An error happened while generating file checksum",
+		});
+
+		return;
+	}
+
+	if (isNil(checksum?.pathToGame)) {
+		toaster.toast({
+			title: "PlayTime",
+			body: "Impossible to detect path to game.",
+		});
+
+		return;
+	}
+
+	if (isNil(checksum.checksum)) {
+		toaster.toast({
+			title: "PlayTime",
+			body: "File checksum is undefined.",
+		});
+
+		return;
+	}
+
+	return await Backend.addGameChecksum(
+		gameId,
+		checksum.checksum,
+		"SHA256",
+		// NOTE(ynhhoJ): 16 MB
+		16 * 1024 * 1024,
+	).then(async () => {
+		$toggleUpdateInListeningComponents.set(
+			!$toggleUpdateInListeningComponents.get(),
+		);
+
+		toaster.toast({
+			title: "PlayTime",
+			body: `Saved checksum for ${checksum.name}`,
+		});
 	});
 }
