@@ -10,3 +10,5 @@ type LocalNonSteamGame = {
 	checksum?: string;
 	pathToGame?: string;
 };
+
+type ReportPage = "all-time" | "by-month" | "by-week";
