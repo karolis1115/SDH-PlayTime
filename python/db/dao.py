@@ -76,6 +76,7 @@ class GameDictionary:
 class GamesChecksum:
     checksum_id: str
     game_id: str
+    game_name: None | str
     checksum: str
     algorithm: ChecksumAlgorithm
     chunk_size: int
@@ -987,21 +988,25 @@ class Dao:
         connection: sqlite3.Connection,
     ) -> List[GamesChecksum]:
         connection.row_factory = lambda c, row: GamesChecksum(
-            row[0], row[1], row[2], row[3], row[4], row[5], row[6]
+            row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7]
         )
 
         return connection.execute(
             """
             SELECT
                 checksum_id,
-                game_id,
+                gfc.game_id,
+                gd.name,
                 checksum,
                 algorithm,
                 chunk_size,
                 created_at,
                 updated_at
             FROM
-                game_file_checksum gfc;
+                game_file_checksum gfc
+            LEFT JOIN
+                game_dict gd
+            ON gfc.game_id = gd.game_id;
             """,
         ).fetchall()
 
@@ -1026,3 +1031,37 @@ class Dao:
         )
 
         return cursor.rowcount
+
+    def link_game_to_game_with_checksum(
+        self, child_game_id: str, parent_game_id: str
+    ) -> None:
+        with self._db.transactional() as connection:
+            self._link_game_to_game_with_checksum(
+                connection, child_game_id, parent_game_id
+            )
+
+    def _link_game_to_game_with_checksum(
+        self,
+        connection: sqlite3.Connection,
+        child_game_id,
+        parent_game_id,
+    ):
+        return connection.execute(
+            """
+                INSERT INTO game_file_checksum(game_id, checksum, algorithm, chunk_size)
+                SELECT
+                    ?,
+                    gfc.checksum,
+                    gfc.algorithm,
+                    gfc.chunk_size
+                FROM
+                    game_file_checksum AS gfc
+                WHERE
+                    gfc.game_id = ?
+                LIMIT 1;
+                """,
+            (
+                child_game_id,
+                parent_game_id,
+            ),
+        )

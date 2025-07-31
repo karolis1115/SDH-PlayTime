@@ -106,3 +106,6 @@ class Games:
             result.append(dataclasses.asdict(game))
 
         return result
+
+    def link_game_to_game_with_checksum(self, child_game_id: str, parent_game_id: str):
+        return self.dao.link_game_to_game_with_checksum(child_game_id, parent_game_id)

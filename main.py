@@ -311,6 +311,19 @@ class Plugin:
             decky.logger.exception("[get_games_checksum] Unhandled exception: %s", e)
             raise e
 
+    async def link_game_to_game_with_checksum(
+        self, child_game_id: str, parent_game_id: str
+    ):
+        try:
+            return self.games.link_game_to_game_with_checksum(
+                child_game_id, parent_game_id
+            )
+        except Exception as e:
+            decky.logger.exception(
+                "[link_game_to_game_with_checksum] Unhandled exception: %s", e
+            )
+            raise e
+
     async def _unload(self):
         decky.logger.info("Goodnight, World!")
 
