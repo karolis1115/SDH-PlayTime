@@ -17,8 +17,8 @@ export const $isGeneratingChecksumForGames = atom<boolean>(false);
 
 export const $isSavingChecksumsIntoDataBase = atom<boolean>(false);
 
-export const unbindListener = $gameCheksumsLoadingState.subscribe(
-	(value, oldValue) => {
+export const unbindChecksumsLoadingStateListener =
+	$gameCheksumsLoadingState.subscribe((value, oldValue) => {
 		logger.debug(
 			`$gameCheksumsLoadingState value changed from ${oldValue} to ${value}`,
 		);
@@ -29,5 +29,4 @@ export const unbindListener = $gameCheksumsLoadingState.subscribe(
 
 		gameChecksums.dataBase.clear();
 		gameChecksums.nonSteam.clear();
-	},
-);
+	});

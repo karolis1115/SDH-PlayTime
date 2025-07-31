@@ -38,6 +38,8 @@ import { log, error } from "./utils/logger";
 import { getNonSteamGamesChecksumFromDataBase } from "./app/games";
 import { isNil } from "./utils/isNil";
 import PlayTimeStyle from "./styles/output.css";
+import { unbindChecksumsLoadingStateListener } from "./stores/games";
+import { unbindLastOpenedPageListener } from "./stores/ui";
 
 function injectTailwind() {
 	if (typeof document === "undefined") {
@@ -102,6 +104,9 @@ export default definePlugin(() => {
 		icon: <FaClock />,
 		onDismount() {
 			mountManager.unMount();
+
+			unbindChecksumsLoadingStateListener();
+			unbindLastOpenedPageListener();
 		},
 	};
 });
