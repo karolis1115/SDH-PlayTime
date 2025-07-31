@@ -55,8 +55,6 @@ export class Backend {
 		end: Date,
 		gameId?: string,
 	): Promise<PagedDayStatistics> {
-		console.time(BACK_END_API.DAILY_STATISTICS_FOR_PERIOD);
-
 		return await call<[DailyStatisticsForPeriodDTO], PagedDayStatistics>(
 			BACK_END_API.DAILY_STATISTICS_FOR_PERIOD,
 			{
@@ -196,13 +194,26 @@ export class Backend {
 	}
 
 	public static async getGamesChecksum(): Promise<Array<FileChecksum>> {
-		return await call<[], Array<FileChecksum>>(BACK_END_API.GET_GAMES_CHECKSUM);
+		return await call<[], Array<FileChecksum>>(
+			BACK_END_API.GET_GAMES_CHECKSUM,
+		).then((response) =>
+			response.map((item) => ({
+				...item,
+				game: {
+					id: item.game.id,
+					name:
+						item?.game?.name === "[Unknown name]"
+							? appStore.GetAppOverviewByGameID(item.game.id)?.display_name ||
+								"[Unknown name]"
+							: item.game.name,
+				},
+			})),
+		);
 	}
 
 	public static async getStatisticsForLastTwoWeeks(): Promise<
 		Array<GamePlaytimeReport>
 	> {
-		console.time(BACK_END_API.GET_STATISTICS_FOR_LAST_TWO_WEEKS);
 		return await call<[], Array<GamePlaytimeReport>>(
 			BACK_END_API.GET_STATISTICS_FOR_LAST_TWO_WEEKS,
 		);
@@ -211,7 +222,6 @@ export class Backend {
 	public static async getPlaytimeInformation(): Promise<
 		Array<GamePlaytimeReport>
 	> {
-		console.time(BACK_END_API.FETCH_PLAYTIME_INFORMATION);
 		return await call<[], Array<GamePlaytimeReport>>(
 			BACK_END_API.FETCH_PLAYTIME_INFORMATION,
 		);
