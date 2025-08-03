@@ -12,7 +12,7 @@ export function DeckyPanelPage() {
 		<div>
 			<CurrentPlayTime />
 
-			<ReportWeekly slim={true} />
+			<ReportWeekly isFromQAM={true} />
 
 			<PanelSection title="Misc">
 				<PanelSectionRow>

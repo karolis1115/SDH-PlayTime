@@ -18,10 +18,10 @@ import { $lastWeeklyStatisticsPage } from "@src/stores/ui";
 import { isNil } from "es-toolkit";
 
 interface ReportWeeklyProperties {
-	slim?: boolean;
+	isFromQAM?: boolean;
 }
 
-export const ReportWeekly = ({ slim = false }: ReportWeeklyProperties) => {
+export const ReportWeekly = ({ isFromQAM = false }: ReportWeeklyProperties) => {
 	const { reports, currentSettings, settings, setCurrentSettings } =
 		useLocator();
 	const [isLoading, setLoading] = useState<boolean>(false);
@@ -34,7 +34,7 @@ export const ReportWeekly = ({ slim = false }: ReportWeeklyProperties) => {
 		getSelectedSortOptionByKey(currentSettings.selectedSortByOption) ||
 		"MOST_PLAYED";
 	const sortOptionName = SortBy[selectedSortOptionByKey].name;
-	const sectionTitle = slim ? "By Game" : `Sort ${sortOptionName}`;
+	const sectionTitle = isFromQAM ? "By Game" : `Sort ${sortOptionName}`;
 
 	const { interval } = currentPage.current();
 	const { start, end } = interval;
@@ -49,7 +49,7 @@ export const ReportWeekly = ({ slim = false }: ReportWeeklyProperties) => {
 	);
 
 	useEffect(() => {
-		if (isNil($lastWeeklyStatisticsPage.get()?.isEmpty)) {
+		if (isNil($lastWeeklyStatisticsPage.get()?.isEmpty) && !isFromQAM) {
 			return;
 		}
 
@@ -114,9 +114,9 @@ export const ReportWeekly = ({ slim = false }: ReportWeeklyProperties) => {
 				currentText={formatWeekInterval(currentPage.current().interval)}
 				hasNext={currentPage.hasNext()}
 				hasPrev={currentPage.hasPrev()}
-				prevKey={slim ? undefined : "l2"}
-				nextKey={slim ? undefined : "r2"}
-				isEnabledChangePagesWithTriggers={!slim}
+				prevKey={isFromQAM ? undefined : "l2"}
+				nextKey={isFromQAM ? undefined : "r2"}
+				isEnabledChangePagesWithTriggers={!isFromQAM}
 			/>
 
 			{isLoading && <div>Loading...</div>}
@@ -135,7 +135,7 @@ export const ReportWeekly = ({ slim = false }: ReportWeeklyProperties) => {
 						<PanelSection title={sectionTitle}>
 							<GamesTimeBarView
 								data={sortedData}
-								showCovers={!slim}
+								showCovers={!isFromQAM}
 								onOptionsPress={onOptionsPress}
 								onMenuPress={onMenuPress}
 							/>
