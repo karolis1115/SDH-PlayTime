@@ -43,7 +43,7 @@ export const ReportMonthly = () => {
 	);
 
 	useEffect(() => {
-		if (isNil($lastMonthlyStatisticsPage.get()?.isEmpty)) {
+		if (isNil(currentPage?.isEmpty)) {
 			return;
 		}
 

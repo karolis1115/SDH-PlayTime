@@ -14,6 +14,10 @@ export const DetailedPage = () => {
 
 	useEffect(() => {
 		$lastOpenedPage.set(currentTabRoute);
+
+		return () => {
+			$lastOpenedPage.set("all-time");
+		};
 	}, [currentTabRoute]);
 
 	return (

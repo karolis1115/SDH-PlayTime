@@ -78,8 +78,6 @@ function showChecksumContextMenu(
 		<Menu label="Actions">
 			<MenuItem
 				onSelected={() => {
-					console.log(11, gameInformation);
-
 					if (isNil(gameInformation.checksum)) {
 						toaster.toast({
 							title: "PlayTime",
@@ -109,8 +107,6 @@ function showChecksumContextMenu(
 
 			<MenuItem
 				onSelected={() => {
-					console.log(22, gameInformation);
-
 					if (isNil(gameInformation.checksum)) {
 						toaster.toast({
 							title: "PlayTime",

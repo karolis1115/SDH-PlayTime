@@ -14,17 +14,15 @@ export const $lastWeeklyStatisticsPage = atom<Paginated<DayStatistics>>(
 export const unbindLastOpenedPageListener = $lastOpenedPage.subscribe(
 	(value, oldValue) => {
 		logger.debug(
-			`$gameCheksumsLoadingState value changed from ${oldValue} to ${value}`,
+			`$lastOpenedPage value changed from "${oldValue}" to "${value}"`,
 		);
 
 		if (value !== "by-month") {
 			$lastMonthlyStatisticsPage.set(empty());
-			logger.debug("reset monthly page");
 		}
 
 		if (value !== "by-week") {
 			$lastWeeklyStatisticsPage.set(empty());
-			logger.debug("reset weekly page");
 		}
 	},
 );

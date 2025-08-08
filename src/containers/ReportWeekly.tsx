@@ -6,7 +6,7 @@ import { showSortTitlesContextMenu } from "@src/components/showSortTitlesContext
 import { formatWeekInterval } from "@utils/formatters";
 import { useEffect, useMemo, useState } from "react";
 import { convertDailyStatisticsToGameWithTime } from "../app/model";
-import type { Paginated } from "../app/reports";
+import { empty, type Paginated } from "../app/reports";
 import { ChartStyle } from "../app/settings";
 import { Pager } from "../components/Pager";
 import { AverageAndOverall } from "../components/statistics/AverageAndOverall";
@@ -26,7 +26,7 @@ export const ReportWeekly = ({ isFromQAM = false }: ReportWeeklyProperties) => {
 		useLocator();
 	const [isLoading, setLoading] = useState<boolean>(false);
 	const [currentPage, setCurrentPage] = useState<Paginated<DayStatistics>>(
-		$lastWeeklyStatisticsPage.get(),
+		isFromQAM ? empty() : $lastWeeklyStatisticsPage.get(),
 	);
 	const sortType = currentSettings.selectedSortByOption || "mostPlayed";
 
@@ -49,7 +49,7 @@ export const ReportWeekly = ({ isFromQAM = false }: ReportWeeklyProperties) => {
 	);
 
 	useEffect(() => {
-		if (isNil($lastWeeklyStatisticsPage.get()?.isEmpty) && !isFromQAM) {
+		if (isNil(currentPage?.isEmpty)) {
 			return;
 		}
 
