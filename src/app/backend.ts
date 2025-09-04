@@ -2,21 +2,14 @@ import { call } from "@decky/api";
 import logger from "@src/utils/logger";
 import { toIsoDateOnly } from "@utils/formatters";
 import type { EventBus } from "./system";
+import { BACK_END_API } from "@src/constants";
 
 export interface OverallPlayTimes {
 	[gameId: string]: number;
 }
 
-export interface StatisticForIntervalResponse {
-	data: DailyStatistics[];
-	hasPrev: boolean;
-	hasNext: boolean;
-}
-
 export class Backend {
 	private eventBus: EventBus;
-
-	public static dataDirectoryPath: Nullable<string> = undefined;
 
 	constructor(eventBus: EventBus) {
 		this.eventBus = eventBus;
@@ -31,12 +24,6 @@ export class Backend {
 					break;
 			}
 		});
-
-		Backend.getDataDirectory()
-			.then((response) => {
-				Backend.dataDirectoryPath = response;
-			})
-			.catch((error) => logger.error(error));
 	}
 
 	private async addTime(startedAt: number, endedAt: number, game: Game) {
@@ -51,69 +38,60 @@ export class Backend {
 			return;
 		}
 
-		await call<
-			[
-				started_at: number,
-				ended_at: number,
-				game_id: string,
-				game_name: string,
-			],
-			void
-		>("add_time", startedAt / 1000, endedAt / 1000, game.id, game.name).catch(
-			() => {
-				this.errorOnBackend(
-					"Can't save interval, because of backend error (add_time)",
-				);
-			},
-		);
+		await call<[AddTimeDTO], void>(BACK_END_API.ADD_TIME, {
+			started_at: startedAt / 1000,
+			ended_at: endedAt / 1000,
+			game_id: game.id,
+			game_name: game.name,
+		}).catch(() => {
+			this.errorOnBackend(
+				"Can't save interval, because of backend error (add_time)",
+			);
+		});
 	}
 
 	async fetchDailyStatisticForInterval(
 		start: Date,
 		end: Date,
 		gameId?: string,
-	): Promise<StatisticForIntervalResponse> {
-		return await call<
-			[start_date: string, end_date: string, gameId?: string],
-			StatisticForIntervalResponse
-		>(
-			"daily_statistics_for_period",
-			toIsoDateOnly(start),
-			toIsoDateOnly(end),
-			gameId,
-		)
-			.then((response) => {
-				return response;
-			})
-			.catch((error) => {
-				logger.error(error);
+	): Promise<PagedDayStatistics> {
+		return await call<[DailyStatisticsForPeriodDTO], PagedDayStatistics>(
+			BACK_END_API.DAILY_STATISTICS_FOR_PERIOD,
+			{
+				start_date: toIsoDateOnly(start),
+				end_date: toIsoDateOnly(end),
+				game_id: gameId,
+			},
+		).catch((error) => {
+			logger.error(error);
 
-				return {
-					hasNext: false,
-					hasPrev: false,
-					data: [],
-				} as StatisticForIntervalResponse;
-			});
+			return {
+				hasNext: false,
+				hasPrev: false,
+				data: [],
+			} as PagedDayStatistics;
+		});
 	}
 
-	async fetchPerGameOverallStatistics(): Promise<GameWithTime[]> {
-		return await call<[], GameWithTime[]>("per_game_overall_statistics")
-			.then((response) => {
-				return response;
-			})
-			.catch((error) => {
-				logger.error(error);
+	async fetchPerGameOverallStatistics(): Promise<GamePlaytimeDetails[]> {
+		return await call<[], Array<GamePlaytimeDetails>>(
+			BACK_END_API.PER_GAME_OVERALL_STATISTICS,
+		).catch((error) => {
+			logger.error(error);
 
-				return [];
-			});
+			return [];
+		});
 	}
 
 	async applyManualOverallTimeCorrection(
-		games: GameWithTime[],
+		games: GamePlaytimeDetails[],
 	): Promise<boolean> {
-		return await call<[list_of_game_stats: GameWithTime[]], void>(
-			"apply_manual_time_correction",
-			games,
+		return await call<[list_of_game_stats: ApplyManualTimeCorrectionDTO], void>(
+			BACK_END_API.APPLY_MANUAL_TIME_CORRECTION,
+			games.map((item) => ({
+				game: item.game,
+				time: item.totalTime,
+			})),
 		)
 			.then(() => {
 				this.eventBus.emit({ type: "TimeManuallyAdjusted" });
@@ -136,54 +114,133 @@ export class Backend {
 		});
 	}
 
-	async getGame(gameId: string): Promise<Nullable<GameInformation>> {
-		return await call<[gameId: string], Nullable<GameInformation>>(
-			"get_game",
+	async getGame(gameId: string): Promise<Nullable<GamePlaytimeSummary>> {
+		return await call<[GetGameDTO], Nullable<GamePlaytimeSummary>>(
+			BACK_END_API.GET_GAME,
 			gameId,
-		)
-			.then((response) => {
-				return response;
-			})
-			.catch((error) => {
-				logger.error(error);
+		).catch((error) => {
+			logger.error(error);
 
-				return null;
-			});
+			return null;
+		});
 	}
 
 	public static async getFileSHA256(path: string): Promise<Nullable<string>> {
-		return await call<[path: string], Nullable<string>>("get_file_sha256", path)
-			.then((response) => {
-				return response;
-			})
-			.catch((error) => {
-				logger.error(error);
-
-				return undefined;
-			});
+		return await call<[GetFileSHA256DTO], Nullable<string>>(
+			BACK_END_API.GET_FILE_SHA256,
+			path,
+		);
 	}
 
-	public static async getHasMinRequiredPythonVersion(): Promise<boolean> {
-		return await call<[], boolean>("has_min_required_python_version")
-			.then((response) => {
-				return response;
-			})
-			.catch((error) => {
-				logger.error(error);
-
-				return false;
-			});
+	public static async getGamesDictionary(): Promise<Array<GameDictionary>> {
+		return await call<[], Array<GameDictionary>>(
+			BACK_END_API.GET_GAMES_DICTIONARY,
+		);
 	}
 
-	public static async getDataDirectory(): Promise<Nullable<string>> {
-		return await call<[], string>("get_data_directory")
-			.then((response) => {
-				return response;
-			})
-			.catch((error) => {
-				logger.error(error);
+	public static async addGameChecksum(
+		id: string,
+		hashChecksum: string,
+		hashAlgorithm:
+			| "SHA224"
+			| "SHA256"
+			| "SHA384"
+			| "SHA512"
+			| "SHA3_224"
+			| "SHA3_256"
+			| "SHA3_384"
+			| "SHA3_512",
+		hashChunkSize: number,
+		createdAt?: Date,
+		updatedAt?: Date,
+	): Promise<void> {
+		return await call<[AddGameChecksumDTO], void>(
+			BACK_END_API.SAVE_GAME_CHECKSUM,
+			{
+				game_id: id,
+				checksum: hashChecksum,
+				algorithm: hashAlgorithm,
+				chunk_size: hashChunkSize,
+				created_at: createdAt,
+				updated_at: updatedAt,
+			},
+		);
+	}
 
-				return undefined;
-			});
+	public static async addGameChecksumBulk(
+		checksumsToAdd: Array<AddGameChecksumDTO>,
+	): Promise<void> {
+		return await call<[Array<AddGameChecksumDTO>], void>(
+			BACK_END_API.SAVE_GAME_CHECKSUM_BULK,
+			checksumsToAdd,
+		);
+	}
+
+	public static async removeGameChecksum(
+		id: string,
+		checksum: string,
+	): Promise<void> {
+		return await call<[RemoveGameChecksumDTO], void>(
+			BACK_END_API.REMOVE_GAME_CHECKSUM,
+			{
+				game_id: id,
+				checksum,
+			},
+		);
+	}
+
+	public static async removeAllChecksums(): Promise<number> {
+		return await call<[], number>(BACK_END_API.REMOVE_ALL_CHECKSUMS);
+	}
+
+	public static async getGamesChecksum(): Promise<Array<FileChecksum>> {
+		return await call<[], Array<FileChecksum>>(
+			BACK_END_API.GET_GAMES_CHECKSUM,
+		).then((response) =>
+			response.map((item) => ({
+				...item,
+				game: {
+					id: item.game.id,
+					name:
+						item?.game?.name === "[Unknown name]"
+							? appStore.GetAppOverviewByGameID(item.game.id)?.display_name ||
+								"[Unknown name]"
+							: item.game.name,
+				},
+			})),
+		);
+	}
+
+	public static async getStatisticsForLastTwoWeeks(): Promise<
+		Array<GamePlaytimeReport>
+	> {
+		return await call<[], Array<GamePlaytimeReport>>(
+			BACK_END_API.GET_STATISTICS_FOR_LAST_TWO_WEEKS,
+		);
+	}
+
+	public static async getPlaytimeInformation(): Promise<
+		Array<GamePlaytimeReport>
+	> {
+		return await call<[], Array<GamePlaytimeReport>>(
+			BACK_END_API.FETCH_PLAYTIME_INFORMATION,
+		);
+	}
+
+	public static async hasMinRequiredPythonVersion() {
+		return await call<[], boolean>(
+			BACK_END_API.HAS_MIN_REQUIRED_PYTHON_VERSION,
+		);
+	}
+
+	public static async linkGameToGameWithChecksum(
+		childGameId: string,
+		parentGameId: string,
+	) {
+		return await call<[childGameId: string, parentGameId: string]>(
+			BACK_END_API.LINK_GAME_TO_GAME_WITH_CHECKSUM,
+			childGameId,
+			parentGameId,
+		);
 	}
 }

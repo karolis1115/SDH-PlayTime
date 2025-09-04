@@ -2,44 +2,13 @@ declare module "*.css";
 
 type Nullable<T> = T | null | undefined;
 
-interface Unregisterable {
-	/**
-	 * Unregister the callback.
-	 */
-	unregister(): void;
-}
+type DailyStatistics = DayStatistics;
 
-interface Session {
-	date: string;
-	duration: number;
-	migrated?: string;
-}
-
-interface GameInformation {
+type LocalNonSteamGame = {
 	id: string;
 	name: string;
-	time: number;
-}
+	checksum?: string;
+	pathToGame?: string;
+};
 
-interface Game {
-	id: string;
-	name: string;
-}
-
-interface SessionInformation {
-	date: string;
-	duration: number;
-}
-
-interface GameWithTime {
-	game: Game;
-	time: number;
-	sessions: Array<SessionInformation>;
-	last_session: SessionInformation;
-}
-
-interface DailyStatistics {
-	date: string;
-	games: GameWithTime[];
-	total: number;
-}
+type ReportPage = "all-time" | "by-month" | "by-week";

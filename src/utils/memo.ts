@@ -24,13 +24,13 @@ function memoize<TArgs extends any[], TResult>(
 			if (!existing.exp) {
 				return existing.value;
 			}
-			if (existing.exp > new Date().getTime()) {
+			if (existing.exp > Date.now()) {
 				return existing.value;
 			}
 		}
 		const result = func(...args);
 		cache[key] = {
-			exp: ttl ? new Date().getTime() + ttl : null,
+			exp: ttl ? Date.now() + ttl : null,
 			value: result,
 		};
 		return result;

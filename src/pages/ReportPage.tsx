@@ -1,19 +1,30 @@
 import { Tabs } from "@decky/ui";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PageWrapper } from "../components/PageWrapper";
 import { Tab } from "../components/Tab";
 import { ReportMonthly } from "../containers/ReportMonthly";
 import { ReportOverall } from "../containers/ReportOverall";
 import { ReportWeekly } from "../containers/ReportWeekly";
+import { $lastOpenedPage } from "@src/stores/ui";
 
 export const DetailedPage = () => {
-	const [currentTabRoute, setCurrentTabRoute] = useState<string>("all-time");
+	const [currentTabRoute, setCurrentTabRoute] = useState<ReportPage>(
+		$lastOpenedPage.get(),
+	);
+
+	useEffect(() => {
+		$lastOpenedPage.set(currentTabRoute);
+
+		return () => {
+			$lastOpenedPage.set("all-time");
+		};
+	}, [currentTabRoute]);
 
 	return (
 		<PageWrapper>
 			<Tabs
 				activeTab={currentTabRoute}
-				onShowTab={(tabId: string) => {
+				onShowTab={(tabId: ReportPage) => {
 					setCurrentTabRoute(tabId);
 				}}
 				autoFocusContents={true}

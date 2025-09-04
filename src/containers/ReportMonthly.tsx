@@ -6,7 +6,7 @@ import { showSortTitlesContextMenu } from "@src/components/showSortTitlesContext
 import { formatMonthInterval } from "@utils/formatters";
 import { useEffect, useMemo, useState } from "react";
 import { convertDailyStatisticsToGameWithTime } from "../app/model";
-import { type Paginated, empty } from "../app/reports";
+import type { Paginated } from "../app/reports";
 import { ChartStyle } from "../app/settings";
 import { Pager } from "../components/Pager";
 import { AverageAndOverall } from "../components/statistics/AverageAndOverall";
@@ -14,13 +14,15 @@ import { GamesTimeBarView } from "../components/statistics/GamesTimeBarView";
 import { MonthView } from "../components/statistics/MonthView";
 import { PieView } from "../components/statistics/PieView";
 import { useLocator } from "../locator";
+import { $lastMonthlyStatisticsPage } from "@src/stores/ui";
+import { isNil } from "es-toolkit";
 
 export const ReportMonthly = () => {
 	const { reports, currentSettings, settings, setCurrentSettings } =
 		useLocator();
 	const [isLoading, setLoading] = useState<boolean>(false);
-	const [currentPage, setCurrentPage] = useState<Paginated<DailyStatistics>>(
-		empty(),
+	const [currentPage, setCurrentPage] = useState<Paginated<DayStatistics>>(
+		$lastMonthlyStatisticsPage.get(),
 	);
 	const sortType = currentSettings.selectedSortByOption || "mostPlayed";
 	const { interval } = currentPage.current();
@@ -41,10 +43,15 @@ export const ReportMonthly = () => {
 	);
 
 	useEffect(() => {
+		if (isNil(currentPage?.isEmpty)) {
+			return;
+		}
+
 		setLoading(true);
 
 		reports.monthlyStatistics().then((it) => {
 			setCurrentPage(it);
+			$lastMonthlyStatisticsPage.set(it);
 			setLoading(false);
 		});
 	}, []);
@@ -54,6 +61,7 @@ export const ReportMonthly = () => {
 
 		currentPage?.next().then((it) => {
 			setCurrentPage(it);
+			$lastMonthlyStatisticsPage.set(it);
 			setLoading(false);
 		});
 	};
@@ -63,6 +71,7 @@ export const ReportMonthly = () => {
 
 		currentPage?.prev().then((it) => {
 			setCurrentPage(it);
+			$lastMonthlyStatisticsPage.set(it);
 			setLoading(false);
 		});
 	};
@@ -75,8 +84,12 @@ export const ReportMonthly = () => {
 		})();
 	};
 
-	const onMenuPress = (gameName: string, gameId: string) => {
-		showGameOptionsContextMenu({ gameName, gameId })();
+	const onMenuPress = (
+		gameName: string,
+		gameId: string,
+		hasChecksumEnabled: boolean = false,
+	) => {
+		showGameOptionsContextMenu({ gameName, gameId, hasChecksumEnabled })();
 	};
 
 	return (

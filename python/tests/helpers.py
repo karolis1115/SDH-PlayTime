@@ -12,7 +12,7 @@ class FixedClock:
 
 class AbstractDatabaseTest(unittest.TestCase):
     database_file = f"test_db_{os.getpid()}.db"
-    database: SqlLiteDb = None
+    database: SqlLiteDb
 
     def setUp(self) -> None:
         if os.path.exists(self.database_file):
@@ -23,7 +23,7 @@ class AbstractDatabaseTest(unittest.TestCase):
     def tearDown(self) -> None:
         if os.path.exists(self.database_file):
             os.remove(self.database_file)
-        self.database = None
+        self.database = None  # type: ignore [assignment]
         super().tearDown()
 
     if __name__ == "__main__":

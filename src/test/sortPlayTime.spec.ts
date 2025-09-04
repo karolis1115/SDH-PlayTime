@@ -1,37 +1,36 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import type { GameWithTime } from "../src/app/model.ts";
-import { SortBy, sortPlayedTime } from "../src/app/sortPlayTime.ts";
+import { SortBy, sortPlayedTime } from "@src/app/sortPlayTime";
 
 describe("sortPlayedTime", () => {
-	let games: Array<GameWithTime>;
+	let games: Array<GamePlaytimeDetails>;
 
 	beforeEach(() => {
 		games = [
 			{
 				game: { name: "Game A", id: "0" },
-				time: 30 + 45,
+				totalTime: 30 + 45,
 				sessions: [
 					{ date: "2022-01-01T10:00:00Z", duration: 30 },
 					{ date: "2022-01-02T10:00:00Z", duration: 45 },
 				],
-				last_session: { date: "2022-01-02T10:00:00Z", duration: 45 },
+				lastSession: { date: "2022-01-02T10:00:00Z", duration: 45 },
 			},
 			{
 				game: { name: "Game B", id: "1" },
-				time: 50,
+				totalTime: 50,
 				sessions: [{ date: "2022-03-01T08:00:00Z", duration: 50 }],
-				last_session: { date: "2022-03-01T08:00:00Z", duration: 50 },
+				lastSession: { date: "2022-03-01T08:00:00Z", duration: 50 },
 			},
 			{
 				game: { name: "Game C", id: "33" },
-				time: 60 + 90 + 30 + 180,
+				totalTime: 60 + 90 + 30 + 180,
 				sessions: [
 					{ date: "2022-02-01T09:00:00Z", duration: 60 },
 					{ date: "2022-02-02T09:00:00Z", duration: 90 },
 					{ date: "2022-02-03T09:00:00Z", duration: 30 },
 					{ date: "2022-02-03T19:11:11Z", duration: 180 },
 				],
-				last_session: { date: "2022-02-03T19:11:11Z", duration: 180 },
+				lastSession: { date: "2022-02-03T19:11:11Z", duration: 180 },
 			},
 		];
 	});
@@ -55,17 +54,17 @@ describe("sortPlayedTime", () => {
 	test("sort by most played (time descending)", () => {
 		const sorted = sortPlayedTime(games, SortBy.MOST_PLAYED.key);
 
-		expect(sorted[0].time).toBe(60 + 90 + 30 + 180);
-		expect(sorted[1].time).toBe(30 + 45);
-		expect(sorted[2].time).toBe(50);
+		expect(sorted[0].totalTime).toBe(60 + 90 + 30 + 180);
+		expect(sorted[1].totalTime).toBe(30 + 45);
+		expect(sorted[2].totalTime).toBe(50);
 	});
 
 	test("sort by least played (time ascending)", () => {
 		const sorted = sortPlayedTime(games, SortBy.LEAST_PLAYED.key);
 
-		expect(sorted[0].time).toBe(50);
-		expect(sorted[1].time).toBe(30 + 45);
-		expect(sorted[2].time).toBe(60 + 90 + 30 + 180);
+		expect(sorted[0].totalTime).toBe(50);
+		expect(sorted[1].totalTime).toBe(30 + 45);
+		expect(sorted[2].totalTime).toBe(60 + 90 + 30 + 180);
 	});
 
 	test("sort by most launched (sessions descending)", () => {
@@ -88,12 +87,12 @@ describe("sortPlayedTime", () => {
 		const sorted = sortPlayedTime(games, SortBy.MOST_AVERAGE_TIME_PLAYED.key);
 
 		// Average time: Game A -> 100 / 3 = 33.33, Game B -> 50 / 2 = 25, Game C -> 150 / 4 = 37.5
-		expect(sorted[0].time / sorted[0].sessions.length).toBeGreaterThan(
-			sorted[1].time / sorted[1].sessions.length,
+		expect(sorted[0].totalTime / sorted[0].sessions.length).toBeGreaterThan(
+			sorted[1].totalTime / sorted[1].sessions.length,
 		);
 
-		expect(sorted[0].time / sorted[0].sessions.length).toBeGreaterThan(
-			sorted[2].time / sorted[2].sessions.length,
+		expect(sorted[0].totalTime / sorted[0].sessions.length).toBeGreaterThan(
+			sorted[2].totalTime / sorted[2].sessions.length,
 		);
 	});
 
@@ -101,11 +100,11 @@ describe("sortPlayedTime", () => {
 		const sorted = sortPlayedTime(games, SortBy.LEAST_AVERAGE_TIME_PLAYED.key);
 
 		// Average time: Game A -> 33.33, Game B -> 25, Game C -> 37.5
-		expect(sorted[0].time / sorted[0].sessions.length).toBeLessThan(
-			sorted[1].time / sorted[1].sessions.length,
+		expect(sorted[0].totalTime / sorted[0].sessions.length).toBeLessThan(
+			sorted[1].totalTime / sorted[1].sessions.length,
 		);
-		expect(sorted[0].time / sorted[0].sessions.length).toBeLessThan(
-			sorted[2].time / sorted[2].sessions.length,
+		expect(sorted[0].totalTime / sorted[0].sessions.length).toBeLessThan(
+			sorted[2].totalTime / sorted[2].sessions.length,
 		);
 	});
 
@@ -113,14 +112,22 @@ describe("sortPlayedTime", () => {
 		// biome-ignore lint/suspicious/noExplicitAny: `any` is allowed here
 		const sorted = sortPlayedTime(games, "nonExistentSortKey" as any); // Pass an invalid sort key.
 
-		expect(sorted[0].time).toBe(60 + 90 + 30 + 180);
-		expect(sorted[1].time).toBe(30 + 45);
-		expect(sorted[2].time).toBe(50);
+		expect(sorted[0].totalTime).toBe(60 + 90 + 30 + 180);
+		expect(sorted[1].totalTime).toBe(30 + 45);
+		expect(sorted[2].totalTime).toBe(50);
 	});
 
 	test("should return empty value if data is null or undefined", () => {
 		// @ts-expect-error
 		const sorted = sortPlayedTime(null);
 		expect(sorted.length).toBe(0);
+	});
+
+	test("sort by recently played", () => {
+		const sorted = sortPlayedTime(games, SortBy.RECENTLY_LAUNCHED.key);
+
+		expect(sorted[0].game.name).toBe("Game B");
+		expect(sorted[1].game.name).toBe("Game C");
+		expect(sorted[2].game.name).toBe("Game A");
 	});
 });

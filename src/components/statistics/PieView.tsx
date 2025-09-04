@@ -1,3 +1,4 @@
+import { isNil } from "@src/utils/isNil";
 import type { FC } from "react";
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer } from "recharts";
 import { FocusableExt } from "../FocusableExt";
@@ -5,7 +6,7 @@ import { FocusableExt } from "../FocusableExt";
 interface TimeByGame {
 	gameId: string;
 	gameName: string;
-	time: number;
+	totalTime: number;
 }
 
 const colors = [
@@ -16,15 +17,38 @@ const colors = [
 	"#ca472f", // Color for "Other"
 ];
 
-export const PieView: FC<{ statistics: DailyStatistics[] }> = (props) => {
-	const raw_data = sumTimeAndGroupByGame(props.statistics)
-		.map((value) => {
-			return {
-				name: value.gameName,
-				value: value.time / 60.0,
-			};
-		})
-		.sort((a, b) => b.value - a.value);
+function isDailyStatistics(
+	statistics: Array<DailyStatistics | GamePlaytimeDetails>,
+): statistics is Array<DailyStatistics> {
+	return (statistics[0] as DailyStatistics)?.games !== undefined;
+}
+
+export const PieView: FC<{
+	statistics: Array<DailyStatistics> | Array<GamePlaytimeDetails>;
+}> = ({ statistics }) => {
+	if (isNil(statistics) || statistics.length === 0) {
+		return undefined;
+	}
+
+	let raw_data: Array<{ name: string; value: number }>;
+
+	if (isDailyStatistics(statistics)) {
+		raw_data = sumTimeAndGroupByGame(statistics)
+			.map((value) => {
+				return {
+					name: value.gameName,
+					value: value.totalTime / 60.0,
+				};
+			})
+			.sort((a, b) => b.value - a.value);
+	} else {
+		raw_data = statistics
+			.sort((a, b) => b.totalTime - a.totalTime)
+			.map((item) => ({
+				name: item.game.name,
+				value: item.totalTime / 60.0,
+			}));
+	}
 
 	const MAX_ELEMENTS = colors.length - 1;
 
@@ -44,7 +68,6 @@ export const PieView: FC<{ statistics: DailyStatistics[] }> = (props) => {
 
 	const RADIAN = Math.PI / 180;
 
-	// @ts-ignore
 	const renderCustomizedLabel = ({
 		cx,
 		cy,
@@ -111,7 +134,10 @@ function sumTimeAndGroupByGame(statistics: DailyStatistics[]): TimeByGame[] {
 	const titleByGameId = new Map<string, string>();
 
 	for (const el of statistics.flatMap((it) => it.games)) {
-		timeByGameId.set(el.game.id, (timeByGameId.get(el.game.id) || 0) + el.time);
+		timeByGameId.set(
+			el.game.id,
+			(timeByGameId.get(el.game.id) || 0) + el.totalTime,
+		);
 		titleByGameId.set(el.game.id, el.game.name);
 	}
 
@@ -121,11 +147,11 @@ function sumTimeAndGroupByGame(statistics: DailyStatistics[]): TimeByGame[] {
 		timeByGames.push({
 			gameId: k,
 			gameName: titleByGameId.get(k) || "Unknown",
-			time: v,
+			totalTime: v,
 		} as TimeByGame);
 	});
 
-	timeByGames.sort((a, b) => b.time - a.time);
+	timeByGames.sort((a, b) => b.totalTime - a.totalTime);
 
 	return timeByGames;
 }

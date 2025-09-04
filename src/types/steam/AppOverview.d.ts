@@ -11,6 +11,9 @@ interface SteamAppOverview {
 	minutes_playtime_last_two_weeks: number;
 	selected_clientid?: string;
 	third_party_mod?: boolean;
+	rt_last_time_locally_played: number;
+	rt_last_time_played: number;
+	rt_last_time_played_or_installed: number;
 }
 
 interface AppOverview extends SteamAppOverview {

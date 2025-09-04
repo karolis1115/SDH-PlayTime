@@ -1,7 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { SessionPlayTime } from "../src/app/SessionPlayTime";
-import type { Game } from "../src/app/model";
-import { EventBus } from "../src/app/system";
+import { SessionPlayTime } from "@src/app/SessionPlayTime";
+import { EventBus } from "@src/app/system";
 
 const gameInfo_01: Game = {
 	id: "1",
@@ -65,7 +64,7 @@ describe("SessionPlayTime should send commit interval", () => {
 	test("when we received games start and game end events sequentially", () => {
 		const eventBus = new EventBus();
 		// @ts-ignore
-		const sessionPlayTime = new SessionPlayTime(eventBus);
+		const _sessionPlayTime = new SessionPlayTime(eventBus);
 
 		let committedInterval: unknown;
 

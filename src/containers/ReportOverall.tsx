@@ -4,15 +4,22 @@ import { SortBy, getSelectedSortOptionByKey } from "@src/app/sortPlayTime";
 import { showGameOptionsContextMenu } from "@src/components/showOptionsMenu";
 import { showSortTitlesContextMenu } from "@src/components/showSortTitlesContextMenu";
 import { useEffect, useMemo, useState } from "react";
+import { ChartStyle } from "../app/settings";
 import { GamesTimeBarView } from "../components/statistics/GamesTimeBarView";
+import { PieView } from "../components/statistics/PieView";
 import { useLocator } from "../locator";
+import { useStore } from "@nanostores/react";
+import { $toggleUpdateInListeningComponents } from "@src/stores/ui";
 
 export const ReportOverall = () => {
 	const { reports, currentSettings, settings, setCurrentSettings } =
 		useLocator();
-	const [data, setData] = useState<GameWithTime[]>([]);
+	const [data, setData] = useState<GamePlaytimeDetails[]>([]);
 	const [isLoading, setLoading] = useState<boolean>(false);
 	const sortType = currentSettings.selectedSortByOption || "mostPlayed";
+	const toggleUpdateInListeningComponents = useStore(
+		$toggleUpdateInListeningComponents,
+	);
 
 	const selectedSortOptionByKey =
 		getSelectedSortOptionByKey(currentSettings.selectedSortByOption) ||
@@ -27,7 +34,7 @@ export const ReportOverall = () => {
 			setData(it);
 			setLoading(false);
 		});
-	}, []);
+	}, [toggleUpdateInListeningComponents]);
 
 	const sortedData = useMemo(
 		() => sortPlayedTime(data, currentSettings.selectedSortByOption),
@@ -50,8 +57,12 @@ export const ReportOverall = () => {
 		})();
 	};
 
-	const onMenuPress = (gameName: string, gameId: string) => {
-		showGameOptionsContextMenu({ gameName, gameId })();
+	const onMenuPress = (
+		gameName: string,
+		gameId: string,
+		hasChecksumEnabled: boolean = false,
+	) => {
+		showGameOptionsContextMenu({ gameName, gameId, hasChecksumEnabled })();
 	};
 
 	return (
@@ -63,6 +74,10 @@ export const ReportOverall = () => {
 					onOptionsPress={onOptionsPress}
 					onMenuPress={onMenuPress}
 				/>
+
+				{currentSettings.gameChartStyle === ChartStyle.PIE_AND_BARS && (
+					<PieView statistics={data} />
+				)}
 			</PanelSection>
 		</div>
 	);

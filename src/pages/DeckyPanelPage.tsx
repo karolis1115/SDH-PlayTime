@@ -12,7 +12,7 @@ export function DeckyPanelPage() {
 		<div>
 			<CurrentPlayTime />
 
-			<ReportWeekly slim={true} />
+			<ReportWeekly isFromQAM={true} />
 
 			<PanelSection title="Misc">
 				<PanelSectionRow>
@@ -29,7 +29,7 @@ export function DeckyPanelPage() {
 						layout="below"
 						onClick={() => navigateToPage(SETTINGS_ROUTE)}
 					>
-						Open settings
+						Settings
 					</ButtonItem>
 				</PanelSectionRow>
 			</PanelSection>

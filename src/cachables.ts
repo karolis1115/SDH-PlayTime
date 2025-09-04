@@ -1,61 +1,54 @@
-import { endOfWeek, startOfWeek, subDays } from "date-fns";
-import type { Backend } from "./app/backend";
+import { Backend } from "./app/backend";
 import { UpdatableCache, UpdateOnEventCache } from "./app/cache";
 import type { EventBus } from "./app/system";
-import { isNil } from "./utils/isNil";
 
-export const createCachedPlayTimes = (backend: Backend, eventBus: EventBus) =>
+export const createCachedPlayTimes = (eventBus: EventBus) =>
 	new UpdateOnEventCache(
-		new UpdatableCache(() =>
-			backend.fetchPerGameOverallStatistics().then((r) => {
-				const map = new Map<string, number>();
+		new UpdatableCache(async () => {
+			return Backend.getPlaytimeInformation().then((r) => {
+				const map = new Map<
+					string,
+					{
+						time: number;
+						lastDate: number;
+					}
+				>();
 
 				for (const time of r) {
-					map.set(time.game.id, time.time);
+					map.set(time.game.id, {
+						time: time.totalTime,
+						lastDate: new Date(time.lastPlayedDate).getTime() / 1000,
+					});
 				}
 
 				return map;
-			}),
-		),
+			});
+		}),
 		eventBus,
 		["CommitInterval", "TimeManuallyAdjusted"],
 	);
 
-export const createCachedLastTwoWeeksPlayTimes = (
-	backend: Backend,
-	eventBus: EventBus,
-) =>
+export const createCachedLastTwoWeeksPlayTimes = (eventBus: EventBus) =>
 	new UpdateOnEventCache(
-		new UpdatableCache(() => {
-			const now = new Date();
-			const twoWeeksAgoStart = subDays(startOfWeek(now), 7);
-			const twoWeeksAgoEnd = endOfWeek(now);
+		new UpdatableCache(async () => {
+			const map = new Map<
+				string,
+				{
+					time: number;
+					lastDate: number;
+				}
+			>();
 
-			return backend
-				.fetchDailyStatisticForInterval(twoWeeksAgoStart, twoWeeksAgoEnd)
-				.then((r) => {
-					const map = new Map<string, number>();
+			return Backend.getStatisticsForLastTwoWeeks().then((r) => {
+				for (const game of r) {
+					map.set(game.game.id, {
+						time: game.totalTime,
+						lastDate: new Date(game.lastPlayedDate).getTime() / 1000,
+					});
+				}
 
-					for (const time of r.data) {
-						for (const game of time.games) {
-							if (map.has(game.game.id)) {
-								const gameTime = map.get(game.game.id);
-
-								if (isNil(gameTime)) {
-									continue;
-								}
-
-								map.set(game.game.id, gameTime + game.time);
-
-								continue;
-							}
-
-							map.set(game.game.id, game.time);
-						}
-					}
-
-					return map;
-				});
+				return map;
+			});
 		}),
 		eventBus,
 		["CommitInterval", "TimeManuallyAdjusted"],

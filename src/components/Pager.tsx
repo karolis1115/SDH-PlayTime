@@ -1,7 +1,28 @@
-import { DialogButton, Focusable } from "@decky/ui";
+import { DialogButton, Focusable, findClass, findSP } from "@decky/ui";
 import { registerForInputEvent } from "@src/steam/registerForInputEvent";
+import { isNil } from "@src/utils/isNil";
 import { useEffect, useState } from "react";
 import { focus_panel_no_padding, pager_container } from "../styles";
+
+async function focusOnCurrentActiveTab(): Promise<boolean> {
+	return new Promise((resolve) => {
+		const selectedTab = findSP().document.querySelector(
+			`.${findClass("62645", "Selected")}`,
+		);
+
+		if (isNil(selectedTab)) {
+			resolve(false);
+
+			return;
+		}
+
+		(selectedTab as HTMLElement).focus();
+
+		queueMicrotask(() => {
+			resolve(true);
+		});
+	});
+}
 
 export const Pager: React.FC<{
 	currentText: string;
@@ -26,7 +47,7 @@ export const Pager: React.FC<{
 		useState<number>(0);
 
 	useEffect(() => {
-		const { unregister } = registerForInputEvent((_buttons, rawEvent) => {
+		const { unregister } = registerForInputEvent(async (_buttons, rawEvent) => {
 			if (!isEnabledChangePagesWithTriggers) {
 				return;
 			}
@@ -37,7 +58,13 @@ export const Pager: React.FC<{
 
 			const DELAY = 500;
 
-			if (new Date().getTime() - lastChangedPageTimeStamp <= DELAY) {
+			if (Date.now() - lastChangedPageTimeStamp <= DELAY) {
+				return;
+			}
+
+			const { sTriggerL, sTriggerR } = rawEvent[0];
+
+			if (sTriggerL === 0 && sTriggerR === 0) {
 				return;
 			}
 
@@ -47,7 +74,9 @@ export const Pager: React.FC<{
 				rawEvent[0].sTriggerL >= TRIGGER_PUSH_FORCE_UNTIL_VIBRATION;
 
 			if (isLeftTriggerPressed && hasPrev) {
-				setLastChangedPageTimeStamp(new Date().getTime());
+				await focusOnCurrentActiveTab();
+
+				setLastChangedPageTimeStamp(Date.now());
 
 				onPrev();
 			}
@@ -56,7 +85,9 @@ export const Pager: React.FC<{
 				rawEvent[0].sTriggerR >= TRIGGER_PUSH_FORCE_UNTIL_VIBRATION;
 
 			if (isRightTriggerPressed && hasNext) {
-				setLastChangedPageTimeStamp(new Date().getTime());
+				await focusOnCurrentActiveTab();
+
+				setLastChangedPageTimeStamp(Date.now());
 
 				onNext();
 			}

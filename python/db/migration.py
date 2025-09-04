@@ -64,6 +64,58 @@ _migrations = [
         """,
         ],
     ),
+    Migration(
+        5,
+        [
+            """
+        CREATE TABLE game_file_checksum(
+            checksum_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            game_id TEXT NOT NULL,
+            checksum TEXT NOT NULL,
+            algorithm TEXT NOT NULL CHECK(algorithm IN (
+                'BLAKE2B', 'BLAKE2S',
+                'SHA224', 'SHA256', 'SHA384', 'SHA512', 'SHA512_224', 'SHA512_256',
+                'SHA3_224', 'SHA3_256', 'SHA3_384', 'SHA3_512',
+                'SHAKE_128', 'SHAKE_256'
+            )),
+            chunk_size INTEGER NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (game_id) REFERENCES game_dict(game_id),
+            UNIQUE (game_id, checksum, algorithm)
+        );
+        """,
+            """
+            CREATE INDEX 
+                game_file_checksum_checksum_algorithm_idx
+            ON
+                game_file_checksum(checksum, algorithm);
+            """,
+        ],
+    ),
+    Migration(
+        6,
+        [
+            """
+            DROP INDEX IF EXISTS overall_time_game_id_idx;
+            """,
+            """
+            DROP INDEX IF EXISTS  play_time_game_id_idx;
+            """,
+            """
+            DROP INDEX IF EXISTS play_time_date_time_epoch_idx;
+            """,
+            """
+            CREATE INDEX IF NOT EXISTS play_time_date_time_idx ON play_time(date_time);
+            """,
+            """
+            CREATE INDEX IF NOT EXISTS 
+                play_time_game_id_date_time_idx
+            ON
+                play_time(game_id, date_time);
+            """,
+        ],
+    ),
 ]
 
 
@@ -88,10 +140,11 @@ class DbMigration:
             )
 
         if migration.version > version:
-            with self.db.transactional() as con:
+            with self.db.transactional() as connection:
                 for stm in migration.statements:
-                    con.execute(stm)
-                con.execute(
+                    connection.execute(stm)
+
+                connection.execute(
                     "INSERT INTO migration (id) VALUES (?)", [migration.version]
                 )
 

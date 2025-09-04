@@ -1,17 +1,24 @@
 import type { Cache } from "@src/app/cache";
 import type { Mountable } from "@src/app/system";
+import { APP_TYPE } from "@src/constants";
 import { isNil } from "@src/utils/isNil";
 import logger from "@utils/logger";
 
-export { SteamPatches };
+type PlayTimeInformation = Map<
+	string,
+	{
+		time: number;
+		lastDate: number;
+	}
+>;
 
-class SteamPatches implements Mountable {
-	private cachedOverallTime: Cache<Map<string, number>>;
-	private cachedLastTwoWeeksTimes: Cache<Map<string, number>>;
+export class SteamPlayTimePatches implements Mountable {
+	private cachedOverallTime: Cache<PlayTimeInformation>;
+	private cachedLastTwoWeeksTimes: Cache<PlayTimeInformation>;
 
 	constructor(
-		cachedOverallTime: Cache<Map<string, number>>,
-		cachedLastTwoWeeksTimes: Cache<Map<string, number>>,
+		cachedOverallTime: Cache<PlayTimeInformation>,
+		cachedLastTwoWeeksTimes: Cache<PlayTimeInformation>,
 	) {
 		this.cachedOverallTime = cachedOverallTime;
 		this.cachedLastTwoWeeksTimes = cachedLastTwoWeeksTimes;
@@ -24,15 +31,18 @@ class SteamPatches implements Mountable {
 		this.cachedOverallTime.subscribe((overallTimes) => {
 			this.cachedLastTwoWeeksTimes.subscribe((lastTwoWeeksTimes) => {
 				const changedApps = [];
+
 				for (const [appId, time] of overallTimes) {
 					const appOverview = appStore.GetAppOverviewByAppID(
 						Number.parseInt(appId),
 					);
-					if (appOverview?.app_type === 1073741824) {
+
+					if (appOverview?.app_type === APP_TYPE.THIRD_PARTY) {
 						this.patchOverviewWithValues(
 							appOverview,
-							time,
-							lastTwoWeeksTimes.get(appId) || 0,
+							time.time,
+							lastTwoWeeksTimes.get(appId)?.time || 0,
+							time.lastDate,
 						);
 						changedApps.push(appOverview);
 					}
@@ -41,10 +51,13 @@ class SteamPatches implements Mountable {
 				// NOTE: Fix from: https://github.com/ma3a/SDH-PlayTime/pull/71
 				// appInfoStore.OnAppOverviewChange(changedApps);
 
-				appStore.m_mapApps.set(
-					changedApps.map((app) => app.appid),
-					changedApps,
-				);
+				for (const app of changedApps) {
+					if (app.app_type === APP_TYPE.THIRD_PARTY) {
+						continue;
+					}
+
+					appStore.m_mapApps.set(app.appid, app);
+				}
 			});
 		});
 	}
@@ -146,7 +159,7 @@ class SteamPatches implements Mountable {
 		for (const appId of appIds) {
 			const appOverview = appStore.GetAppOverviewByAppID(appId);
 
-			if (appOverview?.app_type === 1073741824) {
+			if (appOverview?.app_type === APP_TYPE.THIRD_PARTY) {
 				appOverview.OriginalInitFromProto = appOverview.InitFromProto;
 
 				appOverview.InitFromProto = (proto: unknown) => {
@@ -170,16 +183,25 @@ class SteamPatches implements Mountable {
 
 	private patchAppOverviewFromCache(appOverview: AppOverview): AppOverview {
 		if (
-			appOverview?.app_type === 1073741824 &&
+			appOverview?.app_type === APP_TYPE.THIRD_PARTY &&
 			this.cachedOverallTime.isReady() &&
 			this.cachedLastTwoWeeksTimes.isReady()
 		) {
+			const { appid: appId } = appOverview;
+
 			const overallTime =
-				this.cachedOverallTime.get()?.get(`${appOverview.appid}`) || 0;
+				this.cachedOverallTime.get()?.get(`${appId}`)?.time || 0;
 			const lastTwoWeeksTime =
-				this.cachedLastTwoWeeksTimes.get()?.get(`${appOverview.appid}`) || 0;
-			this.patchOverviewWithValues(appOverview, overallTime, lastTwoWeeksTime);
+				this.cachedLastTwoWeeksTimes.get()?.get(`${appId}`)?.time || 0;
+
+			this.patchOverviewWithValues(
+				appOverview,
+				overallTime,
+				lastTwoWeeksTime,
+				this.cachedOverallTime.get()?.get(`${appId}`)?.lastDate,
+			);
 		}
+
 		return appOverview;
 	}
 
@@ -187,13 +209,18 @@ class SteamPatches implements Mountable {
 		appOverview: AppOverview,
 		overallTime: number,
 		lastTwoWeeksTime: number,
+		lastPlayedDate: number = 0,
 	): AppOverview {
-		if (appOverview?.app_type === 1073741824) {
+		if (appOverview?.app_type === APP_TYPE.THIRD_PARTY) {
 			appOverview.minutes_playtime_forever = (overallTime / 60.0).toFixed(1);
 			appOverview.minutes_playtime_last_two_weeks = Number.parseFloat(
 				(lastTwoWeeksTime / 60.0).toFixed(1),
 			);
+			appOverview.rt_last_time_locally_played = lastPlayedDate;
+			appOverview.rt_last_time_played = lastPlayedDate;
+			appOverview.rt_last_time_played_or_installed = lastPlayedDate;
 		}
+
 		return appOverview;
 	}
 }

@@ -25,6 +25,8 @@ interface Page<T> {
 }
 
 export interface Paginated<T> {
+	isEmpty?: boolean;
+
 	next(): Promise<Paginated<T>>;
 	hasNext(): boolean;
 
@@ -36,6 +38,7 @@ export interface Paginated<T> {
 
 export function empty<T>() {
 	return {
+		isEmpty: true,
 		next: async () => empty<T>(),
 		hasNext: () => false,
 		prev: async () => empty<T>(),
@@ -84,11 +87,11 @@ export class Reports {
 		);
 	}
 
-	public async overallStatistics(): Promise<GameWithTime[]> {
+	public async overallStatistics(): Promise<GamePlaytimeDetails[]> {
 		return await this.backend.fetchPerGameOverallStatistics();
 	}
 
-	public async getGame(gameId: string): Promise<Nullable<GameInformation>> {
+	public async getGame(gameId: string): Promise<Nullable<GamePlaytimeSummary>> {
 		return await this.backend.getGame(gameId);
 	}
 }

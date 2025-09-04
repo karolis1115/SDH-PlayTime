@@ -23,7 +23,8 @@
 			"@src/*": ["./src/*"],
 			"@type/*": ["./types/*"],
 			"@utils/*": ["./src/utils/*"]
-		}
+		},
+		"types": ["bun-types"]
 	},
 	"include": ["src"],
 	"exclude": ["node_modules"]

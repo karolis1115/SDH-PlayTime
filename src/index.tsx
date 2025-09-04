@@ -1,7 +1,7 @@
 import { routerHook, toaster } from "@decky/api";
-import { definePlugin, staticClasses, useParams } from "@decky/ui";
+import { definePlugin, findSP, staticClasses, useParams } from "@decky/ui";
 import { patchAppPage } from "@src/steam/ui/routePatches";
-import { SteamPatches } from "@src/steam/ui/steamPatches";
+import { SteamPlayTimePatches } from "@src/steam/ui/steamPlayTimePatches";
 import { getDurationInHours } from "@utils/formatters";
 import { FaClock } from "react-icons/fa";
 import { SessionPlayTime } from "./app/SessionPlayTime";
@@ -27,17 +27,43 @@ import { DeckyPanelPage } from "./pages/DeckyPanelPage";
 import { GameActivity } from "./pages/GameActivity";
 import { ManuallyAdjustTimePage } from "./pages/ManuallyAdjustTimePage";
 import { DetailedPage } from "./pages/ReportPage";
-import { SettingsPage } from "./pages/SettingsPage";
+import { SettingsPage } from "./pages/settings/";
 import {
 	DETAILED_REPORT_ROUTE,
 	GAME_REPORT_ROUTE,
 	MANUALLY_ADJUST_TIME,
 	SETTINGS_ROUTE,
 } from "./pages/navigation";
-import { log } from "./utils/logger";
+import { log, error } from "./utils/logger";
+import { getNonSteamGamesChecksumFromDataBase } from "./app/games";
+import { isNil } from "./utils/isNil";
+import PlayTimeStyle from "./styles/output.css";
+import { unbindChecksumsLoadingStateListener } from "./stores/games";
+import { unbindLastOpenedPageListener } from "./stores/ui";
+
+function injectTailwind() {
+	if (typeof document === "undefined") {
+		error("Impossible to inject TailwindCSS styles into <head />");
+
+		return;
+	}
+
+	if (!isNil(findSP()?.document?.head?.querySelector("#playTimeStyle"))) {
+		findSP()?.document?.head?.querySelector("#playTimeStyle")?.remove();
+	}
+
+	const style = document.createElement("style");
+	style.id = "playTimeStyle";
+	style.innerHTML = PlayTimeStyle;
+
+	findSP()?.document?.head?.appendChild(style);
+
+	log("Inject TailwindCSS styles into <head />");
+}
 
 export default definePlugin(() => {
 	log("PlayTime plugin loading...");
+	injectTailwind();
 
 	const clock = systemClock;
 	const eventBus = new EventBus();
@@ -50,7 +76,6 @@ export default definePlugin(() => {
 	const mountManager = new MountManager(eventBus, clock);
 	const mounts = createMountables(
 		eventBus,
-		backend,
 		clock,
 		settings,
 		reports,
@@ -79,27 +104,41 @@ export default definePlugin(() => {
 		icon: <FaClock />,
 		onDismount() {
 			mountManager.unMount();
+
+			unbindChecksumsLoadingStateListener();
+			unbindLastOpenedPageListener();
 		},
 	};
 });
 
 function createMountables(
 	eventBus: EventBus,
-	backend: Backend,
 	clock: Clock,
 	settings: Settings,
 	reports: Reports,
 	sessionPlayTime: SessionPlayTime,
 	timeMigration: TimeManipulation,
 ): Mountable[] {
-	const cachedPlayTimes = createCachedPlayTimes(backend, eventBus);
-	const cachedLastTwoWeeksPlayTimes = createCachedLastTwoWeeksPlayTimes(
-		backend,
-		eventBus,
-	);
+	const cachedPlayTimes = createCachedPlayTimes(eventBus);
+	const cachedLastTwoWeeksPlayTimes =
+		createCachedLastTwoWeeksPlayTimes(eventBus);
 
-	eventBus.addSubscriber((event) => {
+	eventBus.addSubscriber(async (event) => {
 		switch (event.type) {
+			case "UserLoggedIn": {
+				const userSettings = await settings.get();
+
+				if (
+					isNil(userSettings) ||
+					!userSettings?.isEnabledDetectionOfGamesByFileChecksum
+				) {
+					return;
+				}
+
+				getNonSteamGamesChecksumFromDataBase();
+
+				break;
+			}
 			case "NotifyToTakeBreak":
 				toaster.toast({
 					body: (
@@ -125,6 +164,7 @@ function createMountables(
 				break;
 		}
 	});
+
 	const mounts: Mountable[] = [];
 
 	mounts.push(new BreaksReminder(eventBus, settings));
@@ -203,11 +243,15 @@ function createMountables(
 		},
 		unMount() {
 			routerHook.removeRoute(GAME_REPORT_ROUTE);
+
+			findSP().document.head.querySelector("#playTimeStyle")?.remove();
 		},
 	});
 
 	mounts.push(patchAppPage(cachedPlayTimes));
-	mounts.push(new SteamPatches(cachedPlayTimes, cachedLastTwoWeeksPlayTimes));
+	mounts.push(
+		new SteamPlayTimePatches(cachedPlayTimes, cachedLastTwoWeeksPlayTimes),
+	);
 
 	return mounts;
 }
