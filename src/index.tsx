@@ -143,7 +143,7 @@ function createMountables(
 				toaster.toast({
 					body: (
 						<div>
-							You already playing for{" "}
+							You've already been playing for{" "}
 							{getDurationInHours(event.playTimeSeconds)},
 						</div>
 					),
