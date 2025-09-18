@@ -1,5 +1,8 @@
+const mobxAdministrationSymbol = Symbol("mobx administration");
+const mobxStoredAnnotationsSymbol = Symbol("mobx-stored-annotations");
+
 // NOTE(ynhhoJ): https://github.com/ricewind012/steam-sharedjscontext-types/blob/master/generated/SuspendResumeStore.ts
-export interface SuspendResumeStore {
+interface SuspendResumeStore {
 	m_bResuming: boolean;
 	m_bShowResumeUI: boolean;
 	m_bSuspending: boolean;
@@ -14,4 +17,7 @@ export interface SuspendResumeStore {
 	InitiateResume();
 	InitiateSleep();
 	NotifyResumeUIDone();
+
+	[mobxAdministrationSymbol]: unknown;
+	[mobxStoredAnnotationsSymbol]: unknown;
 }

@@ -152,4 +152,74 @@ describe("SessionPlayTime should send commit interval", () => {
 			},
 		]);
 	});
+
+	test("should not commit interval two time when is called two Suspended events sequentially", () => {
+		const eventBus = new EventBus();
+		const sessionPlayTime = new SessionPlayTime(eventBus);
+
+		let committedInterval: unknown;
+
+		eventBus.addSubscriber((event) => {
+			switch (event.type) {
+				case "CommitInterval":
+					committedInterval = {
+						type: event.type,
+						startedAt: event.startedAt,
+						endedAt: event.endedAt,
+						game: event.game,
+					};
+					break;
+			}
+		});
+
+		eventBus.emit({
+			type: "GameStarted",
+			createdAt: 0,
+			game: gameInfo_01,
+		});
+
+		eventBus.emit({
+			type: "Suspended",
+			createdAt: 5 * 1000 * 60,
+			game: gameInfo_01,
+		});
+
+		eventBus.emit({
+			type: "Suspended",
+			createdAt: 5 * 1000 * 60 + 5,
+			game: gameInfo_01,
+		});
+
+		expect(committedInterval).toStrictEqual({
+			type: "CommitInterval",
+			startedAt: 0,
+			endedAt: 5 * 1000 * 60,
+			game: gameInfo_01,
+		});
+
+		eventBus.emit({
+			type: "Suspended",
+			createdAt: 5 * 1000 * 60 + 5,
+			game: gameInfo_01,
+		});
+
+		eventBus.emit({
+			type: "Suspended",
+			createdAt: 5 * 1000 * 60 + 5,
+			game: gameInfo_01,
+		});
+
+		eventBus.emit({
+			type: "ResumeFromSuspend",
+			createdAt: 10 * 1000 * 60,
+			game: gameInfo_01,
+		});
+
+		expect(sessionPlayTime.getPlayTime(11 * 1000 * 60)).toEqual([
+			{
+				gameName: "Game name 001",
+				playTime: 60,
+			},
+		]);
+	});
 });

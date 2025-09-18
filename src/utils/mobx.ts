@@ -6,9 +6,7 @@ import type {
 import { isNil } from "./isNil";
 
 // NOTE(ynhhoJ): https://github.com/FrogTheFrog/moondeck/blob/main/src/lib/appoverviewpatcher.ts#L122
-export function getMobxAdministrationSymbol(
-	objectWithMobx: object,
-): Nullable<symbol> {
+function getMobxAdministrationSymbol(objectWithMobx: object): Nullable<symbol> {
 	for (const symbol of Object.getOwnPropertySymbols(objectWithMobx)) {
 		if (!symbol.description?.includes("mobx administration")) {
 			continue;
@@ -20,26 +18,26 @@ export function getMobxAdministrationSymbol(
 	return undefined;
 }
 
-type MobxComputedValue<T> = ComputedValue<T>;
-type MobxObservableValue<T> = ObservableValue<T>;
+export type MobxComputedValue<T> = ComputedValue<T>;
+export type MobxObservableValue<T> = ObservableValue<T>;
 
-export function getRunningAppsObservableValue<T>():
-	| MobxComputedValue<T>
-	| MobxObservableValue<T>
-	| undefined {
-	const mobxSymbol = getMobxAdministrationSymbol(SteamUIStore);
+export function getMobxObservable<T extends object, R>(
+	steamObject: T,
+	keyToObserve: string,
+): MobxComputedValue<R> | MobxObservableValue<R> | undefined {
+	const mobxSymbol = getMobxAdministrationSymbol(steamObject);
 
 	if (isNil(mobxSymbol)) {
 		return;
 	}
 
-	const steamUiStoreObservable = SteamUIStore[
-		mobxSymbol as keyof SteamUIStore
+	const steamUiStoreObservable = steamObject[
+		mobxSymbol as keyof T
 	] as unknown as ObservableObjectAdministration;
 
 	if (isNil(steamUiStoreObservable)) {
 		return;
 	}
 
-	return steamUiStoreObservable.values_.get("RunningApps");
+	return steamUiStoreObservable.values_.get(keyToObserve);
 }
