@@ -3,8 +3,8 @@ import type { Button } from "./enums/Button";
 // NOTE(ynhhoJ): https://discordapp.com/channels/960281551428522045/960284311444131840/1221486251559878786
 export function registerForInputEvent(
 	callback: (buttons: Button[], rawEvent: ControllerStateChange[]) => void,
-): Unregisterable {
-	return SteamClient.Input.RegisterForControllerStateChanges((changes) => {
+): Nullable<Unregisterable> {
+	return SteamClient?.Input?.RegisterForControllerStateChanges?.((changes) => {
 		const buttons: Button[] = [];
 
 		for (const change of changes) {

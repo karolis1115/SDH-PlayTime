@@ -47,54 +47,56 @@ export const Pager: React.FC<{
 		useState<number>(0);
 
 	useEffect(() => {
-		const { unregister } = registerForInputEvent(async (_buttons, rawEvent) => {
-			if (!isEnabledChangePagesWithTriggers) {
-				return;
-			}
+		const unregisterRegisterForInputEvent = registerForInputEvent(
+			async (_buttons, rawEvent) => {
+				if (!isEnabledChangePagesWithTriggers) {
+					return;
+				}
 
-			if (rawEvent.length === 0) {
-				return;
-			}
+				if (rawEvent.length === 0) {
+					return;
+				}
 
-			const DELAY = 500;
+				const DELAY = 500;
 
-			if (Date.now() - lastChangedPageTimeStamp <= DELAY) {
-				return;
-			}
+				if (Date.now() - lastChangedPageTimeStamp <= DELAY) {
+					return;
+				}
 
-			const { sTriggerL, sTriggerR } = rawEvent[0];
+				const { sTriggerL, sTriggerR } = rawEvent[0];
 
-			if (sTriggerL === 0 && sTriggerR === 0) {
-				return;
-			}
+				if (sTriggerL === 0 && sTriggerR === 0) {
+					return;
+				}
 
-			// NOTE(ynhhoJ): Aproximative value
-			const TRIGGER_PUSH_FORCE_UNTIL_VIBRATION = 12000;
-			const isLeftTriggerPressed =
-				rawEvent[0].sTriggerL >= TRIGGER_PUSH_FORCE_UNTIL_VIBRATION;
+				// NOTE(ynhhoJ): Aproximative value
+				const TRIGGER_PUSH_FORCE_UNTIL_VIBRATION = 12000;
+				const isLeftTriggerPressed =
+					rawEvent[0].sTriggerL >= TRIGGER_PUSH_FORCE_UNTIL_VIBRATION;
 
-			if (isLeftTriggerPressed && hasPrev) {
-				await focusOnCurrentActiveTab();
+				if (isLeftTriggerPressed && hasPrev) {
+					await focusOnCurrentActiveTab();
 
-				setLastChangedPageTimeStamp(Date.now());
+					setLastChangedPageTimeStamp(Date.now());
 
-				onPrev();
-			}
+					onPrev();
+				}
 
-			const isRightTriggerPressed =
-				rawEvent[0].sTriggerR >= TRIGGER_PUSH_FORCE_UNTIL_VIBRATION;
+				const isRightTriggerPressed =
+					rawEvent[0].sTriggerR >= TRIGGER_PUSH_FORCE_UNTIL_VIBRATION;
 
-			if (isRightTriggerPressed && hasNext) {
-				await focusOnCurrentActiveTab();
+				if (isRightTriggerPressed && hasNext) {
+					await focusOnCurrentActiveTab();
 
-				setLastChangedPageTimeStamp(Date.now());
+					setLastChangedPageTimeStamp(Date.now());
 
-				onNext();
-			}
-		});
+					onNext();
+				}
+			},
+		);
 
 		return () => {
-			unregister();
+			unregisterRegisterForInputEvent?.unregister();
 		};
 	});
 
