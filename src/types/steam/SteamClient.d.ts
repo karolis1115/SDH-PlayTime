@@ -108,6 +108,14 @@ interface SteamClient {
 		RegisterForControllerStateChanges: (
 			callback: (controllerStateChanges: ControllerStateChange[]) => void,
 		) => Unregisterable;
+
+		RegisterForControllerInputMessages(
+			callback: (
+				controllerIndex: number,
+				gamepadButton: ControllerInputGamepadButton,
+				isButtonPressed: boolean,
+			) => void,
+		): Unregisterable;
 	};
 
 	User: {

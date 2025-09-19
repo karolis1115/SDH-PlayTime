@@ -1,8 +1,8 @@
 import { DialogButton, Focusable, findClass, findSP } from "@decky/ui";
-import { registerForInputEvent } from "@src/steam/registerForInputEvent";
 import { isNil } from "@src/utils/isNil";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { focus_panel_no_padding, pager_container } from "../styles";
+import { ControllerInputGamepadButton } from "@decky/ui/dist/globals/steam-client/Input";
 
 async function focusOnCurrentActiveTab(): Promise<boolean> {
 	return new Promise((resolve) => {
@@ -43,57 +43,36 @@ export const Pager: React.FC<{
 	nextKey = "r2",
 	isEnabledChangePagesWithTriggers = false,
 }) => {
-	const [lastChangedPageTimeStamp, setLastChangedPageTimeStamp] =
-		useState<number>(0);
-
 	useEffect(() => {
-		const unregisterRegisterForInputEvent = registerForInputEvent(
-			async (_buttons, rawEvent) => {
-				if (!isEnabledChangePagesWithTriggers) {
-					return;
-				}
+		const unregisterRegisterForInputEvent =
+			SteamClient.Input.RegisterForControllerInputMessages(
+				async (_controllerIndex, gamepadButton, isPressed) => {
+					if (!isPressed) {
+						return;
+					}
 
-				if (rawEvent.length === 0) {
-					return;
-				}
+					// NOTE(ynhhoJ): Aproximative value
+					const isLeftTriggerPressed =
+						ControllerInputGamepadButton.GAMEPAD_BUTTON_LTRIGGER ===
+						gamepadButton;
 
-				const DELAY = 500;
+					if (isLeftTriggerPressed && hasPrev) {
+						await focusOnCurrentActiveTab();
 
-				if (Date.now() - lastChangedPageTimeStamp <= DELAY) {
-					return;
-				}
+						onPrev();
+					}
 
-				const { sTriggerL, sTriggerR } = rawEvent[0];
+					const isRightTriggerPressed =
+						ControllerInputGamepadButton.GAMEPAD_BUTTON_RTRIGGER ===
+						gamepadButton;
 
-				if (sTriggerL === 0 && sTriggerR === 0) {
-					return;
-				}
+					if (isRightTriggerPressed && hasNext) {
+						await focusOnCurrentActiveTab();
 
-				// NOTE(ynhhoJ): Aproximative value
-				const TRIGGER_PUSH_FORCE_UNTIL_VIBRATION = 12000;
-				const isLeftTriggerPressed =
-					rawEvent[0].sTriggerL >= TRIGGER_PUSH_FORCE_UNTIL_VIBRATION;
-
-				if (isLeftTriggerPressed && hasPrev) {
-					await focusOnCurrentActiveTab();
-
-					setLastChangedPageTimeStamp(Date.now());
-
-					onPrev();
-				}
-
-				const isRightTriggerPressed =
-					rawEvent[0].sTriggerR >= TRIGGER_PUSH_FORCE_UNTIL_VIBRATION;
-
-				if (isRightTriggerPressed && hasNext) {
-					await focusOnCurrentActiveTab();
-
-					setLastChangedPageTimeStamp(Date.now());
-
-					onNext();
-				}
-			},
-		);
+						onNext();
+					}
+				},
+			);
 
 		return () => {
 			unregisterRegisterForInputEvent?.unregister();
