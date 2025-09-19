@@ -34,7 +34,7 @@ export class SteamPlayTimePatches implements Mountable {
 
 				for (const [appId, time] of overallTimes) {
 					const appOverview = appStore.GetAppOverviewByAppID(
-						Number.parseInt(appId),
+						Number.parseInt(appId, 10),
 					);
 
 					if (appOverview?.app_type === APP_TYPE.THIRD_PARTY) {

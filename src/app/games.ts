@@ -18,7 +18,7 @@ export function getAllNonSteamAppIds() {
 	if (isNil(collectionStore.deckDesktopApps)) {
 		return appStore.allApps
 			.filter((item) => item.app_type === APP_TYPE.THIRD_PARTY)
-			.map((item) => Number.parseInt(item.gameid));
+			.map((item) => Number.parseInt(item.gameid, 10));
 	}
 
 	return Array.from(collectionStore.deckDesktopApps.apps.keys());
