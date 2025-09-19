@@ -3,26 +3,33 @@ import logger from "@src/utils/logger";
 import { isNil } from "../utils/isNil";
 import type { Clock, EventBus, Mountable } from "./system";
 import { getMobxObservable } from "@src/utils/mobx";
-import {
-	hasLegacySuspendEvents,
-	initializeSuspendRequestLegacyEvents,
-	runSuspendResumeStoreObservable,
-} from "./middlewares/suspend";
+import { SteamSleepEventsMiddleware } from "./middlewares/sleep";
 
 export { SteamEventMiddleware };
 
 class SteamEventMiddleware implements Mountable {
 	private clock: Clock;
 	private eventBus: EventBus;
+	private sleepEventsMiddleware: SteamSleepEventsMiddleware;
 
 	private activeHooks: Array<Unregisterable> = [];
 
 	constructor(eventBus: EventBus, clock: Clock) {
 		this.eventBus = eventBus;
 		this.clock = clock;
+		this.sleepEventsMiddleware = new SteamSleepEventsMiddleware(
+			eventBus,
+			clock,
+		);
 	}
 
 	public mount() {
+		const hasSleepEvents = this.sleepEventsMiddleware.mount();
+
+		if (!hasSleepEvents) {
+			return;
+		}
+
 		const runningAppsObservableValue = getMobxObservable<
 			SteamUIStore,
 			SteamUIStore["RunningApps"]
@@ -34,56 +41,6 @@ class SteamEventMiddleware implements Mountable {
 			);
 
 			return;
-		}
-
-		if (hasLegacySuspendEvents()) {
-			logger.info(
-				"Legacy event SteamClient.System.RegisterForOnSuspendRequest is available. Use them for suspend/request events.",
-			);
-
-			initializeSuspendRequestLegacyEvents(
-				this.activeHooks,
-				this.eventBus,
-				this.clock,
-			);
-		} else {
-			logger.info(
-				"Legacy event SteamClient.System.RegisterForOnSuspendRequest is NOT available. Use mobx to detect suspend/request events.",
-			);
-
-			const suspendingProgressObservableValue = getMobxObservable<
-				SuspendResumeStore,
-				SuspendResumeStore["m_bSuspending"]
-			>(SuspendResumeStore, "m_bSuspending");
-
-			if (isNil(suspendingProgressObservableValue)) {
-				logger.error(
-					'Impossible to get "m_bSuspending" observe. Events will not be attached.',
-				);
-
-				return;
-			}
-
-			const resumeProgressObservableValue = getMobxObservable<
-				SuspendResumeStore,
-				SuspendResumeStore["m_bResuming"]
-			>(SuspendResumeStore, "m_bResuming");
-
-			if (isNil(resumeProgressObservableValue)) {
-				logger.error(
-					'Impossible to get "m_bResuming" observe. Events will not be attached.',
-				);
-
-				return;
-			}
-
-			runSuspendResumeStoreObservable(
-				suspendingProgressObservableValue,
-				resumeProgressObservableValue,
-				this.activeHooks,
-				this.eventBus,
-				this.clock,
-			);
 		}
 
 		for (const app of SteamUIStore.RunningApps) {
@@ -218,5 +175,7 @@ class SteamEventMiddleware implements Mountable {
 		for (const it of this.activeHooks) {
 			it.unregister();
 		}
+
+		this.sleepEventsMiddleware.unMount();
 	}
 }
