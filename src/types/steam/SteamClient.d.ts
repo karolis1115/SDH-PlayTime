@@ -114,11 +114,17 @@ interface SteamClient {
 		RegisterForLoginStateChange: (
 			callback: (username: string) => void,
 		) => Unregisterer;
+		RegisterForPrepareForSystemSuspendProgress?: (
+			callback: () => void,
+		) => Unregisterable;
+		RegisterForResumeSuspendedGamesProgress?: (
+			callback: () => void,
+		) => Unregisterable;
 	};
 
 	System: {
-		RegisterForOnResumeFromSuspend: (callback: () => void) => Unregisterable;
-		RegisterForOnSuspendRequest: (callback: () => void) => Unregisterable;
+		RegisterForOnResumeFromSuspend?: (callback: () => void) => Unregisterable;
+		RegisterForOnSuspendRequest?: (callback: () => void) => Unregisterable;
 	};
 
 	Storage: {
