@@ -131,7 +131,7 @@ const GeneralSettings = () => {
 			</PanelSection>
 
 			<PanelSection title="Non-steam games">
-				<Field label="Automatically detect game by checksum">
+				<Field label="Automatically detect game by checksum [Work in Progress]">
 					<Dropdown
 						selectedOption={current?.isEnabledDetectionOfGamesByFileChecksum}
 						rgOptions={[
