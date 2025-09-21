@@ -7,9 +7,10 @@
   ![Testing store Updates](https://img.shields.io/badge/dynamic/json?url=https://testing.deckbrew.xyz/plugins?query=PlayTime&query=$[:1].updates&suffix=%20installs&label=Testing%20store%20updates)
   ![Stable store Downloads](https://img.shields.io/badge/dynamic/json?url=https://plugins.deckbrew.xyz/plugins?query=PlayTime&query=$[:1].downloads&suffix=%20installs&label=Stable%20store%20downloads)
   ![Stable store Updates](https://img.shields.io/badge/dynamic/json?url=https://plugins.deckbrew.xyz/plugins?query=PlayTime&query=$[:1].updates&suffix=%20installs&label=Stable%20store%20updates)
+
 </div>
 
-![PlayTime Logo](assets/image.png)
+![PlayTime Logo](https://raw.githubusercontent.com/0u73r-h34v3n/PlayTime/refs/heads/master/assets/image.png)
 
 PlayTime is a plugin for the SteamDeck gaming console, designed to track the amount of time you spend playing games. It provides weekly and monthly reports, as well as an overall summary of your gaming time. In addition, it offers data migration from the SteamLessTimes and MetaDeck plugins. PlayTime also allows you to manually adjust your overall playtime through the settings.
 
