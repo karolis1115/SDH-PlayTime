@@ -178,7 +178,7 @@ export function showGameOptionsContextMenu({
 					gameId={gameId}
 					gameName={gameName}
 				/>
-				<MenuItem disabled>Soon..</MenuItem>
+				<MenuItem disabled>Soon™...</MenuItem>
 			</Menu>,
 		);
 	};
