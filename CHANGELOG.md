@@ -11,6 +11,8 @@ Where is still a lot of things which needs to be done. Currently I'm working on 
 across devices using files checksum. Stay tuned!
 
 This release introduces:
+- 💅 **User Interface improvements** (you can see games covers and add your own for deleted
+non-steam games).
 - 🕹️ **Controller Trigger Navigation** (L2/R2 support offers better User Experience)
 - 🧠 **MobX Event System Upgrade** (removes some of legacy Steam event dependency)
 - ⚡ **Performance Optimizations** across **Front-End** and **Back-End**. Now plugin should work
