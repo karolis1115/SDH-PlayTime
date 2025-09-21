@@ -6,13 +6,19 @@ import {
 	SETTINGS_ROUTE,
 	navigateToPage,
 } from "./navigation";
+import { useEffect } from "react";
+import { $lastOpenedPage } from "@src/stores/ui";
 
-export const DeckyPanelPage = () => {
+export function DeckyPanelPage() {
+	useEffect(() => {
+		$lastOpenedPage.set("all-time");
+	}, []);
+
 	return (
 		<div>
 			<CurrentPlayTime />
 
-			<ReportWeekly slim={true} />
+			<ReportWeekly isFromQAM={true} />
 
 			<PanelSection title="Misc">
 				<PanelSectionRow>
@@ -23,15 +29,16 @@ export const DeckyPanelPage = () => {
 						Detailed report
 					</ButtonItem>
 				</PanelSectionRow>
+
 				<PanelSectionRow>
 					<ButtonItem
 						layout="below"
 						onClick={() => navigateToPage(SETTINGS_ROUTE)}
 					>
-						Open settings
+						Settings
 					</ButtonItem>
 				</PanelSectionRow>
 			</PanelSection>
 		</div>
 	);
-};
+}

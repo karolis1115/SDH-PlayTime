@@ -1,20 +1,27 @@
-import { useState, type VFC } from "react";
-import { Tab } from "../components/Tab";
 import { Tabs } from "@decky/ui";
+import { useState } from "react";
 import { PageWrapper } from "../components/PageWrapper";
+import { Tab } from "../components/Tab";
 import { ReportMonthly } from "../containers/ReportMonthly";
-import { ReportWeekly } from "../containers/ReportWeekly";
 import { ReportOverall } from "../containers/ReportOverall";
+import { ReportWeekly } from "../containers/ReportWeekly";
+import { $lastOpenedPage } from "@src/stores/ui";
 
-export const DetailedPage: VFC = () => {
-	const [currentTabRoute, setCurrentTabRoute] = useState<string>("all-time");
+export const DetailedPage = () => {
+	const [currentTabRoute, setCurrentTabRoute] = useState<ReportPage>(
+		$lastOpenedPage.get(),
+	);
+
 	return (
 		<PageWrapper>
 			<Tabs
 				activeTab={currentTabRoute}
-				onShowTab={(tabId: string) => {
+				onShowTab={(tabId: ReportPage) => {
+					$lastOpenedPage.set(tabId);
+
 					setCurrentTabRoute(tabId);
 				}}
+				autoFocusContents={true}
 				tabs={[
 					{
 						title: "All Time",

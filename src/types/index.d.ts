@@ -1,8 +1,14 @@
+declare module "*.css";
+
 type Nullable<T> = T | null | undefined;
 
-interface Unregisterable {
-	/**
-	 * Unregister the callback.
-	 */
-	unregister(): void;
-}
+type DailyStatistics = DayStatistics;
+
+type LocalNonSteamGame = {
+	id: string;
+	name: string;
+	checksum?: string;
+	pathToGame?: string;
+};
+
+type ReportPage = "all-time" | "by-month" | "by-week";

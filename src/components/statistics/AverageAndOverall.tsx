@@ -1,9 +1,8 @@
 import { Field, PanelSection, PanelSectionRow } from "@decky/ui";
 import { useLocator } from "@src/locator";
-import moment from "moment";
+import { humanReadableTime } from "@utils/formatters";
+import { isBefore, isSameDay, startOfDay } from "date-fns";
 import type { FC } from "react";
-import { humanReadableTime } from "../../app/formatters";
-import type { DailyStatistics } from "../../app/model";
 import { FocusableExt } from "../FocusableExt";
 
 export const AverageAndOverall: FC<{ statistics: DailyStatistics[] }> = (
@@ -13,14 +12,16 @@ export const AverageAndOverall: FC<{ statistics: DailyStatistics[] }> = (
 	const overall = props.statistics
 		.map((it) => it.total)
 		.reduce((a, c) => a + c, 0);
-	const today = moment(new Date()).startOf("day");
-	const daysPassed = props.statistics.filter((it) =>
-		moment(it.date).startOf("day").isSameOrBefore(today),
+	const today = startOfDay(new Date());
+	const daysPassed = props.statistics.filter(
+		(it) =>
+			isSameDay(it.date, startOfDay(today)) ||
+			isBefore(it.date, startOfDay(today)),
 	).length;
 	const average = overall / daysPassed;
 
 	return (
-		<FocusableExt>
+		<FocusableExt style={{ marginTop: "16px" }}>
 			<PanelSection title="Average and overall">
 				<PanelSectionRow>
 					<Field label="Daily average" bottomSeparator="none">

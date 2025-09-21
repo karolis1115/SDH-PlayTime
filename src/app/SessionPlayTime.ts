@@ -1,7 +1,6 @@
 import { isNil } from "@src/utils/isNil";
-import logger from "../utils";
+import logger from "@src/utils/logger";
 
-import type { Game } from "./model";
 import type { EventBus } from "./system";
 
 export { SessionPlayTime, type PlayTime };
@@ -100,7 +99,9 @@ class SessionPlayTime {
 
 	private startInterval(startedAt: number, game: Game) {
 		if (this.activeInterval.size !== 0 && this.activeInterval.has(game.id)) {
-			logger.error("Getting same game start interval, ignoring it");
+			logger.error(
+				`Getting same game (${game.name}) start interval, ignoring it`,
+			);
 
 			return;
 		}

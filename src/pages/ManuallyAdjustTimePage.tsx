@@ -6,15 +6,15 @@ import {
 	PanelSection,
 	TextField,
 } from "@decky/ui";
+import { ifNull } from "@src/utils/ifNull";
+import { map } from "@src/utils/map";
+import { humanReadableTime } from "@utils/formatters";
 import { useEffect, useState } from "react";
 import type { DeepNonNullable } from "ts-essentials";
-import { humanReadableTime } from "../app/formatters";
-import type { GameWithTime } from "../app/model";
-import { excludeApps } from "../app/time-manipulation";
+import { excludeApps } from "../app/timeManipulation";
 import { PageWrapper } from "../components/PageWrapper";
 import { useLocator } from "../locator";
 import { TableCSS } from "../styles";
-import { ifNull, map } from "../utils";
 import { navigateBack } from "./navigation";
 
 interface TableRowsProps {
@@ -28,7 +28,7 @@ export const ManuallyAdjustTimePage = () => {
 		useLocator();
 	const [isLoading, setLoading] = useState<boolean>(true);
 	const [gameWithTimeByAppId, setGameWithTimeByAppId] = useState<
-		Map<string, GameWithTime>
+		Map<string, GamePlaytimeDetails>
 	>(new Map());
 	const [tableRows, setTableRows] = useState<TableRowsProps[]>([]);
 
@@ -67,7 +67,8 @@ export const ManuallyAdjustTimePage = () => {
 	const onGameChange = (index: number, appId: string) => {
 		const newRows = [...tableRows];
 		newRows[index].appId = appId;
-		newRows[index].playTimeTrackedSec = gameWithTimeByAppId.get(appId)?.time;
+		newRows[index].playTimeTrackedSec =
+			gameWithTimeByAppId.get(appId)?.totalTime;
 		newRows[index].desiredHours =
 			ifNull(newRows[index].playTimeTrackedSec, 0) / 3600;
 		setTableRows(newRows);
@@ -96,8 +97,8 @@ export const ManuallyAdjustTimePage = () => {
 
 				return {
 					game: gameWithTimeByAppId.get(appId)?.game,
-					time: desiredHours * 3600,
-				} as GameWithTime;
+					totalTime: desiredHours * 3600,
+				} as GamePlaytimeDetails;
 			});
 		await timeMigration.applyManualOverallTimeCorrection(gamesToMigrate[0]);
 		navigateBack();

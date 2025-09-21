@@ -1,12 +1,12 @@
 import { PanelSection } from "@decky/ui";
-import { registerForInputEvent } from "@src/steam/registerForInputEvent";
-import { useEffect, useState } from "react";
-import { formatWeekInterval } from "../app/formatters";
-import {
-	type DailyStatistics,
-	convertDailyStatisticsToGameWithTime,
-} from "../app/model";
-import { type Paginated, empty } from "../app/reports";
+import { sortPlayedTime } from "@src/app/sortPlayTime";
+import { SortBy, getSelectedSortOptionByKey } from "@src/app/sortPlayTime";
+import { showGameOptionsContextMenu } from "@src/components/showOptionsMenu";
+import { showSortTitlesContextMenu } from "@src/components/showSortTitlesContextMenu";
+import { formatWeekInterval } from "@utils/formatters";
+import { useEffect, useMemo, useState } from "react";
+import { convertDailyStatisticsToGameWithTime } from "../app/model";
+import { empty, type Paginated } from "../app/reports";
 import { ChartStyle } from "../app/settings";
 import { Pager } from "../components/Pager";
 import { AverageAndOverall } from "../components/statistics/AverageAndOverall";
@@ -14,79 +14,60 @@ import { GamesTimeBarView } from "../components/statistics/GamesTimeBarView";
 import { PieView } from "../components/statistics/PieView";
 import { WeekView } from "../components/statistics/WeekView";
 import { useLocator } from "../locator";
+import { $lastWeeklyStatisticsPage } from "@src/stores/ui";
+import { isNil } from "es-toolkit";
 
 interface ReportWeeklyProperties {
-	slim?: boolean;
+	isFromQAM?: boolean;
 }
 
-export const ReportWeekly = ({ slim = false }: ReportWeeklyProperties) => {
-	const { reports, currentSettings: settings } = useLocator();
-	const [lastChangedPageTimeStamp, setLastChangedPageTimeStamp] =
-		useState<number>(0);
+export const ReportWeekly = ({ isFromQAM = false }: ReportWeeklyProperties) => {
+	const { reports, currentSettings, settings, setCurrentSettings } =
+		useLocator();
 	const [isLoading, setLoading] = useState<boolean>(false);
-	const [currentPage, setCurrentPage] = useState<Paginated<DailyStatistics>>(
-		empty(),
+	const [currentPage, setCurrentPage] = useState<Paginated<DayStatistics>>(
+		isFromQAM ? empty() : $lastWeeklyStatisticsPage.get(),
+	);
+	const sortType = currentSettings.selectedSortByOption || "mostPlayed";
+
+	const selectedSortOptionByKey =
+		getSelectedSortOptionByKey(currentSettings.selectedSortByOption) ||
+		"MOST_PLAYED";
+	const sortOptionName = SortBy[selectedSortOptionByKey].name;
+	const sectionTitle = isFromQAM ? "By Game" : `Sort ${sortOptionName}`;
+
+	const { interval } = currentPage.current();
+	const { start, end } = interval;
+
+	const sortedData = useMemo(
+		() =>
+			sortPlayedTime(
+				convertDailyStatisticsToGameWithTime(currentPage.current().data),
+				currentSettings.selectedSortByOption,
+			),
+		[sortType, `${start} - ${end}`],
 	);
 
 	useEffect(() => {
+		if (isNil(currentPage?.isEmpty)) {
+			return;
+		}
+
 		setLoading(true);
 
 		reports.weeklyStatistics().then((it) => {
 			setCurrentPage(it);
+			$lastWeeklyStatisticsPage.set(it);
 			setLoading(false);
 		});
 	}, []);
-
-	useEffect(() => {
-		if (slim) {
-			return;
-		}
-
-		const { unregister } = registerForInputEvent((_buttons, rawEvent) => {
-			if (rawEvent.length === 0) {
-				return;
-			}
-
-			const DELAY = 500;
-
-			if (new Date().getTime() - lastChangedPageTimeStamp <= DELAY) {
-				return;
-			}
-
-			// NOTE(ynhhoJ): Aproximative value
-			const TRIGGER_PUSH_FORCE_UNTIL_VIBRATION = 12000;
-			const isLeftTriggerPressed =
-				rawEvent[0].sTriggerL >= TRIGGER_PUSH_FORCE_UNTIL_VIBRATION;
-
-			if (isLeftTriggerPressed && currentPage.hasPrev()) {
-				setLastChangedPageTimeStamp(new Date().getTime());
-
-				onPrevWeek();
-			}
-
-			const isRightTriggerPressed =
-				rawEvent[0].sTriggerR >= TRIGGER_PUSH_FORCE_UNTIL_VIBRATION;
-
-			if (isRightTriggerPressed && currentPage.hasNext()) {
-				setLastChangedPageTimeStamp(new Date().getTime());
-
-				onNextWeek();
-			}
-		});
-
-		return () => {
-			unregister();
-		};
-	}, [
-		currentPage.current().interval.start.getTime(),
-		currentPage.current().interval.end.getTime(),
-	]);
 
 	const onNextWeek = () => {
 		setLoading(true);
 
 		currentPage?.next().then((it) => {
 			setCurrentPage(it);
+			$lastWeeklyStatisticsPage.set(it);
 			setLoading(false);
 		});
 	};
@@ -96,6 +77,7 @@ export const ReportWeekly = ({ slim = false }: ReportWeeklyProperties) => {
 
 		currentPage?.prev().then((it) => {
 			setCurrentPage(it);
+			$lastWeeklyStatisticsPage.set(it);
 			setLoading(false);
 		});
 	};
@@ -108,6 +90,22 @@ export const ReportWeekly = ({ slim = false }: ReportWeeklyProperties) => {
 			})
 			.reduce((a, b) => a + b, 0) > 0;
 
+	const onOptionsPress = () => {
+		showSortTitlesContextMenu({
+			currentSettings,
+			settings,
+			setCurrentSettings,
+		})();
+	};
+
+	const onMenuPress = (
+		gameName: string,
+		gameId: string,
+		hasChecksumEnabled: boolean = false,
+	) => {
+		showGameOptionsContextMenu({ gameName, gameId, hasChecksumEnabled })();
+	};
+
 	return (
 		<div>
 			<Pager
@@ -116,8 +114,9 @@ export const ReportWeekly = ({ slim = false }: ReportWeeklyProperties) => {
 				currentText={formatWeekInterval(currentPage.current().interval)}
 				hasNext={currentPage.hasNext()}
 				hasPrev={currentPage.hasPrev()}
-				prevKey={slim ? undefined : "l2"}
-				nextKey={slim ? undefined : "r2"}
+				prevKey={isFromQAM ? undefined : "l2"}
+				nextKey={isFromQAM ? undefined : "r2"}
+				isEnabledChangePagesWithTriggers={!isFromQAM}
 			/>
 
 			{isLoading && <div>Loading...</div>}
@@ -133,12 +132,15 @@ export const ReportWeekly = ({ slim = false }: ReportWeeklyProperties) => {
 					</PanelSection>
 
 					{isAnyGames && (
-						<PanelSection title="By game">
+						<PanelSection title={sectionTitle}>
 							<GamesTimeBarView
-								data={convertDailyStatisticsToGameWithTime(data)}
+								data={sortedData}
+								showCovers={!isFromQAM}
+								onOptionsPress={onOptionsPress}
+								onMenuPress={onMenuPress}
 							/>
 
-							{settings.gameChartStyle === ChartStyle.PIE_AND_BARS && (
+							{currentSettings.gameChartStyle === ChartStyle.PIE_AND_BARS && (
 								<PieView statistics={data} />
 							)}
 						</PanelSection>

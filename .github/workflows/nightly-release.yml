@@ -7,7 +7,7 @@ on:
 
 jobs:
   check:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
@@ -16,12 +16,12 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: lts/*
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: latest
 
       - name: Install Dependencies
         run: pnpm install
@@ -45,7 +45,7 @@ jobs:
     needs: check
     permissions:
       contents: write
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.TOKEN }}
     outputs:
@@ -59,7 +59,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: lts/*
 
       - name: Get Package Version
         run: echo "PACKAGE_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
@@ -96,7 +96,7 @@ jobs:
     needs: create-release
     permissions:
       contents: write
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
@@ -108,12 +108,12 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: lts/*
 
       - name: Setup Pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: latest
 
       - name: Install Frontend Dependencies
         run: pnpm install
@@ -175,6 +175,7 @@ jobs:
 
             fs.mkdirSync(bundlePath, { recursive: true });
             fs.mkdirSync(path.join(bundlePath, "dist"));
+            fs.mkdirSync(path.join(bundlePath, "python"));
 
             for (const fileToInclude of includeInBuild) {
               const srcPath = path.join(cwdPath, fileToInclude);
@@ -184,11 +185,15 @@ jobs:
             }
 
             // * check contents of defaults
-            const defaultsPath = path.join(cwdPath, "defaults");
+            const defaultsPath = path.join(cwdPath, "python");
 
             if (fs.existsSync(defaultsPath)) {
               const defaultContents = fs.readdirSync(defaultsPath, { withFileTypes: true });
-              copyDirRecursive("defaults", defaultContents, `bundle${path.sep}SDH-PlayTime`);
+              copyDirRecursive(
+                "python",
+                defaultContents,
+                `bundle${path.sep}SDH-PlayTime${path.sep}/python`,
+              );
             }
 
             // * check contents of dist
@@ -196,7 +201,11 @@ jobs:
 
             if (fs.existsSync(distPath)) {
               const distContents = fs.readdirSync(distPath, { withFileTypes: true });
-              copyDirRecursive("dist", distContents, `bundle${path.sep}SDH-PlayTime${path.sep}/dist`);
+              copyDirRecursive(
+                "dist",
+                distContents,
+                `bundle${path.sep}SDH-PlayTime${path.sep}/dist`,
+              );
             }
 
             // * zip
@@ -213,7 +222,7 @@ jobs:
     needs: [create-release, build-plugin]
     permissions:
       contents: write
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository

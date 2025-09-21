@@ -1,10 +1,11 @@
-import type { AppInfoStore, AppStore } from "@src/app/model";
+import type { AppStore } from "./steam/AppStore";
+import type { SuspendResumeStore as SuspendResumeStoreTypes } from "./steam/SuspendResumeStore";
 
 declare global {
-	// @ts-ignore
 	let appStore: AppStore;
 	let appInfoStore: AppInfoStore;
 	let SteamUIStore: SteamUIStore;
 	let SteamClient: SteamClient;
-	let SuspendResumeStore: SuspendResumeStore;
+	let SuspendResumeStore: SuspendResumeStoreTypes;
+	let collectionStore: CollectionStore;
 }

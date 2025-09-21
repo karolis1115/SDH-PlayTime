@@ -1,9 +1,10 @@
-import logger from "../utils";
+import logger from "@src/utils/logger";
+import type { Dispatch, SetStateAction } from "react";
 import type { SessionPlayTime } from "./SessionPlayTime";
 import type { Events } from "./events";
 import type { Reports } from "./reports";
 import type { PlayTimeSettings, Settings } from "./settings";
-import type { TimeManipulation } from "./time-manipulation";
+import type { TimeManipulation } from "./timeManipulation";
 
 export {
 	type Clock,
@@ -91,6 +92,7 @@ interface Locator {
 	settings: Settings;
 	sessionPlayTime: SessionPlayTime;
 	timeManipulation: TimeManipulation;
+	setCurrentSettings: Dispatch<SetStateAction<PlayTimeSettings>>;
 }
 
 interface LocatorDependencies {

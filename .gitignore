@@ -15,6 +15,7 @@ tmp
 
 # Coverage reports
 coverage
+.coverage
 
 # API keys and secrets
 .env
@@ -47,5 +48,3 @@ yalc.lock
 
 backend/out
 
-# Ignore python symlink
-/python

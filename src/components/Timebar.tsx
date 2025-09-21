@@ -1,5 +1,5 @@
 import { useLocator } from "@src/locator";
-import { humanReadableTime } from "../app/formatters";
+import { humanReadableTime } from "@utils/formatters";
 import { TimeBarCSS } from "../styles";
 import { VerticalContainer } from "./VerticalContainer";
 

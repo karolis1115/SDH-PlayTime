@@ -1,6 +1,12 @@
-import { endOfMonth, endOfWeek, startOfMonth, startOfWeek } from "../utils";
+import {
+	endOfMonth,
+	endOfWeek,
+	endOfYear,
+	startOfMonth,
+	startOfWeek,
+	startOfYear,
+} from "date-fns";
 import type { Backend } from "./backend";
-import type { DailyStatistics, GameWithTime } from "./model";
 
 export interface Interval {
 	start: Date;
@@ -19,6 +25,8 @@ interface Page<T> {
 }
 
 export interface Paginated<T> {
+	isEmpty?: boolean;
+
 	next(): Promise<Paginated<T>>;
 	hasNext(): boolean;
 
@@ -30,6 +38,7 @@ export interface Paginated<T> {
 
 export function empty<T>() {
 	return {
+		isEmpty: true,
 		next: async () => empty<T>(),
 		hasNext: () => false,
 		prev: async () => empty<T>(),
@@ -44,6 +53,7 @@ export function empty<T>() {
 export enum IntervalType {
 	Weekly = 0,
 	Monthly = 1,
+	Yearly = 2,
 }
 
 export class Reports {
@@ -67,8 +77,22 @@ export class Reports {
 		);
 	}
 
-	public async overallStatistics(): Promise<GameWithTime[]> {
+	public async yearlyStatistics(
+		gameId: string,
+	): Promise<Paginated<DailyStatistics>> {
+		return PerDayPaginatedImpl.create(
+			this.backend,
+			IntervalPagerImpl.create(IntervalType.Yearly, new Date()),
+			gameId,
+		);
+	}
+
+	public async overallStatistics(): Promise<GamePlaytimeDetails[]> {
 		return await this.backend.fetchPerGameOverallStatistics();
+	}
+
+	public async getGame(gameId: string): Promise<Nullable<GamePlaytimeSummary>> {
+		return await this.backend.getGame(gameId);
 	}
 }
 
@@ -77,22 +101,26 @@ class PerDayPaginatedImpl implements Paginated<DailyStatistics> {
 	private intervalPager: IntervalPager;
 	private data: DailyStatistics[];
 	private hasPrevPage: boolean;
+	private gameId?: string;
 
 	private constructor(
 		backend: Backend,
 		intervalPager: IntervalPager,
 		data: DailyStatistics[],
 		hasPrevPage: boolean,
+		gameId?: string,
 	) {
 		this.backend = backend;
 		this.intervalPager = intervalPager;
 		this.data = data;
 		this.hasPrevPage = hasPrevPage;
+		this.gameId = gameId;
 	}
 
 	hasNext(): boolean {
 		const nextInterval = this.intervalPager.next().current();
 		const today = new Date();
+
 		return nextInterval.start <= today;
 	}
 
@@ -103,26 +131,41 @@ class PerDayPaginatedImpl implements Paginated<DailyStatistics> {
 	static async create(
 		backend: Backend,
 		intervalPager: IntervalPager,
+		gameId?: string,
 	): Promise<Paginated<DailyStatistics>> {
 		const data = await backend.fetchDailyStatisticForInterval(
 			intervalPager.current().start,
 			intervalPager.current().end,
+			gameId,
 		);
+
 		return new PerDayPaginatedImpl(
 			backend,
 			intervalPager,
 			data.data,
 			data.hasPrev,
+			gameId,
 		);
 	}
 
 	next(): Promise<Paginated<DailyStatistics>> {
 		const nextIntervalPager = this.intervalPager.next();
-		return PerDayPaginatedImpl.create(this.backend, nextIntervalPager);
+
+		return PerDayPaginatedImpl.create(
+			this.backend,
+			nextIntervalPager,
+			this.gameId,
+		);
 	}
+
 	prev(): Promise<Paginated<DailyStatistics>> {
 		const prevIntervalPager = this.intervalPager.prev();
-		return PerDayPaginatedImpl.create(this.backend, prevIntervalPager);
+
+		return PerDayPaginatedImpl.create(
+			this.backend,
+			prevIntervalPager,
+			this.gameId,
+		);
 	}
 
 	current(): Page<DailyStatistics> {
@@ -144,8 +187,15 @@ export class IntervalPagerImpl {
 
 	static create(type: IntervalType, date: Date): IntervalPager {
 		if (type === IntervalType.Weekly) {
-			const start = startOfWeek(date);
-			const end = endOfWeek(start);
+			const start = startOfWeek(date, { weekStartsOn: 1 });
+			const end = endOfWeek(start, { weekStartsOn: 1 });
+
+			return new IntervalPagerImpl(type, { start, end });
+		}
+
+		if (type === IntervalType.Yearly) {
+			const start = startOfYear(date);
+			const end = endOfYear(start);
 
 			return new IntervalPagerImpl(type, { start, end });
 		}
@@ -161,8 +211,18 @@ export class IntervalPagerImpl {
 		nextDate.setDate(this.interval.end.getDate() + 1);
 
 		if (this.type === IntervalType.Weekly) {
-			const start = startOfWeek(nextDate);
-			const end = endOfWeek(start);
+			const start = startOfWeek(nextDate, { weekStartsOn: 1 });
+			const end = endOfWeek(start, { weekStartsOn: 1 });
+
+			return new IntervalPagerImpl(this.type, { start, end });
+		}
+
+		if (this.type === IntervalType.Yearly) {
+			const nextDate = new Date(this.interval.end);
+			nextDate.setFullYear(this.interval.end.getFullYear() + 1);
+
+			const start = startOfYear(nextDate);
+			const end = endOfYear(start);
 
 			return new IntervalPagerImpl(this.type, { start, end });
 		}
@@ -178,8 +238,18 @@ export class IntervalPagerImpl {
 		prevDate.setDate(this.interval.start.getDate() - 1);
 
 		if (this.type === IntervalType.Weekly) {
-			const start = startOfWeek(prevDate);
-			const end = endOfWeek(start);
+			const start = startOfWeek(prevDate, { weekStartsOn: 1 });
+			const end = endOfWeek(start, { weekStartsOn: 1 });
+
+			return new IntervalPagerImpl(this.type, { start, end });
+		}
+
+		if (this.type === IntervalType.Yearly) {
+			const prevDate = new Date(this.interval.end);
+			prevDate.setFullYear(this.interval.end.getFullYear() - 1);
+
+			const start = startOfYear(prevDate);
+			const end = endOfYear(start);
 
 			return new IntervalPagerImpl(this.type, { start, end });
 		}
