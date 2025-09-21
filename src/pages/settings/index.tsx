@@ -1,7 +1,9 @@
 import {
 	ButtonItem,
+	DialogButton,
 	Dropdown,
 	Field,
+	Navigation,
 	PanelSection,
 	PanelSectionRow,
 	SidebarNavigation,
@@ -15,7 +17,7 @@ import { Tab } from "@src/components/Tab";
 import { useLocator } from "@src/locator";
 import { FileChecksum } from "./checksums";
 import { MANUALLY_ADJUST_TIME, navigateToPage } from "@src/pages/navigation";
-import { BsFileBinary } from "react-icons/bs";
+import { BsFileBinary, BsInfoCircle } from "react-icons/bs";
 const SCALE_OPTIONS = [
 	0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2,
 ];
@@ -237,6 +239,32 @@ export function SettingsPage() {
 			content: (
 				<Tab>
 					<TimeManipulation />
+				</Tab>
+			),
+		},
+		{
+			title: "About",
+			icon: <BsInfoCircle />,
+			content: (
+				<Tab>
+					<DialogButton
+						style={{
+							height: "40px",
+							padding: "10px 12px",
+							minWidth: "40px",
+							display: "flex",
+							flexDirection: "column",
+							justifyContent: "center",
+							textAlign: "center",
+						}}
+						onClick={() =>
+							Navigation.NavigateToExternalWeb(
+								"https://github.com/0u73r-h34v3n/SDH-PlayTime/blob/master/CHANGELOG.md",
+							)
+						}
+					>
+						Read Changelog
+					</DialogButton>
 				</Tab>
 			),
 		},
