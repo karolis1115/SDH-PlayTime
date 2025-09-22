@@ -1,16 +1,16 @@
 # Changelog
 
-## 3.0.4
+## 3.0.4 - 2025-09-18
 
 ---
 ### ✨ Highlights
 
 PlayTime plugin has undergone a major evolution — from performance boosts and smarter game tracking to beautiful UI enhancements and future-proof architecture. Whether you're analyzing playtime, managing game files, or just browsing your library, everything is now smoother, faster, and more intuitive.
 
-Where is still a lot of things which needs to be done. Currently I'm working on detection games
-across devices using files checksum. Stay tuned!
+Where is still a lot of things which needs to be done. Stay tuned!
 
 This release introduces:
+- 💅 **User Interface improvements**
 - 🕹️ **Controller Trigger Navigation** (L2/R2 support offers better User Experience)
 - 🧠 **MobX Event System Upgrade** (removes some of legacy Steam event dependency)
 - ⚡ **Performance Optimizations** across **Front-End** and **Back-End**. Now plugin should work
@@ -18,6 +18,13 @@ more faster while collecting statistics from DataBase
 - 🧩 **Rewritten Back-End & Front-End** offers more robust FE/BE communication and easier
 development process
 - 🔍 **File Checksum Management** (Detect same games by their checksum for non-Steam games) **[Work in progress]**
+- 👀 **Custom covers for Non-Steam games** [Read guide about how to add custom covers for deleted Non-Steam Games](/docs/covers.md)
+
+> [!CAUTION]
+> * Restart your device after updating plugin to latest version
+
+> [!TIP]
+> * For a faster communication you can find `PlayTime Support` in [Decky Loader Discord](https://deckbrew.xyz/discord).
 
 ---
 
@@ -25,12 +32,12 @@ development process
 - Resolved issue caused by removed of some Steam methods which plugin used
 - Corrected typo in reminder message when playtime exceeds healthy limits.
 
-## 3.0.3
+## 3.0.3 - 2025-08-03
 
 ### Fixed
 - Playtime stats now properly update when the Quick Access Panel is opened.
 
-## 3.0.2
+## 3.0.2 - 2025-08-01
 
 ### Added
 - The app now remembers the **last page location** you visited for easier navigation.
@@ -45,7 +52,7 @@ development process
 ### Fixed
 - Corrected backend issue when handling file checksums.
 
-## 3.0.1
+## 3.0.1 - 2025-07-29
 
 ### Added
 - Bulk add & remove checksums for faster operations.
@@ -59,7 +66,7 @@ development process
 ### Fixed
 - Correct search results for games with/without checksums.
 
-## 3.0.0
+## 3.0.0 - 2025-07-27
 
 ### Added
 - A **big rewrite and overhaul** with improved speed and reliability.
@@ -78,7 +85,7 @@ development process
 - Non-Steam games are no longer mistakenly listed when checksum setting is off.
 - Backend bug fixes for file detection and SQL queries.
 
-## 2.1.5
+## 2.1.5 - 2025-03-26
 
 ### Added
 - Plugin now supports images directly from its assets for cleaner visuals.
@@ -86,7 +93,7 @@ development process
 - New API methods and backend improvements.
 - “Sort By” options are shown directly in playtime charts.
 
-## 2.1.4
+## 2.1.4 - 2025-03-20
 
 ### Added
 - Default key bindings for smoother navigation (Prev / Next).
@@ -94,7 +101,7 @@ development process
 ### Changed
 - Removed dependency on the `moment` library (lighter, faster code).
 
-## 2.1.3
+## 2.1.3 2025-03-19
 
 ### Added
 - Navigation using **L2/R2 triggers**.
@@ -106,7 +113,7 @@ development process
 - Game statistics now handle missing data without breaking.
 - Settings scale options now show more precise values.
 
-## 2.1.2
+## 2.1.2 - 2025-03-16
 
 ### Added
 - Total played time is now shown in the game header.
@@ -115,7 +122,7 @@ development process
 - Sorting options won’t break if time data is missing.
 - Backend more robust with conditional date checks.
 
-## 2.1.1
+## 2.1.1 - 2025-03-15
 
 ### Added
 - **Sort By** option is remembered across sessions.
@@ -125,7 +132,7 @@ development process
 ### Fixed
 - Jumping across years in game activity timeline now works smoothly.
 
-## 2.1.0
+## 2.1.0 - 2025-03-14
 
 ### Added
 - Complete overhaul of statistics:
