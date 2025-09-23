@@ -205,3 +205,51 @@ export async function addGameChecksumById(gameId: string) {
 		});
 	});
 }
+
+export async function addGameChecksumByFile(game: Game, filePath?: string) {
+	if (isNil(game) || isNil(game.id) || isNil(game.name)) {
+		toaster.toast({
+			title: "PlayTime",
+			body: "Impossible to detect game for what should be generated checksum.",
+		});
+
+		return;
+	}
+
+	if (isNil(filePath)) {
+		toaster.toast({
+			title: "PlayTime",
+			body: "Impossible to detect path to game.",
+		});
+
+		return;
+	}
+
+	const checksum = await Backend.getFileSHA256(filePath);
+
+	if (isNil(checksum)) {
+		toaster.toast({
+			title: "PlayTime",
+			body: "An error happened while generating file checksum",
+		});
+
+		return;
+	}
+
+	return await Backend.addGameChecksum(
+		game.id,
+		checksum,
+		"SHA256",
+		// NOTE(ynhhoJ): 16 MB
+		16 * 1024 * 1024,
+	).then(async () => {
+		$toggleUpdateInListeningComponents.set(
+			!$toggleUpdateInListeningComponents.get(),
+		);
+
+		toaster.toast({
+			title: "PlayTime",
+			body: `Saved checksum for ${game.name}`,
+		});
+	});
+}

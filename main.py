@@ -7,8 +7,7 @@ from pathlib import Path
 from typing import List
 
 
-decky_home = os.environ["DECKY_HOME"]
-log_dir = os.environ["DECKY_PLUGIN_LOG_DIR"]
+decky_user_home = os.environ["DECKY_USER_HOME"]
 data_dir = os.environ["DECKY_PLUGIN_RUNTIME_DIR"]
 plugin_dir = Path(os.environ["DECKY_PLUGIN_DIR"])
 
@@ -323,6 +322,16 @@ class Plugin:
                 "[link_game_to_game_with_checksum] Unhandled exception: %s", e
             )
             raise e
+
+    async def get_decky_home(self):
+        try:
+            return decky_user_home
+        except Exception as e:
+            decky.logger.exception(
+                "[get_decky_home] Unhandled exception: %s", e
+            )
+            raise e
+
 
     async def _unload(self):
         decky.logger.info("Goodnight, World!")

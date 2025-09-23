@@ -243,4 +243,8 @@ export class Backend {
 			parentGameId,
 		);
 	}
+
+	public static async getDeckyHome() {
+		return await call<[], string>(BACK_END_API.GET_DECKY_HOME);
+	}
 }
