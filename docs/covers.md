@@ -1,21 +1,53 @@
-## Custom covers for Non-Steam games
-> [!CAUTION]
-> * Minimal Decky version required **3.1.6**
+## 🎮 Custom Covers for Non-Steam Games
 
-1. Press **Quick Access Menu**
-2. Open **PlayTime** plugin
-3. Go to **Detailed report**
-4. Focus on game which you want to set custom cover
-5. Click on `Option`
-6. You will see something like `FIFA 17 (ID: 2489841875)`
+> [!CAUTION]  
+> **Minimum Decky version required: 3.1.6**
 
-**For each added non-steam game, Steam will generate a new ID, so you will have a different value
-than mine**
+Follow these steps to set custom cover art for your Non-Steam games using the PlayTime plugin.
 
-7. Search for an cover which you want to apply
-8. Download image (only `.png` and `.jpg` formats are supported)
-9. Set file name to `2489841875.png` or `2489841875.jpg`
-10. Put file `2489841875.png` or `2489841875.jpg` in `/home/deck/homebrew/data/SDH-PlayTime/assets`
-    folder.
+---
 
-**If you don't have `assets` folder in `SDH-PlayTime` create one.**
+### ✅ Step-by-Step Instructions
+
+1. **Open Quick Access Menu**  
+   Press the Quick Access button on your Steam Deck.
+
+2. **Launch the PlayTime Plugin**  
+   Navigate to and open the **PlayTime** plugin from the menu.
+
+3. **Go to Detailed Report**  
+   Inside PlayTime, select **Detailed Report** to view your game library.
+
+4. **Select Your Game**  
+   Scroll and focus on the Non-Steam game you want to customize.
+
+5. **Open Options**  
+   Click the **Option** button next to the game entry.
+
+6. **Note the Game ID**  
+   You’ll see a header line like:  
+   `FIFA 17 (ID: 2489841875)`  
+   
+   > 💡 *Steam generates a unique ID for each Non-Steam game. Yours will differ from this example.*
+
+7. **Find Your Cover Art**  
+   Search online for the cover image you’d like to use.
+   You can use [SteamGridDB](https://www.steamgriddb.com/).
+
+8. **Download the Image**  
+   Save it in either `.png` or `.jpg` format — **these are the only supported types**.
+
+9. **Rename the File**  
+   Rename the image file to match your game’s ID:  
+   - Example: `2489841875.png` or `2489841875.jpg`
+
+10. **Place the File in the Correct Folder**  
+    Copy the renamed image into this directory:  
+    ```
+    /home/deck/homebrew/data/SDH-PlayTime/assets/
+    ```
+
+    > ⚠️ If the `assets` folder doesn't exist inside `SDH-PlayTime`, **create it manually**.
+
+### ✅ Done!
+Restart **PlayTime** plugin or Steam Deck *if restarting plugin doesn't help* — your custom cover should now appear for that game.
