@@ -1,7 +1,7 @@
 from datetime import datetime
 import unittest
 
-from python.helpers import end_of_day
+from py_modules.helpers import end_of_day
 
 
 class TestHelpers(unittest.TestCase):

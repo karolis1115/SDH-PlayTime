@@ -1,8 +1,8 @@
 from datetime import datetime
 import logging
-from python.db.dao import Dao
-from python.helpers import end_of_day
-from python.schemas.request import ApplyManualTimeCorrectionDTO
+from py_modules.db.dao import Dao
+from py_modules.helpers import end_of_day
+from py_modules.schemas.request import ApplyManualTimeCorrectionDTO
 
 
 DATE_FORMAT = "%Y-%m-%d"

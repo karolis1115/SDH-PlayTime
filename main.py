@@ -13,7 +13,7 @@ plugin_dir = Path(os.environ["DECKY_PLUGIN_DIR"])
 
 
 def add_plugin_to_path():
-    directories = [["./"], ["python"]]
+    directories = [["./"], ["py_modules"]]
 
     for import_dir in directories:
         sys.path.append(str(plugin_dir.joinpath(*import_dir)))
@@ -23,15 +23,15 @@ add_plugin_to_path()
 
 # pylint: disable=wrong-import-order, wrong-import-position
 # ruff: noqa: E402
-from python.db.dao import Dao
-from python.db.migration import DbMigration
-from python.db.sqlite_db import SqlLiteDb
-from python.files import Files
-from python.games import Games
-from python.helpers import parse_date
-from python.statistics import Statistics
-from python.time_tracking import TimeTracking
-from python.schemas.request import (
+from py_modules.db.dao import Dao
+from py_modules.db.migration import DbMigration
+from py_modules.db.sqlite_db import SqlLiteDb
+from py_modules.files import Files
+from py_modules.games import Games
+from py_modules.helpers import parse_date
+from py_modules.statistics import Statistics
+from py_modules.time_tracking import TimeTracking
+from py_modules.schemas.request import (
     AddGameChecksumDict,
     AddTimeDict,
     ApplyManualTimeCorrectionDTO,
@@ -41,11 +41,11 @@ from python.schemas.request import (
     RemoveAllGameChecksumsDTO,
     RemoveGameChecksumDTO,
 )
-from python.dto.save_game_checksum import AddGameChecksumDTO
-from python.dto.statistics.daily_statistics_for_period import (
+from py_modules.dto.save_game_checksum import AddGameChecksumDTO
+from py_modules.dto.statistics.daily_statistics_for_period import (
     DailyStatisticsForPeriodDTO,
 )
-from python.dto.time.add_time import AddTimeDTO
+from py_modules.dto.time.add_time import AddTimeDTO
 
 
 # pylint: enable=wrong-import-order, wrong-import-position
@@ -79,7 +79,7 @@ def convert_keys_to_camel_case(data):
     from snake_case to camelCase.
 
     Args:
-        data: A dict, list, or other python object.
+        data: A dict, list, or other py_modules object.
 
     Returns:
         A new object with all dictionary keys converted to camelCase.

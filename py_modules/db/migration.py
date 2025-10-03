@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import List
-from python.db.sqlite_db import SqlLiteDb
+from py_modules.db.sqlite_db import SqlLiteDb
 
 
 @dataclass

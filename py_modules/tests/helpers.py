@@ -2,7 +2,7 @@ from datetime import datetime
 import os
 import unittest
 
-from python.db.sqlite_db import SqlLiteDb
+from py_modules.db.sqlite_db import SqlLiteDb
 
 
 class FixedClock:

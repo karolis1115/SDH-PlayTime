@@ -2,9 +2,9 @@ import dataclasses
 from collections import defaultdict
 from datetime import datetime, date, time, timedelta
 from typing import Dict, List, Any, Optional
-from python.db.dao import DailyGameTimeDto, Dao, GameTimeDto
-from python.helpers import format_date
-from python.schemas.response import (
+from py_modules.db.dao import DailyGameTimeDto, Dao, GameTimeDto
+from py_modules.helpers import format_date
+from py_modules.schemas.response import (
     DayStatistics,
     Game,
     GamePlaytimeDetails,
@@ -13,7 +13,7 @@ from python.schemas.response import (
     GamePlaytimeReport,
 )
 from dataclasses import dataclass
-from python.helpers import start_of_week, end_of_week
+from py_modules.helpers import start_of_week, end_of_week
 
 
 @dataclass

@@ -1,12 +1,12 @@
 import unittest
 from datetime import datetime, timedelta
-from python.tests.helpers import AbstractDatabaseTest
-from python.db.migration import DbMigration
-from python.games import Games
-from python.db.dao import Dao
-from python.time_tracking import TimeTracking
-from python.statistics import Statistics
-from python.dto.save_game_checksum import AddGameChecksumDTO
+from py_modules.tests.helpers import AbstractDatabaseTest
+from py_modules.db.migration import DbMigration
+from py_modules.games import Games
+from py_modules.db.dao import Dao
+from py_modules.time_tracking import TimeTracking
+from py_modules.statistics import Statistics
+from py_modules.dto.save_game_checksum import AddGameChecksumDTO
 
 
 class TestGame(AbstractDatabaseTest):

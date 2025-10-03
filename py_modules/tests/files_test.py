@@ -4,7 +4,7 @@ from unittest.mock import patch
 import hashlib
 
 with patch.dict("os.environ", {"DECKY_PLUGIN_RUNTIME_DIR": "./python/tests/data"}):
-    from python.files import Files
+    from py_modules.files import Files
 
 CHUNK_SIZE = 16 * 1024 * 1024
 

@@ -1,6 +1,6 @@
 import sqlite3
-from python.db.migration import DbMigration
-from python.tests.helpers import AbstractDatabaseTest
+from py_modules.db.migration import DbMigration
+from py_modules.tests.helpers import AbstractDatabaseTest
 
 
 class TestDbMigration(AbstractDatabaseTest):

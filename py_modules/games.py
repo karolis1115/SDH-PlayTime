@@ -1,14 +1,14 @@
-from python.db.dao import Dao
+from py_modules.db.dao import Dao
 from typing import Dict, List
 import dataclasses
-from python.schemas.response import (
+from py_modules.schemas.response import (
     FileChecksum,
     Game,
     GameDictionary,
     GamePlaytimeSummary,
     GameDictionary,
 )
-from python.dto.save_game_checksum import AddGameChecksumDTO
+from py_modules.dto.save_game_checksum import AddGameChecksumDTO
 
 
 class Games:

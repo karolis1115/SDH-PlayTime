@@ -1,14 +1,14 @@
 import dataclasses
 import unittest
 from datetime import datetime, timedelta
-from python.db.dao import Dao
-from python.db.migration import DbMigration
-from python.statistics import Statistics
-from python.tests.helpers import AbstractDatabaseTest
-from python.time_tracking import TimeTracking
-from python.games import Games
-from python.schemas.request import ApplyManualTimeCorrectionList
-from python.schemas.response import Game
+from py_modules.db.dao import Dao
+from py_modules.db.migration import DbMigration
+from py_modules.statistics import Statistics
+from py_modules.tests.helpers import AbstractDatabaseTest
+from py_modules.time_tracking import TimeTracking
+from py_modules.games import Games
+from py_modules.schemas.request import ApplyManualTimeCorrectionList
+from py_modules.schemas.response import Game
 
 
 class TestPlayTime(AbstractDatabaseTest):
