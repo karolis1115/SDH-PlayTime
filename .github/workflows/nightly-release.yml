@@ -69,10 +69,10 @@ jobs:
       - name: Get Commit Hash
         run: echo "COMMIT_HASH=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_ENV
 
-      - name: Delete Existing 'nightly' Tag (if exists)
-        run: |
-          git fetch --tags
-          gh release delete "nightly" --cleanup-tag -y
+      # - name: Delete Existing 'nightly' Tag (if exists)
+      #   run: |
+      #     git fetch --tags
+      #     gh release delete "nightly" --cleanup-tag -y
 
       - name: Create Release
         id: create-release
